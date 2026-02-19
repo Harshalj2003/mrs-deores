@@ -1,5 +1,6 @@
 import type { Address } from './Address';
 import type { Product } from './catalog.types';
+import type { User } from './auth.types';
 
 export interface OrderItem {
     id: number;
@@ -18,6 +19,7 @@ export interface PaymentDetails {
 
 export interface Order {
     id: number;
+    user: User;
     shippingAddress: Address;
     paymentDetails: PaymentDetails;
     orderItems: OrderItem[];

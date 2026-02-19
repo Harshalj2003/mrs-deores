@@ -22,4 +22,7 @@ export interface Product {
     stockQuantity: number;
     images: ProductImage[];
     category: Category;
+    isActive: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }

@@ -1,6 +1,6 @@
 # ROADMAP.md
 
-> **Current Phase**: Not started
+> **Current Phase**: Phase 5: Admin Panel
 > **Milestone**: v1.0 (MVP)
 
 ## Phases
@@ -24,7 +24,7 @@
 -   Product Detail Page with image gallery and pricing logic
 
 ### Phase 3: Shopping Experience
-**Status**: 🏗️ In Progress
+**Status**: ✅ Completed
 **Objective**: Enable users to save items and manage their cart with bulk logic.
 **Deliverables**:
 -   Cart and Wishlist database entities
@@ -34,16 +34,18 @@
 -   Wishlist / Save for Later functionality
 -   Guest Cart merging on login
 
-## Phase 4: Checkout & Orders
-- [/] Step 1: Backend - Order & Address Entities <!-- id: 19 -->
-- [ ] Step 2: Backend - Checkout Logic & Mock Payment <!-- id: 20 -->
-- [ ] Step 3: Frontend - Address Management <!-- id: 21 -->
-- [ ] Step 4: Frontend - Checkout Flow & Success Page <!-- id: 22 -->
-- [ ] Step 5: Frontend - Order History <!-- id: 23 -->
-- [ ] Step 6: Verify Phase 4 <!-- id: 24 -->
+### Phase 4: Checkout & Orders
+**Status**: ✅ Completed
+**Objective**: Finalize the purchasing flow from address selection to order history.
+**Deliverables**:
+-   Order & Address database entities
+-   Checkout API with Mock Payment integration
+-   Frontend Checkout flow (Stepper UI)
+-   Address Management (Add/Select/Delete)
+-   Order History view for customers
 
 ### Phase 5: Admin Panel
-**Status**: ⬜ Not Started
+**Status**: ✅ Completed
 **Objective**: Empower the owner to manage the platform.
 **Deliverables**:
 -   Admin Dashboard UI
@@ -52,10 +54,25 @@
 -   Bulk order specific view
 
 ### Phase 6: Polish & Animations
-**Status**: ⬜ Not Started
+**Status**: ✅ Completed
 **Objective**: Elevate the user experience to "Premium" standards.
 **Deliverables**:
 -   Implementation of Framer Motion animations
 -   Micro-interactions (hover, click effects)
 -   Performance optimization (Lighthouse score > 90)
 -   Final UI review and responsive adjustments
+
+---
+
+### Phase 7: Production Optimization & Analytics
+**Status**: ⬜ Not Started
+**Objective**: Prepare the platform for real-world traffic, SEO visibility, and data-driven insights.
+**Depends on**: Phase 6
+
+**Tasks**:
+- [ ] TBD (run /plan 7 to create)
+
+**Verification**:
+- TBD
+
+
