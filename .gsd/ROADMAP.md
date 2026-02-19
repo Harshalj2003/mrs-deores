@@ -64,15 +64,26 @@
 
 ---
 
-### Phase 7: Production Optimization & Analytics
+### Phase 7: Production UI Hardening + Error Elimination + Brand Completion
 **Status**: ⬜ Not Started
-**Objective**: Prepare the platform for real-world traffic, SEO visibility, and data-driven insights.
+**Objective**: Transform the platform from a functional prototype into a stable, brand-consistent, and error-free production environment ready for manual QA.
 **Depends on**: Phase 6
 
 **Tasks**:
-- [ ] TBD (run /plan 7 to create)
+- [ ] **Stability**: Implement defensive optional chaining, loading states, and empty states (Orders, Cart, Wishlist).
+- [ ] **Profile System**: Complete User Profile UI with address management (add/edit/delete/default).
+- [ ] **Layout Refactor**: Resolve double navbar issues and nested layout duplication via `MainLayout`, `AuthLayout`, and `CheckoutLayout`.
+- [ ] **Brand Identity**: Full implementation of the brand palette: Saffron (#C2410C), Turmeric (#EAB308), Maroon (#7F1D1D), and Cream (#FFF8ED).
+- [ ] **UI Hardening**: Skeleton loaders, Bulk Pricing UI completion, and full Wishlist feature persistence.
+- [ ] **Error Handling**: Wrap app with Global ErrorBoundary and implement graceful image fallback components.
+- [ ] **UX Polish**: Consistent motion layer (card lifts, transitions) and Accessibility (ARIA) audit.
 
 **Verification**:
-- TBD
+- Zero runtime errors/blank pages across all routes.
+- Brand colors consistently applied to all components.
+- Profile and Wishlist systems fully functional.
+- Layout duplication resolved.
+- End-to-end manual test pass (QA Ready).
+
 
 
