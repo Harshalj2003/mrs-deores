@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mrsdeores.models.ERole;
 import com.mrsdeores.models.Role;
 import com.mrsdeores.models.User;
+import com.mrsdeores.payload.request.AdminRegisterRequest;
 import com.mrsdeores.payload.request.LoginRequest;
 import com.mrsdeores.payload.request.SignupRequest;
 import com.mrsdeores.payload.response.JwtResponse;
@@ -31,6 +34,7 @@ import com.mrsdeores.repository.RoleRepository;
 import com.mrsdeores.repository.UserRepository;
 import com.mrsdeores.security.jwt.JwtUtils;
 import com.mrsdeores.security.services.UserDetailsImpl;
+import com.mrsdeores.services.AdminAuthService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -50,6 +54,9 @@ public class AuthController {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    AdminAuthService adminAuthService;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -91,33 +98,56 @@ public class AuthController {
                 signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
+        // SECURITY: Always assign ROLE_USER — role is NEVER accepted from request body
         Set<Role> roles = new HashSet<>();
-
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
-        }
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+        roles.add(userRole);
 
         user.setRoles(roles);
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    /**
+     * Secure Admin Registration via Invitation Token.
+     * 
+     * Requirements:
+     * - Email must be pre-approved in admin_invitations table
+     * - Phone must match the invitation
+     * - Invite token must match, not expired, not used
+     * - Rate limited: 3 attempts per 15 minutes per IP
+     * - All failures return generic "Admin registration not permitted" message
+     */
+    @PostMapping("/admin/register")
+    public ResponseEntity<?> registerAdmin(
+            @Valid @RequestBody AdminRegisterRequest request,
+            HttpServletRequest httpRequest) {
+        try {
+            String ipAddress = getClientIp(httpRequest);
+            adminAuthService.registerAdmin(request, ipAddress);
+            return ResponseEntity.ok(new MessageResponse("Admin account created successfully."));
+        } catch (AdminAuthService.AdminRegistrationException e) {
+            // Rate limit exceeded returns 429
+            if (e.getMessage().contains("Too many attempts")) {
+                return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                        .body(new MessageResponse(e.getMessage()));
+            }
+            // All other failures return 403 with generic message
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Extract client IP, handling proxies.
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

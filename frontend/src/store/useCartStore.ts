@@ -93,10 +93,10 @@ const useCartStore = create<CartState>()(
                         // For now, let's assume valid session merge
                     }
 
-                    const response = await api.get('/cart');
+                    const response = await api.get<{ items: { id: number, product: Product, quantity: number }[] }>('/cart');
                     if (response.data && response.data.items) {
                         // Transform backend CartItems to frontend CartItems
-                        const backendItems: CartItem[] = response.data.items.map((item: any) => ({
+                        const backendItems: CartItem[] = response.data.items.map((item) => ({
                             id: item.id,
                             product: item.product,
                             quantity: item.quantity

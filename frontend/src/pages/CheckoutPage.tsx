@@ -202,8 +202,17 @@ const CheckoutPage: React.FC = () => {
                                             return (
                                                 <div key={item.product?.id} className="flex justify-between items-center group">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="h-10 w-10 bg-white/10 rounded-xl flex items-center justify-center text-[10px] font-black">{item.quantity}x</div>
-                                                        <span className="text-sm font-bold opacity-80 group-hover:opacity-100 transition-opacity">{item.product?.name}</span>
+                                                        <div className="h-12 w-12 bg-white/10 rounded-xl overflow-hidden flex-shrink-0">
+                                                            <img
+                                                                src={item.product.images?.[0]?.imageUrl || 'https://placehold.co/100'}
+                                                                alt={item.product.name}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-sm font-bold opacity-80 group-hover:opacity-100 transition-opacity leading-tight">{item.product?.name}</span>
+                                                            <span className="text-[10px] font-black opacity-40 uppercase tracking-widest">{item.quantity} units</span>
+                                                        </div>
                                                     </div>
                                                     <span className="text-sm font-black">₹{(effectivePrice * item.quantity).toLocaleString()}</span>
                                                 </div>

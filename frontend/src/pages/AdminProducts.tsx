@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import ProductForm from '../components/ProductForm';
+import type { ProductFormData } from '../components/ProductForm';
 import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
 import api from '../services/api';
 import type { Product, Category } from '../types/catalog.types';
@@ -11,6 +12,7 @@ const AdminProducts: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
+    const [saveError, setSaveError] = useState('');
 
     useEffect(() => {
         fetchInitialData();
@@ -33,31 +35,33 @@ const AdminProducts: React.FC = () => {
 
     const handleAddProduct = () => {
         setSelectedProduct(undefined);
+        setSaveError('');
         setIsFormOpen(true);
     };
 
     const handleEditProduct = (product: Product) => {
         setSelectedProduct(product);
+        setSaveError('');
         setIsFormOpen(true);
     };
 
-    const handleSaveProduct = async (formData: Partial<Product>) => {
+    const handleSaveProduct = async (formData: ProductFormData) => {
         try {
+            setSaveError('');
             if (selectedProduct) {
-                // Update
                 const res = await api.put(`/products/${selectedProduct.id}`, formData);
                 setProducts(products.map(p => p.id === selectedProduct.id ? res.data : p));
             } else {
-                // Create
                 const res = await api.post('/products', formData);
                 setProducts([res.data, ...products]);
             }
             setIsFormOpen(false);
-        } catch (err) {
-            console.error("Failed to save product", err);
-            alert("Error saving product. Please check console.");
+        } catch (err: any) {
+            const msg = err?.response?.data?.message || "Failed to save product. Check the data and try again.";
+            setSaveError(msg);
         }
     };
+
 
     const handleDeleteProduct = async (id: number) => {
         if (!window.confirm("Are you sure you want to delete this product?")) return;

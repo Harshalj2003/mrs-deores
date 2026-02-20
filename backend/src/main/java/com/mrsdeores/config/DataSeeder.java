@@ -16,43 +16,66 @@ import java.math.BigDecimal;
 @Component
 public class DataSeeder implements CommandLineRunner {
 
-    @Autowired
-    private RoleRepository roleRepository;
+        @Autowired
+        private RoleRepository roleRepository;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+        @Autowired
+        private CategoryRepository categoryRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+        @Autowired
+        private ProductRepository productRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
-        if (roleRepository.findByName(ERole.ROLE_USER).isEmpty()) {
-            roleRepository.save(new Role(ERole.ROLE_USER));
-            roleRepository.save(new Role(ERole.ROLE_ADMIN));
+        @Override
+        public void run(String... args) throws Exception {
+                if (roleRepository.findByName(ERole.ROLE_USER).isEmpty()) {
+                        roleRepository.save(new Role(ERole.ROLE_USER));
+                        roleRepository.save(new Role(ERole.ROLE_ADMIN));
+                }
+
+                if (categoryRepository.count() == 0) {
+                        categoryRepository.save(new Category("Traditional Snacks",
+                                        "Crispy and authentic homemade snacks",
+                                        "https://images.unsplash.com/photo-1601050690597-df0568f70968?auto=format&fit=crop&w=800&q=80"));
+                        Category premixes = categoryRepository.save(new Category("Instant Premixes",
+                                        "Ready-to-cook homemade premixes",
+                                        "https://images.unsplash.com/photo-1589113177863-26312a033215?auto=format&fit=crop&w=800&q=80"));
+                        Category masalas = categoryRepository.save(new Category("Handmade Masalas",
+                                        "Freshly grounded traditional spices",
+                                        "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80"));
+
+                        Product p1 = productRepository
+                                        .save(new Product("Puran Poli Premix",
+                                                        "Traditional high-quality Puran Poli stuffing premix.",
+                                                        new BigDecimal("250.00"), new BigDecimal("199.00"), premixes));
+                        p1.getImages().add(new com.mrsdeores.models.ProductImage(
+                                        "https://images.unsplash.com/photo-1626132647523-66f5bf380027?auto=format&fit=crop&w=800&q=80",
+                                        p1, true));
+                        productRepository.save(p1);
+
+                        Product p2 = productRepository
+                                        .save(new Product("Ukadiche Modak Flour",
+                                                        "Finely grounded rice flour for authentic Modaks.",
+                                                        new BigDecimal("150.00"), new BigDecimal("120.00"), premixes));
+                        p2.getImages().add(new com.mrsdeores.models.ProductImage(
+                                        "https://images.unsplash.com/photo-1605333396915-47ed6b68a00e?auto=format&fit=crop&w=800&q=80",
+                                        p2, true));
+                        productRepository.save(p2);
+
+                        Product p3 = productRepository.save(
+                                        new Product("Ladoo Masala", "Signature blend of spices for Nutritious Ladoos.",
+                                                        new BigDecimal("300.00"), new BigDecimal("240.00"), masalas));
+                        p3.getImages().add(new com.mrsdeores.models.ProductImage(
+                                        "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80",
+                                        p3, true));
+                        productRepository.save(p3);
+
+                        Product p4 = productRepository.save(new Product("Besan Ladoo Premix",
+                                        "Instant mix for perfectly textured Besan Ladoos.",
+                                        new BigDecimal("280.00"), new BigDecimal("220.00"), premixes));
+                        p4.getImages().add(new com.mrsdeores.models.ProductImage(
+                                        "https://images.unsplash.com/photo-1541944743827-e04bb645f946?auto=format&fit=crop&w=800&q=80",
+                                        p4, true));
+                        productRepository.save(p4);
+                }
         }
-
-        if (categoryRepository.count() == 0) {
-            categoryRepository.save(new Category("Traditional Snacks",
-                    "Crispy and authentic homemade snacks",
-                    "https://images.unsplash.com/photo-1601050690597-df0568f70968?auto=format&fit=crop&w=800&q=80"));
-            Category premixes = categoryRepository.save(new Category("Instant Premixes",
-                    "Ready-to-cook homemade premixes",
-                    "https://images.unsplash.com/photo-1589113177863-26312a033215?auto=format&fit=crop&w=800&q=80"));
-            Category masalas = categoryRepository.save(new Category("Handmade Masalas",
-                    "Freshly grounded traditional spices",
-                    "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80"));
-
-            productRepository
-                    .save(new Product("Puran Poli Premix", "Traditional high-quality Puran Poli stuffing premix.",
-                            new BigDecimal("250.00"), new BigDecimal("199.00"), premixes));
-            productRepository
-                    .save(new Product("Ukadiche Modak Flour", "Finely grounded rice flour for authentic Modaks.",
-                            new BigDecimal("150.00"), new BigDecimal("120.00"), premixes));
-            productRepository.save(new Product("Ladoo Masala", "Signature blend of spices for Nutritious Ladoos.",
-                    new BigDecimal("300.00"), new BigDecimal("240.00"), masalas));
-            productRepository.save(new Product("Besan Ladoo Premix", "Instant mix for perfectly textured Besan Ladoos.",
-                    new BigDecimal("280.00"), new BigDecimal("220.00"), premixes));
-        }
-    }
 }

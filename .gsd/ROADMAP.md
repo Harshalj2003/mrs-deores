@@ -64,26 +64,59 @@
 
 ---
 
-### Phase 7: Production UI Hardening + Error Elimination + Brand Completion
-**Status**: ⬜ Not Started
-**Objective**: Transform the platform from a functional prototype into a stable, brand-consistent, and error-free production environment ready for manual QA.
+### Phase 7: Brand Enforcement, Auth Upgrade & Production Readiness (STRICT)
+**Status**: 🔄 In Progress
+**Objective**: Enforce strict global brand theme (Saffron/Turmeric/Maroon/Cream), upgrade authentication (OTP/Tabs), implement Custom Orders, and ensure visual consistency.
 **Depends on**: Phase 6
 
 **Tasks**:
-- [ ] **Stability**: Implement defensive optional chaining, loading states, and empty states (Orders, Cart, Wishlist).
-- [ ] **Profile System**: Complete User Profile UI with address management (add/edit/delete/default).
-- [ ] **Layout Refactor**: Resolve double navbar issues and nested layout duplication via `MainLayout`, `AuthLayout`, and `CheckoutLayout`.
-- [ ] **Brand Identity**: Full implementation of the brand palette: Saffron (#C2410C), Turmeric (#EAB308), Maroon (#7F1D1D), and Cream (#FFF8ED).
-- [ ] **UI Hardening**: Skeleton loaders, Bulk Pricing UI completion, and full Wishlist feature persistence.
-- [ ] **Error Handling**: Wrap app with Global ErrorBoundary and implement graceful image fallback components.
-- [ ] **UX Polish**: Consistent motion layer (card lifts, transitions) and Accessibility (ARIA) audit.
+- [ ] **Global Theme Correction**:
+    - [ ] Apply Brand Palette (Saffron #C2410C, Turmeric #EAB308, Maroon #7F1D1D, Cream #FFF8ED) globally.
+    - [ ] Remove all "SaaS-blue" styles.
+    - [ ] Update Buttons, Backgrounds, and Active States.
+- [ ] **Navigation & Logo**:
+    - [ ] Add "Custom Order" link.
+    - [ ] Increase Logo & Web Name size (1.5x, exact SVG match).
+- [ ] **Authentication Upgrade**:
+    - [ ] Separate User/Admin tabs.
+    - [ ] Add Phone OTP Login mode.
+    - [ ] Expand Register form (Name, Email, Phone, Pass, Confirm).
+    - [ ] Add Form Validation (Inline, Branded).
+- [ ] **Custom Order Feature**:
+    - [ ] Frontend: Request Form (Item, Desc, Qty, Budget, Image ref).
+    - [ ] Backend: `custom_orders` table & API.
+    - [ ] Admin: Notification & Management.
+- [ ] **Visual Consistency**:
+    - [ ] Standardize typography, radius, shadows, animations.
 
 **Verification**:
-- Zero runtime errors/blank pages across all routes.
-- Brand colors consistently applied to all components.
-- Profile and Wishlist systems fully functional.
-- Layout duplication resolved.
-- End-to-end manual test pass (QA Ready).
+- [ ] ZERO blue elements remaining.
+- [ ] Auth flow works (Tab separation, OTP logic).
+- [ ] Custom Order submitted & visible in db.
+- [ ] Design matches "Premium" traditional aesthetic.
+
+---
+
+### Phase 8: Admin Fulfillment & Order Management Evolution
+**Status**: 🔄 In Progress
+**Objective**: Empower admins to manage Custom Orders and provide transparent tracking for customers.
+**Depends on**: Phase 7
+
+**Tasks**:
+- [ ] **Admin Custom Order Management**:
+    - [ ] UI to View/Approve/Reject Custom Requests.
+    - [ ] "Convert to Order" logic (Set Price -> Create Order -> Key).
+- [ ] **Customer Order Tracking**:
+    - [ ] Visual Timeline Component (Requested -> Approved -> Paid -> Shipped).
+    - [ ] Link `CustomOrder` to `Order` for payment flow.
+- [ ] **Order Status Logic**:
+    - [ ] Backend state machine for Custom Order lifecycle.
+    - [ ] Integration with existing Checkout for payment of "Approved" orders.
+
+**Verification**:
+- [ ] Admin can convert a request to a payable order.
+- [ ] User sees "Pay Now" for approved custom orders.
+- [ ] Timeline updates correctly as status changes.
 
 
 

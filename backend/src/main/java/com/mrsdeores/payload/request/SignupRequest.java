@@ -1,7 +1,5 @@
 package com.mrsdeores.payload.request;
 
-import java.util.Set;
-
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,7 +16,9 @@ public class SignupRequest {
     @Email
     private String email;
 
-    private Set<String> role;
+    // SECURITY: "role" field REMOVED — role is always assigned server-side as
+    // ROLE_USER
+    // This prevents any user from self-assigning ROLE_ADMIN via request body.
 
     @NotBlank
     @Size(min = 6, max = 40)

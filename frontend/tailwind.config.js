@@ -7,11 +7,11 @@ export default {
     theme: {
         extend: {
             colors: {
-                primary: "#C2410C", // Deep Saffron
-                secondary: "#EAB308", // Turmeric Gold
+                primary: "#C2410C", // Saffron
+                secondary: "#EAB308", // Turmeric
                 accent: "#7F1D1D", // Maroon
-                background: "#FFF8ED", // Cream Background
-                text: "#1F2937", // Charcoal Text
+                background: "#FFF8ED", // Cream
+                text: "#1F2937", // Charcoal
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],

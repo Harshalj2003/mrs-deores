@@ -4,6 +4,7 @@ import type { Product } from "../types/catalog.types";
 import { Heart, Plus } from "lucide-react";
 import useCartStore from "../store/useCartStore";
 import useWishlistStore from "../store/useWishlistStore";
+import ImageWithFallback from "./ImageWithFallback";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -37,13 +38,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             className="group relative bg-white rounded-[2.5rem] flex flex-col overflow-hidden border border-gray-100 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500"
         >
             <div className="aspect-[3/4] overflow-hidden relative bg-neutral-light">
-                <Link to={`/product/${product.id}`} className="block h-full">
-                    <motion.img
-                        animate={{ scale: isHovered ? 1.05 : 1 }}
-                        transition={{ duration: 0.6 }}
+                <Link to={`/product/${product.id}`} className="block h-full relative">
+                    <div className="absolute inset-0 bg-neutral-light/50" />
+                    <ImageWithFallback
                         src={product.images && product.images.length > 0 ? product.images[0].imageUrl : "https://placehold.co/600x400?text=No+Image"}
                         alt={product.name}
-                        className="w-full h-full object-center object-cover"
+                        className="w-full h-full object-center object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out"
                     />
                 </Link>
 

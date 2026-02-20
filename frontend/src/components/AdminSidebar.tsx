@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText } from 'lucide-react';
 import { clsx } from 'clsx';
+import BrandLogo from './BrandLogo';
 
 const AdminSidebar: React.FC = () => {
     const location = useLocation();
@@ -10,14 +11,15 @@ const AdminSidebar: React.FC = () => {
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
         { id: 'products', label: 'Products', icon: Package, path: '/admin/products' },
         { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/admin/orders' },
+        { id: 'custom-orders', label: 'Custom Requests', icon: FileText, path: '/admin/custom-orders' },
         { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
     ];
 
     return (
         <div className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
-            <div className="p-6 border-b border-gray-100">
-                <h1 className="text-xl font-bold text-primary font-serif">Admin Portal</h1>
-                <p className="text-xs text-gray-400 mt-1 uppercase tracking-widest font-bold">Mrs. Deore's</p>
+            <div className="p-6 border-b border-gray-100 flex flex-col items-start gap-2">
+                <BrandLogo variant="full" className="h-10" />
+                <div className="text-[10px] text-primary uppercase tracking-widest font-black ml-1">Admin Portal</div>
             </div>
 
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">

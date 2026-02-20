@@ -30,3 +30,19 @@
 - Implement `framer-motion`.
 - Refactor `App.tsx` for layout transitions.
 - Polish key user flows (AddToCart, Heart animation, Success page).
+
+## Phase 8: Admin Fulfillment & Order Management Evolution
+
+**Date:** 2026-02-19
+
+### Scope
+- **Custom Order Conversion**: Admins will have the ability to review a `CustomOrder` request, set a final price, and convert it into a payable `Order` record.
+- **Visual Timeline**: Customers will see a visual status timeline (e.g., Requested -> Approved -> Paid -> Processing -> Shipped -> Delivered) with dates.
+
+### Approach
+- **Selected**: Option A (Lean)
+- **Rationale**: Prioritize stability for v1.1. Automated notifications (SMS/Email) are deferred to Phase 9 to keep the current scope focused on logic and UI. Users will check "My Orders" for updates.
+- **Data Structure**: `CustomOrder` entities will be linked to the core `Order` table to facilitate standard checkout processing once approved.
+
+### Constraints & Risks
+- **Notification Gap**: Users won't receive push alerts for approvals in this phase. This is a known limitation accepted for v1.1.

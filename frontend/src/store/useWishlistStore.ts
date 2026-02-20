@@ -50,9 +50,9 @@ const useWishlistStore = create<WishlistState>()(
                 if (!user) return;
 
                 try {
-                    const response = await api.get('/wishlist');
+                    const response = await api.get<{ items: { product: Product }[] }>('/wishlist');
                     if (response.data && response.data.items) {
-                        const backendItems: Product[] = response.data.items.map((item: any) => item.product);
+                        const backendItems: Product[] = response.data.items.map((item) => item.product);
                         set({ items: backendItems });
                     }
                 } catch (error) {

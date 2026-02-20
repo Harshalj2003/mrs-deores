@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
-import { Search, Eye, MoreHorizontal, Filter, Package, Truck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Search, Eye, Filter, Package, Truck, CheckCircle, Clock, AlertCircle, Activity } from 'lucide-react';
 import api from '../services/api';
 import type { Order } from '../types/Order';
 import { clsx } from 'clsx';
@@ -49,7 +49,7 @@ const AdminOrders: React.FC = () => {
 
     const getStatusStyle = (status: string) => {
         switch (status) {
-            case 'PAID': return 'bg-blue-100 text-blue-700 border-blue-200';
+            case 'PAID': return 'bg-secondary/10 text-secondary border-secondary/20';
             case 'SHIPPED': return 'bg-amber-100 text-amber-700 border-amber-200';
             case 'DELIVERED': return 'bg-green-100 text-green-700 border-green-200';
             default: return 'bg-gray-100 text-gray-700 border-gray-200';
@@ -66,7 +66,7 @@ const AdminOrders: React.FC = () => {
                         <p className="text-gray-500 mt-1">Track and manage customer orders and shipments.</p>
                     </div>
                     <div className="flex space-x-2 text-xs font-bold text-gray-400">
-                        <span className="flex items-center"><span className="h-2 w-2 rounded-full bg-blue-500 mr-1"></span> PAID</span>
+                        <span className="flex items-center"><span className="h-2 w-2 rounded-full bg-secondary mr-1"></span> PAID</span>
                         <span className="flex items-center"><span className="h-2 w-2 rounded-full bg-amber-500 mr-1"></span> SHIPPED</span>
                         <span className="flex items-center"><span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span> DELIVERED</span>
                     </div>
@@ -119,10 +119,10 @@ const AdminOrders: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <span className="text-sm font-black text-gray-900">₹{order.totalAmount.toLocaleString()}</span>
+                                            <span className="text-sm font-black text-gray-900">₹{(order.totalAmount || 0).toLocaleString()}</span>
                                         </td>
                                         <td className="px-6 py-5 text-xs text-gray-500 font-medium">
-                                            {order.totalItems} Units
+                                            {order.totalItems || 0} Units
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className={clsx(

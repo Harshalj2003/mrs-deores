@@ -3,6 +3,7 @@ import useWishlistStore from '../store/useWishlistStore';
 import useCartStore from '../store/useCartStore';
 import { Trash2, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { Product } from '../types/catalog.types';
 
 const Wishlist: React.FC = () => {
     const { items, removeItem, syncWithBackend } = useWishlistStore();
@@ -12,7 +13,7 @@ const Wishlist: React.FC = () => {
         syncWithBackend();
     }, []);
 
-    const moveToCart = (product: any) => {
+    const moveToCart = (product: Product) => {
         addItem(product);
         removeItem(product.id);
     };

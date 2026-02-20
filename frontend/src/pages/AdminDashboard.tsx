@@ -13,15 +13,31 @@ const AdminDashboard: React.FC = () => {
     });
 
     useEffect(() => {
-        api.get('/orders/all').then(res => {
-            setStats(prev => ({ ...prev, totalOrders: res.data.length }));
-        }).catch(err => console.error("Failed to fetch orders stats", err));
+        const fetchStats = async () => {
+            try {
+                const [ordersRes, usersRes] = await Promise.all([
+                    api.get('/orders/all'),
+                    api.get('/users/analytics')
+                ]);
+
+                setStats(prev => ({
+                    ...prev,
+                    totalOrders: ordersRes.data.length,
+                    totalCustomers: usersRes.data.totalUsers || 0,
+                    // If backend doesn't define active users logic yet, we use total for now or logic from backend
+                    // Also store extra data if needed for charts
+                }));
+            } catch (err) {
+                console.error("Failed to fetch dashboard stats", err);
+            }
+        };
+        fetchStats();
     }, []);
 
     const statCards = [
-        { label: 'Total Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'text-blue-500', bg: 'bg-blue-500/5', border: 'border-blue-500/10' },
+        { label: 'Total Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'text-secondary', bg: 'bg-secondary/5', border: 'border-secondary/10' },
         { label: 'Catalog Size', value: stats.totalProducts, icon: Package, color: 'text-green-500', bg: 'bg-green-500/5', border: 'border-green-500/10' },
-        { label: 'Premium Users', value: stats.totalCustomers, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-500/5', border: 'border-indigo-500/10' },
+        { label: 'Total Users', value: stats.totalCustomers, icon: Users, color: 'text-accent', bg: 'bg-accent/5', border: 'border-accent/10' },
         { label: 'GTV Revenue', value: `₹${stats.revenue.toLocaleString()}`, icon: TrendingUp, color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/10' },
     ];
 

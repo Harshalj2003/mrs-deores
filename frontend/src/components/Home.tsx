@@ -54,9 +54,12 @@ const Home: React.FC = () => {
     return (
         <div className="bg-background min-h-screen">
             {/* Hero Section */}
-            <div className="relative bg-primary overflow-hidden">
-                <div className="max-w-7xl mx-auto">
-                    <div className="relative z-10 pb-8 bg-primary sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32">
+            <div className="relative bg-[#FFF8E7] overflow-hidden">
+                {/* Decorative Pattern Background */}
+                <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#D4AF37 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <div className="pb-8 sm:pb-16 md:pb-20 lg:max-w-2xl lg:w-full lg:pb-28 xl:pb-32 pt-10">
                         <main className="mt-10 mx-auto max-w-7xl px-4 sm:mt-12 sm:px-6 md:mt-16 lg:mt-20 lg:px-8 xl:mt-28">
                             <motion.div
                                 initial="hidden"
@@ -64,30 +67,40 @@ const Home: React.FC = () => {
                                 variants={containerVariants}
                                 className="sm:text-center lg:text-left"
                             >
+                                <motion.div variants={itemVariants} className="inline-flex items-center px-3 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-black uppercase tracking-widest mb-4">
+                                    ✨ Est. Traditional Taste
+                                </motion.div>
                                 <motion.h1
                                     variants={itemVariants}
-                                    className="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl font-serif"
+                                    className="text-4xl tracking-tight font-black text-[#5D4037] sm:text-5xl md:text-6xl font-serif leading-tight"
                                 >
                                     <span className="block xl:inline">Authentic Homemade</span>{' '}
                                     <span className="block text-secondary xl:inline">Tradition in every bite</span>
                                 </motion.h1>
                                 <motion.p
                                     variants={itemVariants}
-                                    className="mt-3 text-base text-gray-100 sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0"
+                                    className="mt-3 text-base text-[#8D6E63] sm:mt-5 sm:text-lg sm:max-w-xl sm:mx-auto md:mt-5 md:text-xl lg:mx-0 font-medium"
                                 >
-                                    Premium premixes, snacks, and masalas handcrafted with love and traditional recipes passed down through generations.
+                                    Experience the nostalgia of grandmother's kitchen. Premium premixes, snacks, and masalas handcrafted with love and generations-old recipes.
                                 </motion.p>
                                 <motion.div
                                     variants={itemVariants}
-                                    className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start"
+                                    className="mt-8 sm:mt-10 sm:flex sm:justify-center lg:justify-start gap-4"
                                 >
                                     <motion.div
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className="rounded-md shadow"
                                     >
-                                        <a href="#shop" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-primary bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 transition-colors">
-                                            Shop Now
+                                        <a href="#shop" className="flex items-center justify-center px-8 py-4 border border-transparent text-base font-bold rounded-xl text-white bg-primary hover:bg-[#D84315] md:text-lg shadow-lg shadow-primary/30 transition-all">
+                                            Shop Delicacies
+                                        </a>
+                                    </motion.div>
+                                    <motion.div
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                    >
+                                        <a href="/about" className="flex items-center justify-center px-8 py-4 border-2 border-[#5D4037]/10 text-base font-bold rounded-xl text-[#5D4037] bg-transparent hover:bg-[#5D4037]/5 md:text-lg transition-all">
+                                            Our Story
                                         </a>
                                     </motion.div>
                                 </motion.div>
@@ -95,6 +108,9 @@ const Home: React.FC = () => {
                         </main>
                     </div>
                 </div>
+
+                {/* Decorative Image/Pattern Right Side - purely decorative for now */}
+                <div className="absolute top-0 right-0 w-1/2 h-full hidden lg:block bg-[#FFECB3]/20" style={{ backgroundImage: 'radial-gradient(#D4AF37 1px, transparent 1px)', backgroundSize: '30px 30px', opacity: 0.3 }}></div>
             </div>
 
             <motion.div
