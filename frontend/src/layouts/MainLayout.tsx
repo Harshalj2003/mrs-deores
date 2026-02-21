@@ -6,6 +6,7 @@ import type { User } from '../types/auth.types';
 import api from '../services/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+import WhatsAppButton from '../components/WhatsAppButton';
 
 interface MainLayoutProps {
     children: React.ReactNode;
@@ -63,6 +64,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser, logOut }
             <Footer />
 
             <CartDrawer />
+
+            <WhatsAppButton />
         </div>
     );
 };

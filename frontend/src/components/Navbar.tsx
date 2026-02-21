@@ -14,13 +14,15 @@ import {
     User as UserIcon,
     Sun,
     Moon,
-    Globe
+    Globe,
+    Heart
 } from "lucide-react";
 import BrandLogo from "./BrandLogo";
 import { clsx } from "clsx";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage, LANGUAGES } from "../contexts/LanguageContext";
 import SearchBar from "./SearchBar";
+import useWishlistStore from "../store/useWishlistStore";
 
 import api from "../services/api";
 
@@ -42,6 +44,8 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
     const [profileOpen, setProfileOpen] = useState(false);
     const profileRef = useRef<HTMLDivElement>(null);
+    const wishlistItems = useWishlistStore((state) => state.items);
+    const wishlistCount = wishlistItems.length;
 
     // Branding settings
     const [logoSize, setLogoSize] = useState<'sm' | 'md' | 'lg'>('md');
@@ -68,6 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
 
     const profileMenuItems = [
         { label: 'My Profile', path: "/profile", icon: UserIcon },
+        { label: t('wishlist'), path: "/wishlist", icon: Heart },
         { label: t('myOrders'), path: "/orders", icon: Package },
         { label: t('customOrder'), path: "/custom-order", icon: Clipboard },
     ];
@@ -210,6 +215,32 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                     <div className={clsx(!currentUser ? "hidden md:block" : "block")}>
                         <SearchBar mode="compact" />
                     </div>
+
+                    {/* Wishlist Button — Desktop */}
+                    <motion.div className="hidden md:block relative">
+                        <Link to="/wishlist" title={t('wishlist')}>
+                            <motion.button
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.92 }}
+                                className="p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-2xl transition-all duration-300 shadow-sm"
+                            >
+                                <Heart className="h-5 w-5" />
+                            </motion.button>
+                        </Link>
+                        <AnimatePresence>
+                            {wishlistCount > 0 && (
+                                <motion.span
+                                    key="wishlist-badge"
+                                    initial={{ scale: 0, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0, opacity: 0 }}
+                                    className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black h-4.5 w-4.5 min-w-[18px] px-1 rounded-full flex items-center justify-center border-2 border-white"
+                                >
+                                    {wishlistCount}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
 
                     {/* Cart Button */}
                     <motion.div className="relative">

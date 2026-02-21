@@ -10,7 +10,7 @@ import Login from "./components/Login";
 import Register from "./components/Register";
 import Home from "./components/Home";
 import ProductList from "./components/ProductList";
-import ProductDetail from "./components/ProductDetail";
+import ProductDetail from "./pages/ProductDetail_utf8";
 import Wishlist from "./components/Wishlist";
 import CheckoutPage from "./pages/CheckoutPage";
 import Orders from "./pages/Orders";
@@ -33,6 +33,7 @@ import AboutPage from "./pages/AboutPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProfilePage from "./pages/ProfilePage";
+import Policies from "./pages/Policies";
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
@@ -102,7 +103,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
               <Route path="/category/:categoryId" element={<ProductList />} />
-              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/product/:id" element={<ProductDetail currentUser={currentUser} />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/wishlist" element={<Wishlist />} />
@@ -121,6 +122,9 @@ const App: React.FC = () => {
               <Route path="/about" element={<AboutPage />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/privacy" element={<Policies />} />
+              <Route path="/terms" element={<Policies />} />
+              <Route path="/shipping" element={<Policies />} />
             </Routes>
           </motion.div>
         </AnimatePresence>

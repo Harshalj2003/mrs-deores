@@ -78,6 +78,34 @@ public class OrderController {
         }
     }
 
+    @PostMapping("/verify")
+    public ResponseEntity<?> verifyPayment(@RequestBody Map<String, String> payload) {
+        User user = getAuthenticatedUser();
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        try {
+            Long orderId = Long.parseLong(payload.get("orderId"));
+            String razorpayOrderId = payload.get("razorpayOrderId");
+            String razorpayPaymentId = payload.get("razorpayPaymentId");
+            String razorpaySignature = payload.get("razorpaySignature");
+
+            boolean success = orderService.verifyPayment(orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature,
+                    user);
+
+            if (success) {
+                return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Payment verified successfully"));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(Map.of("status", "FAILED", "message", "Invalid signature or order details"));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("status", "ERROR", "message", "Verification exception checking payment"));
+        }
+    }
+
     // --- Admin Endpoints ---
 
     @GetMapping("/all")
@@ -88,13 +116,17 @@ public class OrderController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable("id") Long id,
+            @RequestBody Map<String, String> payload) {
         String status = payload.get("status");
+        String trackingNumber = payload.get("trackingNumber");
+        String carrier = payload.get("carrier");
+
         if (status == null) {
             return ResponseEntity.badRequest().build();
         }
         try {
-            return ResponseEntity.ok(orderService.updateOrderStatus(id, status));
+            return ResponseEntity.ok(orderService.updateOrderStatus(id, status, trackingNumber, carrier));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

@@ -7,6 +7,10 @@ import {
 import { clsx } from 'clsx';
 import api from '../services/api';
 import { motion } from 'framer-motion';
+import {
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+    ResponsiveContainer, BarChart, Bar, Cell
+} from 'recharts';
 
 interface DashboardStats {
     totalOrders: number;
@@ -28,6 +32,8 @@ interface DashboardStats {
         createdAt: string;
         userName: string;
     }[];
+    revenueHistory?: Record<string, number>;
+    couponMetrics?: Record<string, number>;
 }
 
 const statusColors: Record<string, string> = {
@@ -160,7 +166,7 @@ const AdminDashboard: React.FC = () => {
         {
             label: 'Total Users', value: stats.totalUsers,
             sub: 'Registered accounts',
-            icon: Users, color: 'text-secondary', bg: 'bg-secondary/5', border: 'border-secondary/10'
+            icon: Users, color: 'text-secondary', bg: 'bg-secondary/10', border: 'border-secondary/20'
         },
     ] : [];
 
@@ -251,44 +257,161 @@ const AdminDashboard: React.FC = () => {
                         </div>
                     </motion.div>
                 ) : stats && (
-                    <>
-                        {/* ── Top Stat Cards ── */}
+                    <div className="flex flex-col gap-10">
+                        {/* ── Urgent Alerts ── */}
+                        {stats.lowStockProducts > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="bg-red-500/10 border border-red-500/20 p-6 rounded-[2.5rem] flex items-center justify-between"
+                            >
+                                <div className="flex items-center gap-6">
+                                    <div className="h-14 w-14 bg-red-500 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-red-500/20">
+                                        <AlertTriangle className="h-7 w-7" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-red-600 uppercase tracking-[0.2em]">Inventory Alert</p>
+                                        <p className="text-sm text-red-500/80 font-bold mt-1">{stats.lowStockProducts} products have dropped below the safety threshold (5 units).</p>
+                                    </div>
+                                </div>
+                                <a href="/admin/products" className="px-6 py-3 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20 active:scale-95">
+                                    Restock Now
+                                </a>
+                            </motion.div>
+                        )}
+
+                        {/* ── Revenue History Chart ── */}
                         <motion.div
-                            variants={container}
-                            initial="hidden"
-                            animate="show"
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="bg-white dark:bg-neutral-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 shadow-sm mb-10 overflow-hidden relative"
                         >
-                            {statCards.map((card, idx) => (
-                                <motion.div
-                                    variants={item}
-                                    key={idx}
-                                    whileHover={{ y: -4 }}
-                                    className="col-span-1 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between h-48 group hover:shadow-md transition-all relative overflow-hidden"
-                                    style={{ backgroundColor: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)' }}
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className={clsx("p-3 rounded-2xl", card.bg, card.color)}>
-                                            <card.icon className="h-6 w-6" />
-                                        </div>
-                                        <ArrowUpRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--admin-nav-text)' }} />
-                                    </div>
-                                    <div className="mt-4">
-                                        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--admin-nav-text)', opacity: 0.7 }}>{card.label}</p>
-                                        <h3 className="text-3xl font-black font-serif" style={{ color: 'var(--admin-nav-text)' }}>{card.value}</h3>
-                                        <p className="text-sm mt-1" style={{ color: 'var(--admin-nav-text)', opacity: 0.6 }}>{card.sub}</p>
-                                    </div>
-                                </motion.div>
-                            ))}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
+
+                            <div className="flex items-center justify-between mb-10 relative z-10">
+                                <div>
+                                    <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif tracking-tight">Revenue Growth Trend</h2>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Direct Sales Attribution · 7 Days</p>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-green-500/10">
+                                    <TrendingUp className="h-3 w-3" /> Volume Increasing
+                                </div>
+                            </div>
+
+                            <div className="h-[350px] w-full relative z-10">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart
+                                        data={stats?.revenueHistory ? Object.entries(stats.revenueHistory).map(([date, value]) => ({
+                                            date: new Date(date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }),
+                                            amount: value
+                                        })) : []}
+                                        margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                                    >
+                                        <defs>
+                                            <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" opacity={0.3} />
+                                        <XAxis
+                                            dataKey="date"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#9CA3AF' }}
+                                            dy={10}
+                                        />
+                                        <YAxis
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fontSize: 10, fontWeight: 'bold', fill: '#9CA3AF' }}
+                                            tickFormatter={(val) => `₹${val}`}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                borderRadius: '20px',
+                                                border: '1px solid rgba(255,255,255,0.1)',
+                                                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                                                backgroundColor: '#171717',
+                                                padding: '12px 16px'
+                                            }}
+                                            itemStyle={{ color: '#D4AF37', fontWeight: '900', fontSize: '14px' }}
+                                            labelStyle={{ color: '#6B7280', fontWeight: 'bold', marginBottom: '4px' }}
+                                            formatter={(value: any) => [`₹${Number(value).toLocaleString('en-IN')}`, 'Revenue']}
+                                        />
+                                        <Area
+                                            type="monotone"
+                                            dataKey="amount"
+                                            stroke="#D4AF37"
+                                            strokeWidth={4}
+                                            fillOpacity={1}
+                                            fill="url(#colorRev)"
+                                            animationDuration={2000}
+                                        />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            </div>
                         </motion.div>
 
-                        {/* ── Lower 2-col row ── */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                            {/* Recent Pulse */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                            {/* Coupon Pulse */}
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.96 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: 0.3 }}
+                                className="bg-white dark:bg-neutral-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 shadow-sm"
+                            >
+                                <div className="flex items-center justify-between mb-8">
+                                    <div>
+                                        <h2 className="text-xl font-black text-gray-900 dark:text-white font-serif">Promo Impact</h2>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">Usage Count</p>
+                                    </div>
+                                    <Tag className="h-5 w-5 text-gray-400" />
+                                </div>
+
+                                {stats?.couponMetrics && Object.keys(stats.couponMetrics).length > 0 ? (
+                                    <div className="h-[250px] w-full">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={Object.entries(stats.couponMetrics).map(([code, count]) => ({ code, count }))}>
+                                                <XAxis dataKey="code" hide />
+                                                <YAxis hide />
+                                                <Tooltip
+                                                    cursor={{ fill: 'rgba(212, 175, 55, 0.05)' }}
+                                                    contentStyle={{
+                                                        borderRadius: '16px',
+                                                        border: 'none',
+                                                        backgroundColor: '#262626',
+                                                        fontSize: '10px',
+                                                        color: '#fff'
+                                                    }}
+                                                />
+                                                <Bar dataKey="count" radius={[8, 8, 8, 8]}>
+                                                    {Object.entries(stats.couponMetrics).map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#D4AF37' : '#B8860B'} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {Object.entries(stats.couponMetrics).map(([code, count], i) => (
+                                                <div key={code} className="px-2 py-1 rounded-lg bg-gray-50 dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 flex items-center gap-2">
+                                                    <span className="text-[10px] font-black text-gray-900 dark:text-white">{code}</span>
+                                                    <span className="text-[10px] font-bold text-primary">{count}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="py-20 text-center text-gray-400 italic text-sm">No coupon data available</div>
+                                )}
+                            </motion.div>
+
+                            {/* Recent Pulse */}
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.96 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: 0.4 }}
                                 className="bg-white dark:bg-neutral-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 shadow-sm"
                             >
                                 <div className="flex items-center justify-between mb-6">
@@ -407,7 +530,7 @@ const AdminDashboard: React.FC = () => {
                                 </div>
                             ))}
                         </motion.div>
-                    </>
+                    </div>
                 )}
             </main>
         </div>

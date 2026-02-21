@@ -116,6 +116,30 @@ public class AdminStatsController {
                 stats.put("pendingCustomOrders", pendingCustomOrders);
                 stats.put("recentOrders", recentOrders);
 
+                // ── 7-Day Revenue History ───────────────────────────
+                java.time.LocalDate today = java.time.LocalDate.now();
+                Map<String, BigDecimal> revenueHistory = new java.util.TreeMap<>();
+                for (int i = 6; i >= 0; i--) {
+                        java.time.LocalDate date = today.minusDays(i);
+                        String dateStr = date.toString();
+                        BigDecimal dailyRev = allOrders.stream()
+                                        .filter(o -> o.getCreatedAt() != null
+                                                        && o.getCreatedAt().toLocalDate().equals(date))
+                                        .filter(o -> List.of("MOCK_PAID", "PAID", "SHIPPED", "DELIVERED")
+                                                        .contains(o.getStatus() != null ? o.getStatus().toUpperCase()
+                                                                        : ""))
+                                        .map(o -> o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO)
+                                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                        revenueHistory.put(dateStr, dailyRev);
+                }
+                stats.put("revenueHistory", revenueHistory);
+
+                // ── Coupon Metrics ──────────────────────────────────
+                Map<String, Long> couponMetrics = allOrders.stream()
+                                .filter(o -> o.getCouponCode() != null && !o.getCouponCode().isEmpty())
+                                .collect(Collectors.groupingBy(Order::getCouponCode, Collectors.counting()));
+                stats.put("couponMetrics", couponMetrics);
+
                 return ResponseEntity.ok(stats);
         }
 }

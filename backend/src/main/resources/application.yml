@@ -51,3 +51,8 @@ app:
     allowed-origins: http://localhost:5173,http://localhost:3000,https://*.loca.lt,https://*.ngrok-free.app,https://*.ngrok-free.dev
   frontend:
     url: ${FRONTEND_URL:http://localhost:5173}
+
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID:rzp_test_1DP5mmOlF5G5ag}
+    secret: ${RAZORPAY_KEY_SECRET:secret123456789}

@@ -1,10 +1,14 @@
 import api from './api';
 import type { Product, Category } from '../types/catalog.types';
 
-export const getProducts = async (categoryId?: number): Promise<Product[]> => {
+export const getProducts = async (categoryId?: number, sortBy: string = 'id', order: string = 'asc'): Promise<Product[]> => {
     try {
-        const query = categoryId ? `?categoryId=${categoryId}` : '';
-        const response = await api.get<Product[]>(`products${query}`);
+        let params = new URLSearchParams();
+        if (categoryId) params.append('categoryId', categoryId.toString());
+        params.append('sortBy', sortBy);
+        params.append('order', order);
+
+        const response = await api.get<Product[]>(`products?${params.toString()}`);
         return response.data;
     } catch (error) {
         console.error("Error fetching products:", error);

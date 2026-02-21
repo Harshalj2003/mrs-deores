@@ -5,6 +5,26 @@ import CategoryGrid from "./CategoryGrid";
 import { motion } from "framer-motion";
 import SearchBar from "./SearchBar";
 import { useLanguage } from "../contexts/LanguageContext";
+import FAQSection from "./FAQSection";
+
+const homeFAQs = [
+    {
+        question: "Are MRS. DEORE products 100% homemade?",
+        answer: "Absolutely. Every premix, snack, and masala is handcrafted in our home kitchen using traditional methods passed down through generations. We do not use commercial machinery for processing."
+    },
+    {
+        question: "Do you use any artificial preservatives or colors?",
+        answer: "No. Our commitment to tradition means zero artificial preservatives, MSG, or synthetic colors. We rely on natural preservation techniques like sun-drying and traditional spice roasting."
+    },
+    {
+        question: "What is the shelf life of the premixes?",
+        answer: "Most of our premixes have a shelf life of 3 to 6 months when stored in a cool, dry place in an airtight container. Specific expiry details are provided on each package."
+    },
+    {
+        question: "Do you take custom orders for weddings or events?",
+        answer: "Yes, we specialize in bulk traditional orders for special occasions. Please contact us via WhatsApp to discuss custom quantities, branded packaging, or specific dietary requirements."
+    }
+];
 
 const Home: React.FC = () => {
     const { t } = useLanguage();
@@ -143,6 +163,15 @@ const Home: React.FC = () => {
                 transition={{ duration: 0.8 }}
             >
                 <CategoryGrid categories={categories} mobileCols={gridColsMobile} />
+            </motion.div>
+
+            <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="max-w-7xl mx-auto px-4"
+            >
+                <FAQSection items={homeFAQs} />
             </motion.div>
 
             {/* Trust Section */}

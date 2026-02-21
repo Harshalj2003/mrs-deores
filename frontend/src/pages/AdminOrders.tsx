@@ -26,9 +26,21 @@ const AdminOrders: React.FC = () => {
     };
 
     const handleUpdateStatus = async (orderId: number, newStatus: string) => {
+        let trackingNumber = '';
+        let carrier = '';
+
+        if (newStatus === 'SHIPPED') {
+            trackingNumber = prompt('Enter Tracking Number:') || '';
+            carrier = prompt('Enter Carrier (e.g., Shiprocket, Delhivery):') || '';
+        }
+
         setUpdatingId(orderId);
         try {
-            const res = await api.put(`/orders/${orderId}/status`, { status: newStatus });
+            const res = await api.put(`/orders/${orderId}/status`, {
+                status: newStatus,
+                trackingNumber,
+                carrier
+            });
             setOrders(orders.map(o => o.id === orderId ? res.data : o));
         } catch (err) {
             console.error("Failed to update status", err);
@@ -135,7 +147,12 @@ const AdminOrders: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-gray-400 text-xs font-bold">
-                                            {new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            <div>{new Date(order.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                                            {order.trackingNumber && (
+                                                <div className="mt-1 flex items-center gap-1 text-[10px] text-amber-600 uppercase">
+                                                    <Truck className="h-3 w-3" /> {order.carrier}: {order.trackingNumber}
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex items-center justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">

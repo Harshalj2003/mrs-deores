@@ -21,15 +21,25 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    // Trigger reload for new related products endpoint
+
     @Autowired
     private CategoryService categoryService;
 
     @GetMapping
-    public List<Product> getAllProducts(@RequestParam(name = "categoryId", required = false) Integer categoryId) {
+    public List<Product> getAllProducts(
+            @RequestParam(name = "categoryId", required = false) Integer categoryId,
+            @RequestParam(name = "sortBy", required = false, defaultValue = "id") String sortBy,
+            @RequestParam(name = "order", required = false, defaultValue = "asc") String order) {
+
+        org.springframework.data.domain.Sort sort = order.equalsIgnoreCase("desc")
+                ? org.springframework.data.domain.Sort.by(sortBy).descending()
+                : org.springframework.data.domain.Sort.by(sortBy).ascending();
+
         if (categoryId != null) {
-            return productService.getProductsByCategory(categoryId);
+            return productService.getProductsByCategory(categoryId, sort);
         }
-        return productService.getAllActiveProducts();
+        return productService.getAllActiveProducts(sort);
     }
 
     @GetMapping("/{id}")
@@ -37,6 +47,14 @@ public class ProductController {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/related")
+    public List<Product> getRelatedProducts(@PathVariable("id") Long id) {
+        return productService.getProductById(id).map(product -> {
+            Integer categoryId = product.getCategory().getId();
+            return productService.getRelatedProducts(id, categoryId, 4);
+        }).orElse(List.of());
     }
 
     @PostMapping

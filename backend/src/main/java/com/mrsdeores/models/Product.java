@@ -47,6 +47,12 @@ public class Product {
     @Column(name = "is_active")
     private Boolean isActive = true;
 
+    @Column(name = "average_rating")
+    private Double averageRating = 5.0; // Default to 5 star for new products or as requested
+
+    @Column(name = "total_reviews")
+    private Integer totalReviews = 0;
+
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> images = new ArrayList<>();
 

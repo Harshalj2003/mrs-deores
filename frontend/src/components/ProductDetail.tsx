@@ -8,9 +8,14 @@ import useWishlistStore from "../store/useWishlistStore";
 import { clsx } from "clsx";
 import ImageWithFallback from "./ImageWithFallback";
 import BrandLogo from "./BrandLogo";
+import ReviewSection from "./ReviewSection";
 
-const ProductDetail: React.FC = () => {
-    const { productId } = useParams();
+interface ProductDetailProps {
+    currentUser?: any;
+}
+
+const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
+    const { productId } = useParams<{ productId: string }>();
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [selectedImage, setSelectedImage] = useState("");
@@ -225,6 +230,11 @@ const ProductDetail: React.FC = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Reviews Section */}
+                {product && (
+                    <ReviewSection productId={product.id} currentUser={currentUser} />
+                )}
             </div>
         </div>
     );

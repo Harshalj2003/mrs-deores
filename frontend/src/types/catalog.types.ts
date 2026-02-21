@@ -23,6 +23,26 @@ export interface Product {
     images: ProductImage[];
     category: Category;
     isActive: boolean;
+    averageRating: number;
+    totalReviews: number;
     createdAt?: string;
     updatedAt?: string;
+}
+
+export interface Review {
+    id: number;
+    user: {
+        id: number;
+        username: string;
+    };
+    rating: number;
+    comment: string;
+    isVerifiedPurchase: boolean;
+    createdAt: string;
+}
+
+export interface ReviewStats {
+    averageRating: number;
+    totalReviews: number;
+    ratingDistribution: Record<number, number>;
 }

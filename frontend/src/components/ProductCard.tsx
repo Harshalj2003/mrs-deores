@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "../types/catalog.types";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, Star } from "lucide-react";
 import useCartStore from "../store/useCartStore";
 import useWishlistStore from "../store/useWishlistStore";
 import ImageWithFallback from "./ImageWithFallback";
@@ -101,6 +101,24 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                             {product.name}
                         </h2>
                     </Link>
+
+                    {/* Rating Summary */}
+                    <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <div className="flex text-amber-400">
+                            {[...Array(5)].map((_, i) => (
+                                <Star
+                                    key={i}
+                                    className={clsx(
+                                        "h-3 w-3",
+                                        i < Math.floor(product.averageRating || 5) ? "fill-current" : "text-gray-200"
+                                    )}
+                                />
+                            ))}
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400">
+                            ({product.totalReviews || 0})
+                        </span>
+                    </div>
                 </div>
 
                 <div className="mt-auto flex flex-col items-center">
@@ -112,7 +130,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </motion.div >
     );
 };
 

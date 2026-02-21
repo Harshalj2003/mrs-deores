@@ -3,6 +3,8 @@ package com.mrsdeores.services;
 import com.mrsdeores.models.Product;
 import com.mrsdeores.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,12 +15,18 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Product> getAllActiveProducts() {
-        return productRepository.findByIsActiveTrue();
+    public List<Product> getAllActiveProducts(Sort sort) {
+        return productRepository.findAll(sort).stream()
+                .filter(Product::getIsActive)
+                .toList();
     }
 
-    public List<Product> getProductsByCategory(Integer categoryId) {
-        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId);
+    public List<Product> getProductsByCategory(Integer categoryId, Sort sort) {
+        return productRepository.findByCategoryIdAndIsActiveTrue(categoryId, sort);
+    }
+
+    public List<Product> getRelatedProducts(Long productId, Integer categoryId, int limit) {
+        return productRepository.findRelatedProducts(productId, categoryId, PageRequest.of(0, limit));
     }
 
     public Optional<Product> getProductById(Long id) {

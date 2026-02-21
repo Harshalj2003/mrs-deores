@@ -4,8 +4,10 @@ import { getProducts, getCategories } from "../services/ProductService";
 import type { Product, Category } from "../types/catalog.types";
 import ProductCard from "./ProductCard";
 import EmptyState from "./EmptyState";
-import { SearchX } from "lucide-react";
+import { SearchX, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { clsx } from "clsx";
 
 const ProductList: React.FC = () => {
     const { t } = useLanguage();
@@ -14,6 +16,17 @@ const ProductList: React.FC = () => {
     const [category, setCategory] = useState<Category | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [sortBy, setSortBy] = useState('id');
+    const [order, setOrder] = useState('asc');
+    const [isSortOpen, setIsSortOpen] = useState(false);
+
+    const sortOptions = [
+        { label: 'Featured', sort: 'id', order: 'asc' },
+        { label: 'Price: Low to High', sort: 'sellingPrice', order: 'asc' },
+        { label: 'Price: High to Low', sort: 'sellingPrice', order: 'desc' },
+        { label: 'Top Rated', sort: 'averageRating', order: 'desc' },
+        { label: 'Newest', sort: 'createdAt', order: 'desc' },
+    ];
 
     useEffect(() => {
         setLoading(true);
@@ -23,15 +36,13 @@ const ProductList: React.FC = () => {
             try {
                 const [allCats, productsData] = await Promise.all([
                     getCategories(),
-                    getProducts(categoryId ? Number(categoryId) : undefined)
+                    getProducts(categoryId ? Number(categoryId) : undefined, sortBy, order)
                 ]);
 
                 if (categoryId) {
                     const cat = allCats.find(c => c.id === Number(categoryId));
                     setCategory(cat || null);
                 }
-
-                setProducts(productsData);
 
                 setProducts(productsData);
             } catch (err) {
@@ -43,7 +54,7 @@ const ProductList: React.FC = () => {
         };
 
         fetchData();
-    }, [categoryId]);
+    }, [categoryId, sortBy, order]);
 
     if (loading) {
         return (
@@ -74,12 +85,63 @@ const ProductList: React.FC = () => {
         <div className="bg-white min-h-screen py-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {category && (
-                    <div className="mb-12 text-center">
+                    <div className="mb-8 text-center">
                         <span className="text-secondary font-black uppercase tracking-widest text-xs mb-2 block">{t('categories')}</span>
                         <h1 className="text-4xl md:text-5xl font-black text-primary font-serif mb-4">{category.name}</h1>
                         <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">{category.description}</p>
                     </div>
                 )}
+
+                {/* Sort Bar */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 pb-6 border-b border-gray-100">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Showing</span>
+                        <span className="text-sm font-bold text-gray-900">{products.length} {products.length === 1 ? 'Product' : 'Products'}</span>
+                    </div>
+
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsSortOpen(!isSortOpen)}
+                            className="flex items-center gap-3 bg-white border border-gray-100 px-6 py-3 rounded-2xl shadow-sm hover:border-primary transition-all group"
+                        >
+                            <SlidersHorizontal className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors" />
+                            <span className="text-xs font-black uppercase tracking-widest text-gray-900">
+                                {sortOptions.find(o => o.sort === sortBy && o.order === order)?.label}
+                            </span>
+                            <ChevronDown className={clsx("h-4 w-4 text-gray-400 transition-transform duration-300", isSortOpen && "rotate-180")} />
+                        </button>
+
+                        <AnimatePresence>
+                            {isSortOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-100 rounded-3xl shadow-2xl p-2 z-50 overflow-hidden"
+                                >
+                                    {sortOptions.map((opt) => (
+                                        <button
+                                            key={`${opt.sort}-${opt.order}`}
+                                            onClick={() => {
+                                                setSortBy(opt.sort);
+                                                setOrder(opt.order);
+                                                setIsSortOpen(false);
+                                            }}
+                                            className={clsx(
+                                                "w-full text-left px-4 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                                sortBy === opt.sort && order === opt.order
+                                                    ? "bg-primary/5 text-primary"
+                                                    : "text-gray-500 hover:bg-gray-50"
+                                            )}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
 
                 {products.length === 0 ? (
                     <EmptyState

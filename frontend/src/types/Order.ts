@@ -26,5 +26,9 @@ export interface Order {
     totalAmount: number;
     totalItems: number;
     status: string;
+    couponCode?: string;
+    discountAmount?: number;
+    trackingNumber?: string;
+    carrier?: string;
     createdAt: string;
 }

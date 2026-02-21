@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,6 +20,9 @@ public class SiteSettingsController {
     @Autowired
     private SiteSettingsRepository repository;
 
+    @Value("${razorpay.key.id}")
+    private String razorpayKeyId;
+
     /** GET all settings as a flat key-value map */
     @GetMapping
     public Map<String, String> getAllSettings() {
@@ -27,6 +31,10 @@ public class SiteSettingsController {
         for (SiteSettings s : all) {
             result.put(s.getSettingKey(), s.getSettingValue());
         }
+
+        // Inject runtime environment keys necessary for frontend integration
+        result.put("razorpay_key_id", razorpayKeyId);
+
         return result;
     }
 

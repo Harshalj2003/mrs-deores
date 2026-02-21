@@ -7,9 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -22,6 +20,9 @@ public class OrderService {
 
     @Autowired
     private AddressRepository addressRepository;
+
+    @Autowired
+    private RazorpayService razorpayService;
 
     public List<Order> getUserOrders(User user) {
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
@@ -75,22 +76,29 @@ public class OrderService {
         order.setTotalAmount(totalAmount);
         order.setTotalItems(totalItems);
 
-        // 4. Mock Payment
+        // 4. Create Pending Payment Record
         PaymentDetails payment = new PaymentDetails();
-        payment.setPaymentMethod("MOCK_CARD");
-        payment.setTransactionId(UUID.randomUUID().toString());
-        payment.setStatus("COMPLETED");
-        payment.setPaymentDate(LocalDateTime.now());
+        payment.setPaymentMethod("RAZORPAY");
+        payment.setStatus("PENDING");
 
         order.setPaymentDetails(payment);
-        order.setStatus("PAID");
+        order.setStatus("CREATED");
 
-        // 5. Save Order
+        // 5. Save Order initially to generate an ID
         Order savedOrder = orderRepository.save(order);
 
-        // 6. Clear Cart
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        // 6. Generate Razorpay Order
+        try {
+            com.razorpay.Order rzpOrder = razorpayService.createOrder(totalAmount, "rcpt_" + savedOrder.getId());
+            payment.setRazorpayOrderId(rzpOrder.get("id"));
+            // Update the record with the RZP order ID
+            savedOrder = orderRepository.save(savedOrder);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to initialize payment gateway: " + e.getMessage(), e);
+        }
+
+        // Note: Cart is NO LONGER cleared here. It will be cleared upon successful
+        // payment verification.
 
         return savedOrder;
     }
@@ -100,10 +108,47 @@ public class OrderService {
     }
 
     @Transactional
-    public Order updateOrderStatus(Long orderId, String status) {
+    public Order updateOrderStatus(Long orderId, String status, String trackingNumber, String carrier) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         order.setStatus(status);
+        if (trackingNumber != null)
+            order.setTrackingNumber(trackingNumber);
+        if (carrier != null)
+            order.setCarrier(carrier);
         return orderRepository.save(order);
+    }
+
+    @Transactional
+    public boolean verifyPayment(Long orderId, String rzpOrderId, String paymentId, String signature, User user) {
+        boolean isValid = razorpayService.verifySignature(rzpOrderId, paymentId, signature);
+        if (!isValid) {
+            return false;
+        }
+
+        Order order = orderRepository.findById(orderId).orElse(null);
+        if (order == null || !order.getUser().getId().equals(user.getId())) {
+            return false;
+        }
+
+        // Update Payment Details
+        PaymentDetails payment = order.getPaymentDetails();
+        if (payment != null) {
+            payment.setStatus("COMPLETED");
+            payment.setRazorpayPaymentId(paymentId);
+            payment.setRazorpaySignature(signature);
+        }
+
+        // Mark order as PAID
+        order.setStatus("PAID");
+        orderRepository.save(order);
+
+        // Clear the user's cart now that checkout is securely complete
+        cartRepository.findByUser(user).ifPresent(cart -> {
+            cart.getItems().clear();
+            cartRepository.save(cart);
+        });
+
+        return true;
     }
 }

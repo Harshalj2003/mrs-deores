@@ -44,6 +44,18 @@ public class Order {
     @Column(nullable = false)
     private String status; // "CREATED", "MOCK_PAID", "DELIVERED"
 
+    @Column(name = "coupon_code")
+    private String couponCode;
+
+    @Column(name = "discount_amount")
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "tracking_number")
+    private String trackingNumber;
+
+    @Column(name = "carrier")
+    private String carrier;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

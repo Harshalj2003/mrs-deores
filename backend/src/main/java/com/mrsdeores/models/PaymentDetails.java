@@ -24,6 +24,15 @@ public class PaymentDetails {
     @Column(name = "status")
     private String status; // "PENDING", "COMPLETED", "FAILED"
 
+    @Column(name = "razorpay_order_id")
+    private String razorpayOrderId;
+
+    @Column(name = "razorpay_payment_id")
+    private String razorpayPaymentId;
+
+    @Column(name = "razorpay_signature")
+    private String razorpaySignature;
+
     @Column(name = "payment_date")
     private LocalDateTime paymentDate = LocalDateTime.now();
 

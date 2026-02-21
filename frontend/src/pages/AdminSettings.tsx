@@ -252,6 +252,55 @@ const AdminSettings: React.FC = () => {
                             </div>
                         </SectionCard>
 
+                        {/* 6.1 WhatsApp Support */}
+                        <SectionCard icon={<Phone className="h-5 w-5 text-green-500" />} title="WhatsApp Support Chatbot" subtitle="Floating support button settings">
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between p-4 bg-neutral-light/50 rounded-2xl">
+                                    <div>
+                                        <p className="font-bold text-gray-800 text-sm">Enable WhatsApp Button</p>
+                                        <p className="text-xs text-gray-400">Show the floating chat button on all pages</p>
+                                    </div>
+                                    <Toggle value={getBool('whatsapp_enabled')} onChange={v => setBool('whatsapp_enabled', v)} />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <Field label="WhatsApp Number" hint="Include country code (e.g., 919876543210)">
+                                        <Input value={get('whatsapp_number', '918459424840')} onChange={v => set('whatsapp_number', v)} placeholder="918459424840" />
+                                    </Field>
+                                    <Field label="Initial Message" hint="Default text when user clicks">
+                                        <Input value={get('whatsapp_message', "Hello Mrs. Deores! I'm interested in your traditions. Could you help me with my order?")} onChange={v => set('whatsapp_message', v)} />
+                                    </Field>
+                                    <Field label="Button Position">
+                                        <div className="flex gap-2">
+                                            {[['left', 'Bottom Left'], ['right', 'Bottom Right']].map(([val, label]) => (
+                                                <button
+                                                    key={val}
+                                                    type="button"
+                                                    onClick={() => set('whatsapp_position', val)}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${get('whatsapp_position', 'left') === val ? 'bg-primary text-white' : 'bg-neutral-light/50 text-gray-600'}`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </Field>
+                                    <Field label="Button Size">
+                                        <div className="flex gap-2">
+                                            {[['sm', 'Small'], ['md', 'Medium'], ['lg', 'Large']].map(([val, label]) => (
+                                                <button
+                                                    key={val}
+                                                    type="button"
+                                                    onClick={() => set('whatsapp_size', val)}
+                                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${get('whatsapp_size', 'md') === val ? 'bg-primary text-white' : 'bg-neutral-light/50 text-gray-600'}`}
+                                                >
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </Field>
+                                </div>
+                            </div>
+                        </SectionCard>
+
                         {/* 7. Social Media Links */}
                         <SectionCard icon={<Facebook className="h-5 w-5" />} title="Social Media Links" subtitle="URLs shown as social icons in footer">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
