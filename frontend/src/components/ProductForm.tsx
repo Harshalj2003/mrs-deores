@@ -234,11 +234,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
                                                     uploadData.append('file', file);
 
                                                     try {
-                                                        const token = localStorage.getItem('token');
+                                                        let token = '';
+                                                        const userStr = localStorage.getItem('user');
+                                                        if (userStr) {
+                                                            try {
+                                                                const userObj = JSON.parse(userStr);
+                                                                token = userObj.token || '';
+                                                            } catch (e) {
+                                                                console.error('Error parsing user object from localStorage', e);
+                                                            }
+                                                        }
+
                                                         console.log('Sending upload request...');
-                                                        const res = await fetch('http://localhost:8080/api/upload', {
+                                                        const res = await fetch('/api/upload', {
                                                             method: 'POST',
-                                                            headers: { 'Authorization': `Bearer ${token}` },
+                                                            headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
                                                             body: uploadData
                                                         });
 

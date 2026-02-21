@@ -1,4 +1,7 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
+
+declare const process: { env: { NODE_ENV: string } };
 
 interface Props {
     children?: ReactNode;

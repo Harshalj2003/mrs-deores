@@ -5,8 +5,10 @@ import type { Product, Category } from "../types/catalog.types";
 import ProductCard from "./ProductCard";
 import EmptyState from "./EmptyState";
 import { SearchX } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 const ProductList: React.FC = () => {
+    const { t } = useLanguage();
     const { categoryId } = useParams();
     const [products, setProducts] = useState<Product[]>([]);
     const [category, setCategory] = useState<Category | null>(null);
@@ -19,7 +21,6 @@ const ProductList: React.FC = () => {
 
         const fetchData = async () => {
             try {
-                // Parallel fetch
                 const [allCats, productsData] = await Promise.all([
                     getCategories(),
                     getProducts(categoryId ? Number(categoryId) : undefined)
@@ -29,6 +30,8 @@ const ProductList: React.FC = () => {
                     const cat = allCats.find(c => c.id === Number(categoryId));
                     setCategory(cat || null);
                 }
+
+                setProducts(productsData);
 
                 setProducts(productsData);
             } catch (err) {
@@ -72,7 +75,7 @@ const ProductList: React.FC = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {category && (
                     <div className="mb-12 text-center">
-                        <span className="text-secondary font-black uppercase tracking-widest text-xs mb-2 block">Collection</span>
+                        <span className="text-secondary font-black uppercase tracking-widest text-xs mb-2 block">{t('categories')}</span>
                         <h1 className="text-4xl md:text-5xl font-black text-primary font-serif mb-4">{category.name}</h1>
                         <p className="text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">{category.description}</p>
                     </div>
@@ -87,7 +90,9 @@ const ProductList: React.FC = () => {
                         actionPath="/"
                     />
                 ) : (
-                    <div className="grid grid-cols-1 gap-y-12 sm:grid-cols-2 gap-x-8 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-10">
+                    <div
+                        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8"
+                    >
                         {products.map((product) => (
                             <ProductCard key={product.id} product={product} />
                         ))}

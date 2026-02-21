@@ -28,6 +28,8 @@ const Login: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
+    const [touchedUser, setTouchedUser] = useState(false);
+    const [touchedPass, setTouchedPass] = useState(false);
 
     const navigate = useNavigate();
 
@@ -37,7 +39,7 @@ const Login: React.FC = () => {
         setLoading(true);
 
         if (loginMode === 'email') {
-            AuthService.login({ username, password }).then(
+            AuthService.login({ username: username.trim(), password: password.trim() }).then(
                 () => {
                     navigate(activeTab === 'admin' ? "/admin" : "/");
                     window.location.reload();
@@ -105,13 +107,13 @@ const Login: React.FC = () => {
             }} />
 
             <div className="text-center">
-                <h2 className="text-2xl font-black text-gray-900 font-serif lowercase italic">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic">
                     {activeTab === 'admin' && adminMode === 'register'
                         ? 'Admin Enrollment'
                         : `Welcome Back${activeTab === 'admin' ? ', Admin' : ''}`
                     }
                 </h2>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {activeTab === 'admin' && adminMode === 'register'
                         ? 'Invitation token required for enrollment'
                         : 'Please sign in to your dashboard'
@@ -121,16 +123,16 @@ const Login: React.FC = () => {
 
             {/* User login mode switcher */}
             {activeTab === 'user' && (
-                <div className="flex bg-neutral-light p-1 rounded-xl mb-6">
+                <div className="flex bg-neutral-light dark:bg-neutral-800 p-1 rounded-xl mb-6">
                     <button
                         onClick={() => setLoginMode('email')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${loginMode === 'email' ? 'bg-white shadow-sm text-primary' : 'text-gray-400'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${loginMode === 'email' ? 'bg-white dark:bg-neutral-700 shadow-sm text-primary dark:text-primary-light' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
                         <Mail className="h-4 w-4" /> Email
                     </button>
                     <button
                         onClick={() => setLoginMode('otp')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${loginMode === 'otp' ? 'bg-white shadow-sm text-primary' : 'text-gray-400'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${loginMode === 'otp' ? 'bg-white dark:bg-neutral-700 shadow-sm text-primary dark:text-primary-light' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
                         <Smartphone className="h-4 w-4" /> Phone OTP
                     </button>
@@ -139,16 +141,16 @@ const Login: React.FC = () => {
 
             {/* Admin mode switcher: Login vs Register */}
             {activeTab === 'admin' && (
-                <div className="flex bg-neutral-light p-1 rounded-xl mb-6">
+                <div className="flex bg-neutral-light dark:bg-neutral-800 p-1 rounded-xl mb-6">
                     <button
                         onClick={() => { setAdminMode('login'); setMessage(""); }}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'login' ? 'bg-white shadow-sm text-accent' : 'text-gray-400'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'login' ? 'bg-white dark:bg-neutral-700 shadow-sm text-accent dark:text-accent-light' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
                         <Lock className="h-4 w-4" /> Login
                     </button>
                     <button
                         onClick={() => { setAdminMode('register'); setMessage(""); }}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'register' ? 'bg-white shadow-sm text-accent' : 'text-gray-400'}`}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${adminMode === 'register' ? 'bg-white dark:bg-neutral-700 shadow-sm text-accent dark:text-accent-light' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
                         <KeyRound className="h-4 w-4" /> Enroll
                     </button>
@@ -171,23 +173,35 @@ const Login: React.FC = () => {
                                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
-                                        className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
+                                        className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
                                         placeholder="Username or Email"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
+                                        onBlur={() => setTouchedUser(true)}
                                         required
                                     />
+                                    {touchedUser && username !== username.trim() && (
+                                        <p className="text-[11px] text-amber-600 mt-1 px-1 font-medium">
+                                            ✓ Extra spaces detected — they'll be trimmed automatically for you.
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="password"
-                                        className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
-                                        placeholder="Password"
+                                        className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
+                                        placeholder="Password (min. 6 characters)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        onBlur={() => setTouchedPass(true)}
                                         required
                                     />
+                                    {touchedPass && password.trim().length > 0 && password.trim().length < 6 && (
+                                        <p className="text-[11px] text-red-500 mt-1 px-1 font-medium">
+                                            Password must be at least 6 characters.
+                                        </p>
+                                    )}
                                 </div>
                             </motion.div>
                         ) : (
@@ -202,7 +216,7 @@ const Login: React.FC = () => {
                                     <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="tel"
-                                        className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
+                                        className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
                                         placeholder="Phone Number"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
@@ -223,7 +237,7 @@ const Login: React.FC = () => {
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                         <input
                                             type="text"
-                                            className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
+                                            className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
                                             placeholder="Enter 6-digit OTP"
                                             value={otp}
                                             onChange={(e) => setOtp(e.target.value)}
@@ -243,10 +257,10 @@ const Login: React.FC = () => {
 
                     <div className="flex items-center justify-between px-1">
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                            <span className="text-xs text-gray-500 font-medium">Remember me</span>
+                            <input type="checkbox" className="h-4 w-4 rounded border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-primary focus:ring-primary" />
+                            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">Remember me</span>
                         </label>
-                        <Link to="/forgot-password" className="text-xs font-black text-primary hover:underline uppercase tracking-widest">
+                        <Link to="/forgot-password" className="text-xs font-black text-primary dark:text-primary-light hover:underline uppercase tracking-widest">
                             Forgot Password?
                         </Link>
                     </div>
@@ -274,11 +288,11 @@ const Login: React.FC = () => {
                         className="space-y-3"
                     >
                         {/* Security notice */}
-                        <div className="flex items-start gap-3 bg-accent/5 border border-accent/10 rounded-2xl p-4 mb-2">
+                        <div className="flex items-start gap-3 bg-accent/5 dark:bg-accent/10 border border-accent/10 dark:border-accent/20 rounded-2xl p-4 mb-2">
                             <ShieldAlert className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
                             <div>
                                 <p className="text-xs font-black text-accent uppercase tracking-widest">Secure Enrollment</p>
-                                <p className="text-xs text-gray-500 mt-1">You need a valid invitation token from the system owner. Unauthorized attempts are logged.</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">You need a valid invitation token from the system owner. Unauthorized attempts are logged.</p>
                             </div>
                         </div>
 
@@ -286,7 +300,7 @@ const Login: React.FC = () => {
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="text"
-                                className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
                                 placeholder="Admin Username"
                                 value={adminUsername}
                                 onChange={(e) => setAdminUsername(e.target.value)}
@@ -298,7 +312,7 @@ const Login: React.FC = () => {
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="email"
-                                className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
                                 placeholder="Pre-approved Email"
                                 value={adminEmail}
                                 onChange={(e) => setAdminEmail(e.target.value)}
@@ -310,7 +324,7 @@ const Login: React.FC = () => {
                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="tel"
-                                className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
                                 placeholder="Registered Phone Number"
                                 value={adminPhone}
                                 onChange={(e) => setAdminPhone(e.target.value)}
@@ -322,7 +336,7 @@ const Login: React.FC = () => {
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="password"
-                                className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
                                 placeholder="Set Admin Password"
                                 value={adminPassword}
                                 onChange={(e) => setAdminPassword(e.target.value)}
@@ -335,7 +349,7 @@ const Login: React.FC = () => {
                             <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
                                 type="text"
-                                className="block w-full rounded-2xl border-gray-100 bg-background py-4 pl-12 pr-4 text-gray-900 ring-1 ring-inset ring-gray-200 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all font-mono"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all font-mono"
                                 placeholder="Invitation Token"
                                 value={inviteToken}
                                 onChange={(e) => setInviteToken(e.target.value)}
@@ -363,16 +377,16 @@ const Login: React.FC = () => {
                 <motion.div
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`text-center p-3 rounded-xl text-xs font-bold ${message.includes('success') ? 'bg-secondary/10 text-secondary' : 'bg-accent/10 text-accent'}`}
+                    className={`text-center p-3 rounded-xl text-xs font-bold ${message.includes('success') ? 'bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary-light' : 'bg-accent/10 dark:bg-accent/20 text-accent dark:text-accent-light'}`}
                 >
                     {message}
                 </motion.div>
             )}
 
             {activeTab === 'user' && (
-                <p className="text-center text-sm text-gray-500">
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                     Don't have an account?{' '}
-                    <Link to="/register" className="font-black text-primary hover:underline uppercase tracking-widest">
+                    <Link to="/register" className="font-black text-primary dark:text-primary-light hover:underline uppercase tracking-widest">
                         Join Tradition
                     </Link>
                 </p>

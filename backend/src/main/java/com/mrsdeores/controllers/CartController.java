@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.Optional;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
@@ -35,7 +34,7 @@ public class CartController {
     }
 
     @GetMapping
-    public ResponseEntity<Cart> getCart(@RequestParam(required = false) String sessionId) {
+    public ResponseEntity<Cart> getCart(@RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         if (user == null && sessionId == null) {
             return ResponseEntity.badRequest().build();
@@ -45,7 +44,7 @@ public class CartController {
 
     @PostMapping("/items")
     public ResponseEntity<Cart> addToCart(@RequestBody Map<String, Object> payload,
-            @RequestParam(required = false) String sessionId) {
+            @RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         Long productId = Long.valueOf(payload.get("productId").toString());
         Integer quantity = Integer.valueOf(payload.get("quantity").toString());
@@ -54,16 +53,16 @@ public class CartController {
     }
 
     @PutMapping("/items/{productId}")
-    public ResponseEntity<Cart> updateItem(@PathVariable Long productId, @RequestBody Map<String, Object> payload,
-            @RequestParam(required = false) String sessionId) {
+    public ResponseEntity<Cart> updateItem(@PathVariable("productId") Long productId, @RequestBody Map<String, Object> payload,
+            @RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         Integer quantity = Integer.valueOf(payload.get("quantity").toString());
         return ResponseEntity.ok(cartService.updateItemQuantity(user, sessionId, productId, quantity));
     }
 
     @DeleteMapping("/items/{productId}")
-    public ResponseEntity<Cart> removeItem(@PathVariable Long productId,
-            @RequestParam(required = false) String sessionId) {
+    public ResponseEntity<Cart> removeItem(@PathVariable("productId") Long productId,
+            @RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         return ResponseEntity.ok(cartService.removeItem(user, sessionId, productId));
     }

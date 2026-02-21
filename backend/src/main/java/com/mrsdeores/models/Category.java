@@ -24,6 +24,17 @@ public class Category {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "display_order")
+    private Integer displayOrder = 0;
+
+    /** Grid size hint: SMALL, MEDIUM, LARGE, FEATURED */
+    @Column(name = "grid_size", length = 20)
+    private String gridSize = "MEDIUM";
+
+    /** View mode: AUTO, MANUAL */
+    @Column(name = "view_mode", length = 20)
+    private String viewMode = "AUTO";
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

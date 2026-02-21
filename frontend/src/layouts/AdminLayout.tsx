@@ -7,7 +7,7 @@ interface AdminLayoutProps {
     currentUser?: User;
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, currentUser }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     return (
         <div className="flex min-h-screen bg-neutral-light">
             <AdminSidebar />

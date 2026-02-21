@@ -20,4 +20,28 @@ public class CategoryService {
     public Optional<Category> getCategoryById(Integer id) {
         return categoryRepository.findById(id);
     }
+
+    public Category createCategory(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public Optional<Category> updateCategory(Integer id, Category updatedData) {
+        return categoryRepository.findById(id).map(existing -> {
+            existing.setName(updatedData.getName());
+            existing.setDescription(updatedData.getDescription());
+            existing.setImageUrl(updatedData.getImageUrl());
+            existing.setDisplayOrder(updatedData.getDisplayOrder());
+            existing.setGridSize(updatedData.getGridSize());
+            existing.setViewMode(updatedData.getViewMode());
+            return categoryRepository.save(existing);
+        });
+    }
+
+    public boolean deleteCategory(Integer id) {
+        if (categoryRepository.existsById(id)) {
+            categoryRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }

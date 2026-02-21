@@ -6,6 +6,7 @@
   --color-accent: #7F1D1D;
   --color-background: #FFF8ED;
   --color-text: #1F2937;
+  --color-neutral-light: #F9F5F0;
   --font-sans: "Inter", "system-ui", sans-serif;
   --font-serif: "Playfair Display", "Georgia", serif;
 }
@@ -13,6 +14,7 @@
 @layer base {
   body {
     @apply bg-background text-text font-sans antialiased;
+    transition: background-color 0.4s ease, color 0.4s ease;
   }
 
   h1,
@@ -22,6 +24,210 @@
   h5,
   h6 {
     @apply font-serif;
+  }
+
+  /* Global link reset — beats any third-party CSS */
+  a {
+    text-decoration: none !important;
+    color: inherit !important;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  /* ============================================================
+     DARK MODE — Warm Traditional Dark Palette
+     Deep amber-brown tones, never cold black/white.
+     Brand colors (primary orange, secondary gold) stay vibrant.
+     ============================================================ */
+
+  .dark body {
+    background-color: #1A0F07 !important;
+    color: #F0DEC8 !important;
+  }
+
+  /* Surfaces */
+  .dark .bg-white {
+    background-color: #271608 !important;
+  }
+
+  .dark .bg-gray-50 {
+    background-color: #1E1208 !important;
+  }
+
+  .dark .bg-neutral-light {
+    background-color: #1E1208 !important;
+  }
+
+  .dark [class*="bg-gray-50"] {
+    background-color: #1E1208 !important;
+  }
+
+  .dark [class*="bg-background"] {
+    background-color: #1A0F07 !important;
+  }
+
+  .dark [class*="bg-\[#FFF8E7\]"],
+  .dark [class*="bg-\[#FFF8ED\]"],
+  .dark [class*="bg-\[#FFECD2\]"],
+  .dark [class*="bg-\[#FFECB3\]"] {
+    background-color: #1E1208 !important;
+  }
+
+  /* Text */
+  .dark .text-gray-900 {
+    color: #F0DEC8 !important;
+  }
+
+  .dark .text-gray-800 {
+    color: #E2C9A8 !important;
+  }
+
+  .dark .text-gray-700 {
+    color: #CEB48E !important;
+  }
+
+  .dark .text-gray-600 {
+    color: #B89A74 !important;
+  }
+
+  .dark .text-gray-500 {
+    color: #9C7A5C !important;
+  }
+
+  .dark .text-gray-400 {
+    color: #7D5F45 !important;
+  }
+
+  .dark [class*="text-\[#5D4037\]"],
+  .dark [class*="text-\[#8D6E63\]"],
+  .dark [class*="text-\[#1F2937\]"] {
+    color: #CEB48E !important;
+  }
+
+  /* Borders */
+  .dark .border-gray-100 {
+    border-color: #3D2010 !important;
+  }
+
+  .dark .border-gray-200 {
+    border-color: #4A2D14 !important;
+  }
+
+  .dark [class*="border-primary\/"] {
+    border-color: rgba(194, 65, 12, 0.25) !important;
+  }
+
+  .dark [class*="border-white\/"] {
+    border-color: rgba(240, 222, 200, 0.1) !important;
+  }
+
+  /* Navbar in dark mode */
+  .dark nav {
+    background: linear-gradient(to right, #1E1308, #271808, #1E1308) !important;
+    border-bottom-color: rgba(194, 65, 12, 0.2) !important;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Profile dropdown in dark mode */
+  .dark [class*="bg-white rounded-2xl"] {
+    background-color: #271608 !important;
+  }
+
+  /* Input / form fields */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: #1E1208 !important;
+    border-color: #4A2D14 !important;
+    color: #F0DEC8 !important;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #7D5F45 !important;
+  }
+
+  /* Admin sidebar */
+  .dark [class*="border-r"] {
+    border-color: #3D2010 !important;
+  }
+
+  .dark [class*="divide-y"]>*+* {
+    border-color: #3D2010 !important;
+  }
+
+  /* Trust strip */
+  .dark [class*="bg-secondary\/"] {
+    background-color: rgba(234, 179, 8, 0.08) !important;
+  }
+
+  /* Footer */
+  .dark footer,
+  .dark [class*="bg-neutral-800"] {
+    background-color: #0D0802 !important;
+  }
+
+  /* Cards hover */
+  .dark tr:hover,
+  .dark [class*="hover:bg-neutral-light"] {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+  }
+
+  /* Keep brand colors vibrant in dark mode */
+  .dark .text-primary {
+    color: #F97316 !important;
+  }
+
+  .dark .text-secondary {
+    color: #FCD34D !important;
+  }
+
+  .dark .text-accent {
+    color: #F4A78A !important;
+  }
+
+  .dark .bg-primary {
+    background-color: #C2410C !important;
+  }
+
+  .dark .bg-secondary {
+    background-color: #EAB308 !important;
+  }
+
+  .dark [class*="bg-primary\/"] {
+    background-color: rgba(194, 65, 12, 0.15) !important;
+  }
+
+  .dark [class*="bg-secondary\/"] {
+    background-color: rgba(234, 179, 8, 0.1) !important;
+  }
+
+  .dark [class*="bg-accent\/"] {
+    background-color: rgba(127, 29, 29, 0.2) !important;
+  }
+
+  /* Pill active nav state in dark mode */
+  .dark a.bg-primary\/10 {
+    background-color: rgba(249, 115, 22, 0.15) !important;
+  }
+
+  /* Green/red status badges */
+  .dark .bg-green-100 {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #4ADE80 !important;
+  }
+
+  .dark .bg-red-100 {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #F87171 !important;
   }
 }
 

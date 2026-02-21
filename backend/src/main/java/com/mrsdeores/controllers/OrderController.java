@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -45,7 +44,7 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrder(@PathVariable Long id) {
+    public ResponseEntity<Order> getOrder(@PathVariable("id") Long id) {
         User user = getAuthenticatedUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
@@ -89,7 +88,7 @@ public class OrderController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Order> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> payload) {
+    public ResponseEntity<Order> updateOrderStatus(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
         String status = payload.get("status");
         if (status == null) {
             return ResponseEntity.badRequest().build();

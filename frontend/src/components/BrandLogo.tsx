@@ -5,51 +5,57 @@ import { motion } from 'framer-motion';
 interface BrandLogoProps {
     variant?: 'full' | 'icon' | 'text';
     className?: string;
+    size?: 'sm' | 'md' | 'lg';
+    showText?: boolean;
 }
 
-const BrandLogo: React.FC<BrandLogoProps> = ({ variant = 'full', className }) => {
+const sizeMap = {
+    sm: { icon: 'w-7 h-7', text: 'h-6', full: 'h-10' },
+    md: { icon: 'w-10 h-10', text: 'h-8', full: 'h-12' },
+    lg: { icon: 'w-14 h-14', text: 'h-10', full: 'h-14' },
+};
 
-    // Icon-only variant (Circular Logo)
+const BrandLogo: React.FC<BrandLogoProps> = ({ variant = 'full', className, size = 'md', showText = true }) => {
+    const s = sizeMap[size];
+
     if (variant === 'icon') {
         return (
-            <motion.div
-                whileHover={{ rotate: 10 }}
-                className={clsx("relative", className)}
-            >
+            <motion.div whileHover={{ rotate: 10 }} className={clsx("relative", className)}>
                 <img
                     src="/logo.svg"
                     alt="MRS. DEORE PREMIX Logo"
-                    className="w-20 h-20 object-contain drop-shadow-md"
+                    className={clsx(s.icon, "object-contain drop-shadow-md")}
                 />
             </motion.div>
         );
     }
 
-    // Text-only variant (Web Name)
     if (variant === 'text') {
         return (
             <img
                 src="/web_name.svg"
                 alt="MRS. DEORE PREMIX"
-                className={clsx("h-12 object-contain", className)}
+                className={clsx(s.text, "object-contain dark:invert", className)}
             />
         );
     }
 
     // Full variant (Icon + Text)
     return (
-        <div className={clsx("flex items-center gap-4", className)}>
+        <div className={clsx("flex items-center gap-2", className)}>
             <motion.img
                 whileHover={{ rotate: 10 }}
                 src="/logo.svg"
                 alt="MRS. DEORE PREMIX Logo"
-                className="w-20 h-20 object-contain drop-shadow-md bg-white rounded-full p-1"
+                className={clsx(s.icon, "object-contain drop-shadow-sm bg-white rounded-full p-0.5")}
             />
-            <img
-                src="/web_name.svg"
-                alt="MRS. DEORE PREMIX"
-                className="h-14 object-contain" // Removed filter overrides
-            />
+            {showText && (
+                <img
+                    src="/web_name.svg"
+                    alt="MRS. DEORE PREMIX"
+                    className={clsx(s.text, "object-contain max-w-[120px] dark:invert")}
+                />
+            )}
         </div>
     );
 };

@@ -30,6 +30,9 @@ public class ProductService {
     }
 
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        productRepository.findById(id).ifPresent(product -> {
+            product.setIsActive(false);
+            productRepository.save(product);
+        });
     }
 }

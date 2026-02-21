@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import ProductForm from '../components/ProductForm';
 import type { ProductFormData } from '../components/ProductForm';
-import { Plus, Search, Edit2, Trash2, Filter } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle2 } from 'lucide-react';
 import api from '../services/api';
 import type { Product, Category } from '../types/catalog.types';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminProducts: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -13,10 +14,15 @@ const AdminProducts: React.FC = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
     const [saveError, setSaveError] = useState('');
+    const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
-    useEffect(() => {
-        fetchInitialData();
-    }, []);
+    const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3000);
+    };
+
+    useEffect(() => { fetchInitialData(); }, []);
 
     const fetchInitialData = async () => {
         try {
@@ -56,38 +62,64 @@ const AdminProducts: React.FC = () => {
                 setProducts([res.data, ...products]);
             }
             setIsFormOpen(false);
+            showToast('Product saved successfully!');
         } catch (err: any) {
             const msg = err?.response?.data?.message || "Failed to save product. Check the data and try again.";
             setSaveError(msg);
         }
     };
 
-
     const handleDeleteProduct = async (id: number) => {
-        if (!window.confirm("Are you sure you want to delete this product?")) return;
         try {
             await api.delete(`/products/${id}`);
-            setProducts(products.filter(p => p.id !== id));
-        } catch (err) {
-            console.error("Failed to delete product", err);
+            // Soft delete — just hide from list (set inactive)
+            setProducts(products.map(p => p.id === id ? { ...p, isActive: false } : p));
+            setDeleteConfirmId(null);
+            showToast('Product hidden from store.');
+        } catch (err: any) {
+            const errMsg = err?.response?.data?.message || 'Failed to hide product.';
+            showToast(errMsg, 'error');
+            setDeleteConfirmId(null);
         }
     };
 
     return (
-        <div className="flex min-h-screen bg-neutral-light">
+        <div className="flex min-h-screen bg-neutral-light font-sans">
             <AdminSidebar />
-            <main className="flex-1 p-8">
+            <main className="flex-1 p-8 relative">
+                {/* Toast */}
+                <AnimatePresence>
+                    {toast && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className={`fixed top-4 right-4 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl font-bold text-sm ${toast.type === 'success'
+                                    ? 'bg-green-50 text-green-700 border border-green-100'
+                                    : 'bg-red-50 text-red-600 border border-red-100'
+                                }`}
+                        >
+                            {toast.type === 'success'
+                                ? <CheckCircle2 className="h-4 w-4" />
+                                : <AlertCircle className="h-4 w-4" />}
+                            {toast.msg}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <header className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 font-serif">Product Management</h1>
-                        <p className="text-gray-500 mt-1">Add, edit, or remove products from the catalog.</p>
+                        <p className="text-gray-500 mt-1">Add, edit, or hide products from the catalog.</p>
                     </div>
-                    <button
+                    <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={handleAddProduct}
-                        className="inline-flex items-center px-4 py-2 bg-primary text-white rounded-xl hover:bg-accent transition-colors shadow-lg shadow-primary/20"
+                        className="inline-flex items-center px-5 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-accent transition-colors shadow-lg shadow-primary/20 text-sm"
                     >
-                        <Plus className="h-5 w-5 mr-2" /> Add Product
-                    </button>
+                        <Plus className="h-4 w-4 mr-2" /> Add Product
+                    </motion.button>
                 </header>
 
                 <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -100,7 +132,7 @@ const AdminProducts: React.FC = () => {
                                 className="pl-10 pr-4 py-2 w-full bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
                             />
                         </div>
-                        <button className="inline-flex items-center text-sm text-gray-500 hover:text-primary p-2">
+                        <button className="inline-flex items-center text-sm text-gray-500 hover:text-primary p-2 rounded-lg hover:bg-primary/5 transition-colors">
                             <Filter className="h-4 w-4 mr-2" /> Filters
                         </button>
                     </div>
@@ -126,7 +158,7 @@ const AdminProducts: React.FC = () => {
                                     <tr key={product.id} className="hover:bg-neutral-light/50 transition-colors cursor-default group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center">
-                                                <div className="h-10 w-10 rounded-lg bg-gray-100 mr-3 overflow-hidden border border-gray-200">
+                                                <div className="h-10 w-10 rounded-lg bg-gray-100 mr-3 overflow-hidden border border-gray-200 flex-shrink-0">
                                                     {product.images?.[0] ? (
                                                         <img src={product.images[0].imageUrl} className="h-full w-full object-cover" alt="" />
                                                     ) : <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-400 font-bold uppercase tracking-tight">None</div>}
@@ -142,19 +174,44 @@ const AdminProducts: React.FC = () => {
                                                 {product.isActive ? 'Active' : 'Hidden'}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 text-right space-x-2">
-                                            <button
-                                                onClick={() => handleEditProduct(product)}
-                                                className="p-2 text-gray-400 hover:text-primary hover:bg-white rounded-lg transition-all"
-                                            >
-                                                <Edit2 className="h-4 w-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteProduct(product.id)}
-                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-all"
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </button>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex items-center justify-end gap-2">
+                                                <motion.button
+                                                    whileHover={{ scale: 1.1 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={() => handleEditProduct(product)}
+                                                    className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                                >
+                                                    <Edit2 className="h-4 w-4" />
+                                                </motion.button>
+                                                {deleteConfirmId === product.id ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <motion.button
+                                                            initial={{ opacity: 0, scale: 0.9 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            onClick={() => handleDeleteProduct(product.id)}
+                                                            className="text-[10px] px-2 py-1 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-colors"
+                                                        >
+                                                            Yes, Hide
+                                                        </motion.button>
+                                                        <button
+                                                            onClick={() => setDeleteConfirmId(null)}
+                                                            className="text-[10px] px-2 py-1 bg-gray-100 text-gray-600 rounded-lg font-bold hover:bg-gray-200 transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <motion.button
+                                                        whileHover={{ scale: 1.1 }}
+                                                        whileTap={{ scale: 0.9 }}
+                                                        onClick={() => setDeleteConfirmId(product.id)}
+                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </motion.button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -170,6 +227,11 @@ const AdminProducts: React.FC = () => {
                         onSave={handleSaveProduct}
                         onClose={() => setIsFormOpen(false)}
                     />
+                )}
+                {saveError && (
+                    <div className="mt-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 flex items-center gap-2">
+                        <AlertCircle className="h-4 w-4 flex-shrink-0" /> {saveError}
+                    </div>
                 )}
             </main>
         </div>

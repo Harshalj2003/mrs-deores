@@ -17,7 +17,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/custom-orders")
 public class CustomOrderController {
@@ -68,7 +67,7 @@ public class CustomOrderController {
      * Get a single custom order by ID (for current user).
      */
     @GetMapping("/{id}")
-    public ResponseEntity<?> getRequest(@PathVariable Long id) {
+    public ResponseEntity<?> getRequest(@PathVariable("id") Long id) {
         User user = getAuthenticatedUser();
         if (user == null) {
             return ResponseEntity.status(401).build();
@@ -88,7 +87,7 @@ public class CustomOrderController {
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CustomOrder>> getAllRequests(
-            @RequestParam(required = false) String status) {
+            @RequestParam(name = "status", required = false) String status) {
         if (status != null && !status.isEmpty()) {
             return ResponseEntity.ok(customOrderService.getRequestsByStatus(status));
         }
@@ -101,7 +100,7 @@ public class CustomOrderController {
      */
     @PutMapping("/admin/{id}/approve")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> approveRequest(@PathVariable Long id,
+    public ResponseEntity<?> approveRequest(@PathVariable("id") Long id,
             @RequestBody Map<String, Object> payload) {
         try {
             BigDecimal agreedPrice = new BigDecimal(payload.get("agreedPrice").toString());
@@ -118,7 +117,7 @@ public class CustomOrderController {
      */
     @PutMapping("/admin/{id}/quote")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> quoteRequest(@PathVariable Long id,
+    public ResponseEntity<?> quoteRequest(@PathVariable("id") Long id,
             @RequestBody Map<String, Object> payload) {
         try {
             BigDecimal agreedPrice = new BigDecimal(payload.get("agreedPrice").toString());
@@ -135,7 +134,7 @@ public class CustomOrderController {
      */
     @PutMapping("/admin/{id}/reject")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> rejectRequest(@PathVariable Long id,
+    public ResponseEntity<?> rejectRequest(@PathVariable("id") Long id,
             @RequestBody Map<String, String> payload) {
         try {
             String adminNote = payload.getOrDefault("adminNote", "");
@@ -152,7 +151,7 @@ public class CustomOrderController {
      */
     @PutMapping("/admin/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateStatus(@PathVariable Long id,
+    public ResponseEntity<?> updateStatus(@PathVariable("id") Long id,
             @RequestBody Map<String, String> payload) {
         try {
             String status = payload.get("status");

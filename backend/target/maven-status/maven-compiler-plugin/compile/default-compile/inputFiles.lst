@@ -1,6 +1,7 @@
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\config\DataSeeder.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\config\WebConfiguration.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\AddressController.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\AdminStatsController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\AuthController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\CartController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\CategoryController.java
@@ -8,6 +9,8 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\FileUploadController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\OrderController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\ProductController.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\SearchController.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\SiteSettingsController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\TestController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\UserController.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\controllers\WishlistController.java
@@ -25,6 +28,7 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\Product.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\ProductImage.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\Role.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\SiteSettings.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\User.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\Wishlist.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\WishlistItem.java
@@ -43,6 +47,7 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\OrderRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\ProductRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\RoleRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\SiteSettingsRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\UserRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\WishlistRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\security\jwt\AuthEntryPointJwt.java

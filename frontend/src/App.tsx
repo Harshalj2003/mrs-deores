@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 
 import AuthService from "./services/auth.service";
@@ -14,11 +13,12 @@ import ProductList from "./components/ProductList";
 import ProductDetail from "./components/ProductDetail";
 import Wishlist from "./components/Wishlist";
 import CheckoutPage from "./pages/CheckoutPage";
-import MyOrdersPage from "./pages/MyOrdersPage";
+import Orders from "./pages/Orders";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 import useCartStore from "./store/useCartStore";
+import api from "./services/api";
 
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
@@ -26,18 +26,28 @@ import CheckoutLayout from "./layouts/CheckoutLayout";
 import CustomOrderPage from "./pages/CustomOrderPage";
 import AdminCustomOrders from "./pages/AdminCustomOrders";
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
-
+import ScrollToTop from "./components/ScrollToTop";
+import AdminCategories from "./pages/AdminCategories";
+import AdminSettings from "./pages/AdminSettings";
+import AboutPage from "./pages/AboutPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const location = useLocation();
 
   useEffect(() => {
     const user = AuthService.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-    }
-    // Sync cart on load
+    if (user) setCurrentUser(user);
     useCartStore.getState().syncWithBackend();
+
+    // Apply theme colors from admin settings to CSS variables
+    api.get('/settings').then(res => {
+      const settings = res.data || {};
+      const root = document.documentElement;
+      if (settings.theme_primary_color) root.style.setProperty('--color-primary', settings.theme_primary_color);
+      if (settings.theme_secondary_color) root.style.setProperty('--color-secondary', settings.theme_secondary_color);
+    }).catch(() => { /* fail silently — use defaults */ });
   }, []);
 
   const logOut = () => {
@@ -74,37 +84,45 @@ const App: React.FC = () => {
   const Layout = getLayout(location.pathname);
 
   return (
-    <Layout currentUser={currentUser} logOut={logOut}>
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={location.pathname}
-          initial="initial"
-          animate="in"
-          exit="out"
-          variants={pageVariants}
-          transition={pageTransition}
-        >
-          <Routes location={location} key={location.pathname}>
-            <Route path="/" element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/category/:categoryId" element={<ProductList />} />
-            <Route path="/product/:productId" element={<ProductDetail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/orders" element={<MyOrdersPage />} />
-            <Route path="/custom-order" element={<CustomOrderPage />} />
+    <>
+      <ScrollToTop />
+      <Layout currentUser={currentUser} logOut={logOut}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial="initial"
+            animate="in"
+            exit="out"
+            variants={pageVariants}
+            transition={pageTransition}
+          >
+            <Routes location={location} key={location.pathname}>
+              <Route path="/" element={<Home />} />
+              <Route path="/home" element={<Home />} />
+              <Route path="/category/:categoryId" element={<ProductList />} />
+              <Route path="/product/:productId" element={<ProductDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/orders" element={<Orders />} />
+              <Route path="/custom-order" element={<CustomOrderPage />} />
 
-            {/* Admin Routes — Protected */}
-            <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-            <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
-            <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
-            <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
-          </Routes>
-        </motion.div>
-      </AnimatePresence>
-    </Layout>
+              {/* Admin Routes — Protected */}
+              <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+              <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
+              <Route path="/admin/categories" element={<ProtectedAdminRoute><AdminCategories /></ProtectedAdminRoute>} />
+              <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
+              <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
+              <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+            </Routes>
+          </motion.div>
+        </AnimatePresence>
+      </Layout>
+    </>
   );
 };
 

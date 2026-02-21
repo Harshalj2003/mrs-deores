@@ -4,8 +4,7 @@ import type { Order } from '../types/Order';
 import type { CustomOrderResponse } from '../types/customOrder.types';
 import { getUserOrders } from '../services/OrderService';
 import { getMyCustomOrders } from '../services/CustomOrderService';
-import { CUSTOM_ORDER_STATUS_LABELS } from '../types/customOrder.types';
-import { Package, FileText, Clock, DollarSign, CheckCircle } from 'lucide-react';
+import { Package, FileText, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/auth.service';
 import EmptyState from '../components/EmptyState';
@@ -62,8 +61,8 @@ const MyOrdersPage: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('standard')}
                         className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'standard'
-                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                : 'text-gray-500 hover:text-primary'
+                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                            : 'text-gray-500 hover:text-primary'
                             }`}
                     >
                         <Package className="inline h-3.5 w-3.5 mr-2 -mt-0.5" />
@@ -72,8 +71,8 @@ const MyOrdersPage: React.FC = () => {
                     <button
                         onClick={() => setActiveTab('custom')}
                         className={`px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'custom'
-                                ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
-                                : 'text-gray-500 hover:text-secondary'
+                            ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
+                            : 'text-gray-500 hover:text-secondary'
                             }`}
                     >
                         <FileText className="inline h-3.5 w-3.5 mr-2 -mt-0.5" />

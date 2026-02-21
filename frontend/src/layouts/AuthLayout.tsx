@@ -8,7 +8,7 @@ interface AuthLayoutProps {
 
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
     return (
-        <div className="min-h-screen bg-neutral-light flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-pattern">
+        <div className="min-h-screen bg-neutral-light dark:bg-neutral-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-pattern">
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -26,7 +26,7 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
                 transition={{ delay: 0.2, duration: 0.5 }}
                 className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
             >
-                <div className="bg-white py-8 px-4 shadow-xl sm:rounded-3xl sm:px-10 border border-neutral-200/60 relative overflow-hidden">
+                <div className="bg-white dark:bg-neutral-800 dark:text-white py-8 px-4 shadow-xl sm:rounded-3xl sm:px-10 border border-neutral-200/60 dark:border-neutral-700 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary" />
                     {children}
                 </div>

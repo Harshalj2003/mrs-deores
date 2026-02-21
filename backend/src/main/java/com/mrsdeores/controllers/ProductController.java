@@ -15,7 +15,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
@@ -26,7 +25,7 @@ public class ProductController {
     private CategoryService categoryService;
 
     @GetMapping
-    public List<Product> getAllProducts(@RequestParam(required = false) Integer categoryId) {
+    public List<Product> getAllProducts(@RequestParam(name = "categoryId", required = false) Integer categoryId) {
         if (categoryId != null) {
             return productService.getProductsByCategory(categoryId);
         }
@@ -34,7 +33,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
+    public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -84,7 +83,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateProduct(@PathVariable("id") Long id, @RequestBody Map<String, Object> body) {
         return productService.getProductById(id).map(product -> {
             try {
                 if (body.get("name") != null)
@@ -131,7 +130,7 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<?> deleteProduct(@PathVariable("id") Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.ok(new MessageResponse("Product deleted successfully!"));
     }

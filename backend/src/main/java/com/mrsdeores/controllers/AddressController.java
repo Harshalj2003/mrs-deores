@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/addresses")
 public class AddressController {
@@ -52,7 +51,7 @@ public class AddressController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteAddress(@PathVariable Long id) {
+    public ResponseEntity<?> deleteAddress(@PathVariable("id") Long id) {
         User user = getAuthenticatedUser();
         if (user == null) {
             return ResponseEntity.status(401).build();

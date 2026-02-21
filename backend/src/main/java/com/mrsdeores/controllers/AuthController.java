@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mrsdeores.models.ERole;
+import com.mrsdeores.models.PasswordResetToken;
 import com.mrsdeores.models.Role;
 import com.mrsdeores.models.User;
 import com.mrsdeores.payload.request.AdminRegisterRequest;
@@ -30,13 +31,15 @@ import com.mrsdeores.payload.request.LoginRequest;
 import com.mrsdeores.payload.request.SignupRequest;
 import com.mrsdeores.payload.response.JwtResponse;
 import com.mrsdeores.payload.response.MessageResponse;
+import com.mrsdeores.repository.PasswordResetTokenRepository;
 import com.mrsdeores.repository.RoleRepository;
 import com.mrsdeores.repository.UserRepository;
 import com.mrsdeores.security.jwt.JwtUtils;
 import com.mrsdeores.security.services.UserDetailsImpl;
 import com.mrsdeores.services.AdminAuthService;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -57,6 +60,18 @@ public class AuthController {
 
     @Autowired
     AdminAuthService adminAuthService;
+
+    @Autowired
+    PasswordResetTokenRepository passwordResetTokenRepository;
+
+    @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
+    private String frontendUrl;
+
+    @Autowired
+    private JavaMailSender mailSender;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    private String senderEmail;
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -138,6 +153,71 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new MessageResponse(e.getMessage()));
         }
+    }
+
+    /**
+     * Forgot Password — Generates a reset token and sends email.
+     * Anti-enumeration: always returns 200 regardless of whether email exists.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        try {
+            userRepository.findByEmail(email).ifPresent(user -> {
+                // Remove old tokens for this user
+                passwordResetTokenRepository.deleteByUser(user);
+                // Generate new token
+                String token = java.util.UUID.randomUUID().toString();
+                PasswordResetToken resetToken = new PasswordResetToken(token, user);
+                passwordResetTokenRepository.save(resetToken);
+                // Send email
+                String resetLink = frontendUrl + "/reset-password?token=" + token;
+                SimpleMailMessage message = new SimpleMailMessage();
+                message.setFrom(senderEmail);
+                message.setTo(user.getEmail());
+                message.setSubject("Reset your Mrs. Deore's password");
+                message.setText(
+                        "Hello " + user.getUsername() + ",\n\n" +
+                                "You requested to reset your password. Click the link below (valid for 15 minutes):\n\n"
+                                +
+                                resetLink + "\n\n" +
+                                "If you did not request this, please ignore this email.\n\n" +
+                                "— Mrs. Deore's Premix Team");
+                mailSender.send(message);
+            });
+        } catch (Exception e) {
+            // Log but don't expose error to client
+            System.err.println("Forgot password error: " + e.getMessage());
+        }
+        return ResponseEntity.ok(new MessageResponse("If this email is registered, a reset link has been sent."));
+    }
+
+    /**
+     * Reset Password — Validates token and updates password.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody java.util.Map<String, String> body) {
+        String token = body.getOrDefault("token", "").trim();
+        String newPassword = body.getOrDefault("newPassword", "").trim();
+
+        if (token.isEmpty() || newPassword.length() < 6) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Invalid request. Password must be at least 6 characters."));
+        }
+
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElse(null);
+        if (resetToken == null || resetToken.isUsed() || resetToken.isExpired()) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("This reset link is invalid or has expired. Please request a new one."));
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(encoder.encode(newPassword));
+        userRepository.save(user);
+        resetToken.setUsed(true);
+        passwordResetTokenRepository.save(resetToken);
+
+        return ResponseEntity.ok(new MessageResponse("Password reset successfully! You can now log in."));
     }
 
     /**

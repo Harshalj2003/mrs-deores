@@ -5,7 +5,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +15,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/upload")
 public class FileUploadController {
@@ -50,10 +48,7 @@ public class FileUploadController {
             // Since we save to static/uploads, it should be accessible via
             // /uploads/filename
             // Assuming standard Spring Boot static resource mapping
-            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/uploads/")
-                    .path(fileName)
-                    .toUriString();
+            String fileDownloadUri = "/uploads/" + fileName;
 
             Map<String, String> response = new HashMap<>();
             response.put("fileName", fileName);

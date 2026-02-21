@@ -20,6 +20,21 @@ spring:
   jackson:
     serialization:
       fail-on-empty-beans: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:your-gmail@gmail.com}
+    password: ${MAIL_PASSWORD:your-gmail-app-password}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 logging:
   level:
@@ -32,3 +47,7 @@ app:
     expiration-ms: 86400000 # 24 hours
   admin:
     secret-key: ${ADMIN_SECRET_KEY:DEORE-SUPER-ADMIN-2026}
+  cors:
+    allowed-origins: http://localhost:5173,http://localhost:3000,https://*.loca.lt,https://*.ngrok-free.app,https://*.ngrok-free.dev
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:5173}
