@@ -24,6 +24,7 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\ERole.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\Order.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\OrderItem.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\PasswordResetToken.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\PaymentDetails.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\Product.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\models\ProductImage.java
@@ -45,6 +46,7 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\CategoryRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\CustomOrderRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\OrderRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\PasswordResetTokenRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\ProductRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\RoleRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\SiteSettingsRepository.java

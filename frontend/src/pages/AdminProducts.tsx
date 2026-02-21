@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import ProductForm from '../components/ProductForm';
 import type { ProductFormData } from '../components/ProductForm';
@@ -84,7 +84,7 @@ const AdminProducts: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-neutral-light font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-8 relative">
                 {/* Toast */}

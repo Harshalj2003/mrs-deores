@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { Search, Eye, Filter, Package, Truck, CheckCircle, Clock, AlertCircle, Activity } from 'lucide-react';
 import api from '../services/api';
@@ -57,7 +57,7 @@ const AdminOrders: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-neutral-light font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-8">
                 <header className="mb-8 flex justify-between items-end">

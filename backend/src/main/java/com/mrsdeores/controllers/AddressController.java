@@ -44,10 +44,21 @@ public class AddressController {
     @PostMapping
     public ResponseEntity<Address> addAddress(@RequestBody Address address) {
         User user = getAuthenticatedUser();
-        if (user == null) {
+        if (user == null)
             return ResponseEntity.status(401).build();
-        }
         return ResponseEntity.ok(addressService.addAddress(user, address));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateAddress(@PathVariable("id") Long id, @RequestBody Address address) {
+        User user = getAuthenticatedUser();
+        if (user == null)
+            return ResponseEntity.status(401).build();
+        try {
+            return ResponseEntity.ok(addressService.updateAddress(user, id, address));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

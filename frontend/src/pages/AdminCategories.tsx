@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import { Grid, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import ImageCropperModal from '../components/ImageCropperModal';
 
 interface Category {
     id?: number;
@@ -32,6 +33,10 @@ const AdminCategories: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+
+    // Image Cropper State
+    const [cropFile, setCropFile] = useState<File | null>(null);
+    const [isCropOpen, setIsCropOpen] = useState(false);
 
     const fetchCategories = () => {
         setLoading(true);
@@ -85,13 +90,14 @@ const AdminCategories: React.FC = () => {
         }
     };
 
-    const handleImageUpload = async (file: File) => {
+    const handleCroppedImageUpload = async (file: File) => {
+        setIsCropOpen(false);
+        setCropFile(null);
+
         const formData = new FormData();
         formData.append('file', file);
         try {
-            const res = await api.post('/upload', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            const res = await api.post('/upload', formData);
             setEditCategory(prev => ({ ...prev, imageUrl: res.data.fileDownloadUri }));
         } catch (e: any) {
             setError(e?.response?.data?.message || 'Image upload failed. Make sure you are logged in as admin.');
@@ -102,7 +108,7 @@ const AdminCategories: React.FC = () => {
     const VIEW_MODES = ['AUTO', 'MANUAL'];
 
     return (
-        <div className="flex min-h-screen bg-neutral-light font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-6 lg:p-10 overflow-auto">
                 <div className="max-w-5xl mx-auto">
@@ -263,7 +269,14 @@ const AdminCategories: React.FC = () => {
                                             <input value={editCategory.imageUrl} onChange={e => setEditCategory(p => ({ ...p, imageUrl: e.target.value }))} placeholder="Image URL" className="w-full px-3 py-2 bg-neutral-light/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none text-xs" />
                                             <label className="inline-flex items-center text-xs font-bold text-gray-600 hover:text-primary bg-gray-100 hover:bg-primary/10 px-3 py-2 rounded-lg cursor-pointer transition-all">
                                                 Upload from device
-                                                <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleImageUpload(f); }} />
+                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                    const f = e.target.files?.[0];
+                                                    if (f) {
+                                                        setCropFile(f);
+                                                        setIsCropOpen(true);
+                                                    }
+                                                    e.target.value = '';
+                                                }} />
                                             </label>
                                         </div>
                                     </div>
@@ -308,6 +321,18 @@ const AdminCategories: React.FC = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Image Cropper Modal (Locked to 4:5 Portrait Ratio for Categories) */}
+            <ImageCropperModal
+                isOpen={isCropOpen}
+                imageFile={cropFile}
+                aspectRatio={4 / 5} // 4:5 portrait
+                onClose={() => {
+                    setIsCropOpen(false);
+                    setCropFile(null);
+                }}
+                onCropComplete={handleCroppedImageUpload}
+            />
         </div>
     );
 };

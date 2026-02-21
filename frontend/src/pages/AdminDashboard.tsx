@@ -4,6 +4,7 @@ import {
     ShoppingBag, Package, Users, TrendingUp, Sparkles,
     AlertTriangle, CheckCircle2, Clock, Tag, Boxes, BarChart3, ArrowUpRight
 } from 'lucide-react';
+import { clsx } from 'clsx';
 import api from '../services/api';
 import { motion } from 'framer-motion';
 
@@ -44,6 +45,8 @@ const AdminDashboard: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [isLive, setIsLive] = useState(false);
+    const [timeLeftMins, setTimeLeftMins] = useState<number>(0);
+    const [timeLeftSecs, setTimeLeftSecs] = useState<number>(0);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     // Fetch stats function
@@ -67,38 +70,67 @@ const AdminDashboard: React.FC = () => {
         }
     };
 
-    // Live mode / Idle tracking effect
+    // Live mode / Session Tracking effect
     useEffect(() => {
-        if (!isLive) return;
+        // Check session storage on mount
+        const sessionExpiry = sessionStorage.getItem('adminDashExpiry');
+        if (sessionExpiry) {
+            const expiryTime = parseInt(sessionExpiry, 10);
+            if (Date.now() < expiryTime) {
+                setIsLive(true);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!isLive) {
+            setTimeLeftMins(0);
+            setTimeLeftSecs(0);
+            return;
+        }
 
         // Fetch immediately upon going live
         fetchStats();
 
+        // Ensure we have an expiry time
+        let expiryTime = parseInt(sessionStorage.getItem('adminDashExpiry') || '0', 10);
+        if (expiryTime < Date.now()) {
+            expiryTime = Date.now() + 10 * 60 * 1000;
+            sessionStorage.setItem('adminDashExpiry', expiryTime.toString());
+        }
+
         // Start 30s polling
         const pollInterval = setInterval(fetchStats, 30_000);
 
-        // Idle Tracking (10 minutes)
-        const IDLE_TIMEOUT_MS = 10 * 60 * 1000;
-        let idleTimer: ReturnType<typeof setTimeout>;
-
-        const resetIdleTimer = () => {
-            clearTimeout(idleTimer);
-            idleTimer = setTimeout(() => {
-                setIsLive(false); // Auto shutoff after 10 mins idle
-            }, IDLE_TIMEOUT_MS);
+        // Countdown Timer
+        const tick = () => {
+            const remaining = expiryTime - Date.now();
+            if (remaining <= 0) {
+                setIsLive(false);
+                sessionStorage.removeItem('adminDashExpiry');
+            } else {
+                setTimeLeftMins(Math.floor(remaining / 60000));
+                setTimeLeftSecs(Math.floor((remaining % 60000) / 1000));
+            }
         };
 
-        // Bind events
-        const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
-        events.forEach(e => window.addEventListener(e, resetIdleTimer));
-        resetIdleTimer(); // INIT
+        tick(); // Immediate tick
+        const timerInterval = setInterval(tick, 1000);
 
         return () => {
             clearInterval(pollInterval);
-            clearTimeout(idleTimer);
-            events.forEach(e => window.removeEventListener(e, resetIdleTimer));
+            clearInterval(timerInterval);
         };
     }, [isLive]);
+
+    const handleGoLive = () => {
+        setLoading(true);
+        // Simulate "Fetching..." animation delay
+        setTimeout(() => {
+            sessionStorage.setItem('adminDashExpiry', (Date.now() + 10 * 60 * 1000).toString());
+            setIsLive(true);
+        }, 1200);
+    };
 
     const container = {
         hidden: { opacity: 0 },
@@ -113,27 +145,27 @@ const AdminDashboard: React.FC = () => {
         {
             label: 'Total Orders', value: stats.totalOrders,
             sub: `${stats.pendingOrders} pending`,
-            icon: ShoppingBag, color: 'text-secondary', bg: 'bg-secondary/5', border: 'border-secondary/10'
+            icon: ShoppingBag, color: 'text-primary', bg: 'bg-primary/10', border: 'border-primary/20'
         },
         {
             label: 'GTV Revenue', value: `₹${Number(stats.totalRevenue || 0).toLocaleString('en-IN')}`,
             sub: 'From paid orders',
-            icon: TrendingUp, color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/10'
+            icon: TrendingUp, color: 'text-secondary', bg: 'bg-secondary/10', border: 'border-secondary/20'
         },
         {
             label: 'Products', value: stats.totalActiveProducts,
             sub: `${stats.inStockProducts} in stock`,
-            icon: Package, color: 'text-green-500', bg: 'bg-green-500/5', border: 'border-green-500/10'
+            icon: Package, color: 'text-primary', bg: 'bg-primary/5', border: 'border-primary/10'
         },
         {
             label: 'Total Users', value: stats.totalUsers,
             sub: 'Registered accounts',
-            icon: Users, color: 'text-accent', bg: 'bg-accent/5', border: 'border-accent/10'
+            icon: Users, color: 'text-secondary', bg: 'bg-secondary/5', border: 'border-secondary/10'
         },
     ] : [];
 
     return (
-        <div className="flex min-h-screen bg-neutral-light dark:bg-neutral-900 font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-6 lg:p-10 overflow-auto">
                 <motion.header
@@ -143,25 +175,31 @@ const AdminDashboard: React.FC = () => {
                 >
                     <div>
                         <div className="flex items-center gap-2 mb-2">
-                            <Sparkles className="h-5 w-5 text-primary dark:text-primary-light" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary dark:text-primary-light">Management Suite</span>
+                            <Sparkles className="h-5 w-5 text-primary" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Management Suite</span>
                         </div>
-                        <h1 className="text-4xl font-black text-gray-900 dark:text-white font-serif">Overview Dashboard</h1>
-                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                        <h1 className="text-4xl font-black font-serif" style={{ color: 'var(--admin-nav-text)' }}>Overview Dashboard</h1>
+                        <p className="text-sm mt-1" style={{ color: 'var(--admin-nav-text)', opacity: 0.7 }}>
                             {isLive ? 'Live data • auto-refreshes every 30s' : 'Dashboard paused to save server load'}
                             {lastUpdated && ` • Last updated: ${lastUpdated.toLocaleTimeString()}`}
                         </p>
                     </div>
                     {isLive ? (
-                        <div className="flex items-center gap-2 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800 shadow-sm">
-                            <div className="h-2 w-2 rounded-full bg-green-500 animate-ping" />
-                            Live Session
+                        <div className="flex items-center gap-3 text-xs font-medium px-4 py-2 rounded-full shadow-sm" style={{ backgroundColor: 'var(--admin-sidebar-bg)', color: 'var(--admin-nav-text)', border: '1px solid var(--admin-sidebar-border)' }}>
+                            <div className="flex items-center gap-2">
+                                <div className="h-2 w-2 rounded-full bg-primary animate-ping" />
+                                <span className="font-bold">Live Session</span>
+                            </div>
+                            <span className="opacity-40">|</span>
+                            <span className="tabular-nums font-bold text-primary">
+                                {String(timeLeftMins).padStart(2, '0')}:{String(timeLeftSecs).padStart(2, '0')}
+                            </span>
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-neutral-700">
+                        <button onClick={handleGoLive} disabled={loading} className="flex items-center gap-2 text-xs font-medium text-gray-500 bg-white dark:bg-neutral-800 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light px-3 py-1.5 rounded-full border border-gray-200 dark:border-neutral-700 shadow-sm transition-colors">
                             <Clock className="h-3 w-3" />
-                            Idle Auto-Shutoff
-                        </div>
+                            {loading ? 'Connecting...' : 'Idle Auto-Shutoff'}
+                        </button>
                     )}
 
                 </motion.header>
@@ -172,26 +210,45 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 )}
 
-                {loading ? (
+                {loading && !isLive ? ( // Only show loading spinner if not live yet
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                         {[...Array(4)].map((_, i) => (
                             <div key={i} className="bg-white dark:bg-neutral-800 p-8 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 animate-pulse h-36" />
                         ))}
                     </div>
                 ) : !isLive && !stats ? (
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 bg-white dark:bg-neutral-800 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 shadow-sm mt-4">
-                        <div className="h-24 w-24 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mb-6 relative group">
-                            <div className="absolute inset-0 bg-primary/20 dark:bg-primary/30 rounded-full animate-ping opacity-75" />
-                            <BarChart3 className="h-10 w-10 text-primary dark:text-primary-light relative z-10" />
+                    <motion.div
+                        variants={container}
+                        className="rounded-[2.5rem] p-10 flex flex-col items-center justify-center text-center shadow-inner relative overflow-hidden h-[400px]"
+                        style={{ backgroundColor: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)' }}
+                    >
+                        <div className="absolute inset-0 bg-pattern opacity-[0.03] dark:opacity-[0.05]" />
+
+                        <div className="relative z-10 flex flex-col items-center">
+                            {loading ? (
+                                <div className="flex flex-col items-center">
+                                    <div className="h-16 w-16 mb-6 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                                    <h2 className="text-2xl font-black font-serif mb-2" style={{ color: 'var(--admin-nav-text)' }}>Connecting to Store</h2>
+                                    <p className="text-sm max-w-sm" style={{ color: 'var(--admin-nav-text)', opacity: 0.7 }}>Securely establishing real-time session...</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="h-20 w-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                                        <BarChart3 className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <h2 className="text-2xl font-black font-serif mb-2" style={{ color: 'var(--admin-nav-text)' }}>Dashboard Idle</h2>
+                                    <p className="max-w-md text-sm mb-8 leading-relaxed" style={{ color: 'var(--admin-nav-text)', opacity: 0.7 }}>
+                                        Click Go Live to fetch real-time store metrics. The connection will automatically close after 10 minutes to conserve secure server resources.
+                                    </p>
+                                    <button
+                                        onClick={handleGoLive}
+                                        className="bg-primary hover:bg-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 flex items-center gap-2"
+                                    >
+                                        GO LIVE <ArrowUpRight className="h-4 w-4" />
+                                    </button>
+                                </>
+                            )}
                         </div>
-                        <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif mb-2">Dashboard Idle</h2>
-                        <p className="text-sm text-gray-500 max-w-sm text-center mb-8">Click Go Live to fetch real-time store metrics. The connection will automatically pause after 10 minutes of inactivity to conserve server resources.</p>
-                        <button
-                            onClick={() => setIsLive(true)}
-                            className="group flex items-center gap-2 px-8 py-4 bg-primary text-white text-sm font-black tracking-widest uppercase rounded-2xl hover:bg-accent transition-all shadow-xl shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-1"
-                        >
-                            Go Live <ArrowUpRight className="h-4 w-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                        </button>
                     </motion.div>
                 ) : stats && (
                     <>
@@ -202,22 +259,25 @@ const AdminDashboard: React.FC = () => {
                             animate="show"
                             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10"
                         >
-                            {statCards.map((stat, index) => (
+                            {statCards.map((card, idx) => (
                                 <motion.div
                                     variants={item}
-                                    key={index}
+                                    key={idx}
                                     whileHover={{ y: -4 }}
-                                    className={`bg-white dark:bg-neutral-800 p-8 rounded-[2.5rem] border ${stat.border.replace('border-', 'border-').concat(' dark:border-opacity-20')} shadow-sm group cursor-default`}
+                                    className="col-span-1 rounded-[2rem] p-6 shadow-sm flex flex-col justify-between h-48 group hover:shadow-md transition-all relative overflow-hidden"
+                                    style={{ backgroundColor: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)' }}
                                 >
-                                    <div className="flex items-center justify-between mb-5">
-                                        <div className={`p-4 rounded-2xl ${stat.bg.replace('bg-', 'bg-').concat(' dark:bg-opacity-20')} ${stat.color} transition-colors group-hover:bg-primary group-hover:text-white`}>
-                                            <stat.icon className="h-6 w-6" />
+                                    <div className="flex items-start justify-between">
+                                        <div className={clsx("p-3 rounded-2xl", card.bg, card.color)}>
+                                            <card.icon className="h-6 w-6" />
                                         </div>
-                                        <ArrowUpRight className="h-4 w-4 text-gray-200 dark:text-gray-600" />
+                                        <ArrowUpRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--admin-nav-text)' }} />
                                     </div>
-                                    <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">{stat.label}</h3>
-                                    <p className="text-3xl font-black text-gray-900 dark:text-white tracking-tighter">{stat.value}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">{stat.sub}</p>
+                                    <div className="mt-4">
+                                        <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: 'var(--admin-nav-text)', opacity: 0.7 }}>{card.label}</p>
+                                        <h3 className="text-3xl font-black font-serif" style={{ color: 'var(--admin-nav-text)' }}>{card.value}</h3>
+                                        <p className="text-sm mt-1" style={{ color: 'var(--admin-nav-text)', opacity: 0.6 }}>{card.sub}</p>
+                                    </div>
                                 </motion.div>
                             ))}
                         </motion.div>

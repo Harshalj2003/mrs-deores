@@ -1,61 +1,31 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { motion } from 'framer-motion';
 
 interface BrandLogoProps {
-    variant?: 'full' | 'icon' | 'text';
+    variant?: 'full' | 'icon' | 'text'; // Kept for backwards compatibility but ignored
     className?: string;
     size?: 'sm' | 'md' | 'lg';
     showText?: boolean;
 }
 
 const sizeMap = {
-    sm: { icon: 'w-7 h-7', text: 'h-6', full: 'h-10' },
-    md: { icon: 'w-10 h-10', text: 'h-8', full: 'h-12' },
-    lg: { icon: 'w-14 h-14', text: 'h-10', full: 'h-14' },
+    sm: 'h-8 md:h-10', // Significantly larger textual baseline
+    md: 'h-10 md:h-12',
+    lg: 'h-12 md:h-16',
 };
 
-const BrandLogo: React.FC<BrandLogoProps> = ({ variant = 'full', className, size = 'md', showText = true }) => {
-    const s = sizeMap[size];
-
-    if (variant === 'icon') {
-        return (
-            <motion.div whileHover={{ rotate: 10 }} className={clsx("relative", className)}>
-                <img
-                    src="/logo.svg"
-                    alt="MRS. DEORE PREMIX Logo"
-                    className={clsx(s.icon, "object-contain drop-shadow-md")}
-                />
-            </motion.div>
-        );
-    }
-
-    if (variant === 'text') {
-        return (
+const BrandLogo: React.FC<BrandLogoProps> = ({ size = 'md', className }) => {
+    return (
+        <div className={clsx("flex items-center", className)}>
             <img
                 src="/web_name.svg"
                 alt="MRS. DEORE PREMIX"
-                className={clsx(s.text, "object-contain dark:invert", className)}
+                className={clsx(
+                    sizeMap[size],
+                    "object-contain transition-all duration-300",
+                    className
+                )}
             />
-        );
-    }
-
-    // Full variant (Icon + Text)
-    return (
-        <div className={clsx("flex items-center gap-2", className)}>
-            <motion.img
-                whileHover={{ rotate: 10 }}
-                src="/logo.svg"
-                alt="MRS. DEORE PREMIX Logo"
-                className={clsx(s.icon, "object-contain drop-shadow-sm bg-white rounded-full p-0.5")}
-            />
-            {showText && (
-                <img
-                    src="/web_name.svg"
-                    alt="MRS. DEORE PREMIX"
-                    className={clsx(s.text, "object-contain max-w-[120px] dark:invert")}
-                />
-            )}
         </div>
     );
 };

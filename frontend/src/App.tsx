@@ -32,6 +32,8 @@ import AdminSettings from "./pages/AdminSettings";
 import AboutPage from "./pages/AboutPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import ProfilePage from "./pages/ProfilePage";
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const location = useLocation();
@@ -100,10 +102,11 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/home" element={<Home />} />
               <Route path="/category/:categoryId" element={<ProductList />} />
-              <Route path="/product/:productId" element={<ProductDetail />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/profile" element={<ProfilePage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/custom-order" element={<CustomOrderPage />} />

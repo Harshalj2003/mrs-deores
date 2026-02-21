@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import AdminSidebar from '../components/AdminSidebar';
 import {
     Save, Loader2, AlertCircle, CheckCircle2,
@@ -97,7 +97,7 @@ const AdminSettings: React.FC = () => {
         setChapters(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c));
 
     if (loading) return (
-        <div className="flex min-h-screen bg-neutral-light">
+        <div className="flex min-h-screen" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <div className="flex-1 flex items-center justify-center">
                 <Loader2 className="h-8 w-8 text-primary animate-spin" />
@@ -106,7 +106,7 @@ const AdminSettings: React.FC = () => {
     );
 
     return (
-        <div className="flex min-h-screen bg-neutral-light font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-6 lg:p-10 overflow-auto">
                 <div className="max-w-4xl mx-auto">

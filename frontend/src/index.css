@@ -9,6 +9,14 @@
   --color-neutral-light: #F9F5F0;
   --font-sans: "Inter", "system-ui", sans-serif;
   --font-serif: "Playfair Display", "Georgia", serif;
+
+  /* Admin panel CSS variables — light mode defaults */
+  --admin-sidebar-bg: #FFF0D6;
+  --admin-sidebar-border: rgba(194, 65, 12, 0.15);
+  --admin-nav-text: #6B3A1F;
+  --admin-page-bg: #F9F5F0;
+  --admin-card-bg: #FFF8ED;
+  --admin-card-border: rgba(194, 65, 12, 0.12);
 }
 
 @layer base {
@@ -129,8 +137,8 @@
     border-color: rgba(240, 222, 200, 0.1) !important;
   }
 
-  /* Navbar in dark mode */
-  .dark nav {
+  /* Navbar in dark mode — scope ONLY to the sticky top nav bar */
+  .dark nav.sticky {
     background: linear-gradient(to right, #1E1308, #271808, #1E1308) !important;
     border-bottom-color: rgba(194, 65, 12, 0.2) !important;
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.4) !important;
@@ -229,6 +237,33 @@
     background-color: rgba(239, 68, 68, 0.15) !important;
     color: #F87171 !important;
   }
+}
+
+/* ============================================================
+   ADMIN PANEL — Brand-palette CSS variable definitions
+   Light mode: warm amber-cream (FFF0D6 / F9F5F0)
+   Dark mode: deep dark-brown (150C04 / 1A0F07)
+   Both modes: primary orange (#C2410C) for active states.
+   ============================================================ */
+
+/* Light mode admin variables */
+:root {
+  --admin-sidebar-bg: #FFF0D6;
+  --admin-sidebar-border: rgba(194, 65, 12, 0.15);
+  --admin-nav-text: #6B3A1F;
+  --admin-page-bg: #F9F5F0;
+  --admin-card-bg: #FFF8ED;
+  --admin-card-border: rgba(194, 65, 12, 0.12);
+}
+
+/* Dark mode admin variables */
+.dark {
+  --admin-sidebar-bg: #150C04;
+  --admin-sidebar-border: rgba(194, 65, 12, 0.2);
+  --admin-nav-text: #CEB48E;
+  --admin-page-bg: #1A0F07;
+  --admin-card-bg: #271608;
+  --admin-card-border: rgba(194, 65, 12, 0.15);
 }
 
 @utility bg-pattern {

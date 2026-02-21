@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Product, Category } from '../types/catalog.types';
 import { X, Save, Plus, Trash2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ImageCropperModal from './ImageCropperModal';
 
 interface ProductFormProps {
     product?: Product;
@@ -39,6 +40,10 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
 
     const [error, setError] = useState('');
 
+    // Image Cropper State
+    const [cropFile, setCropFile] = useState<File | null>(null);
+    const [isCropOpen, setIsCropOpen] = useState(false);
+
     const handleSubmit = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         setError('');
@@ -52,6 +57,59 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
 
     const addImageUrl = () => {
         setFormData({ ...formData, imageUrls: [...formData.imageUrls, ''] });
+    };
+
+    const handleCroppedImageUpload = async (file: File) => {
+        setIsCropOpen(false);
+        setCropFile(null);
+
+        console.log('Starting cropped upload:', file.name, file.type, file.size);
+        const uploadData = new FormData();
+        uploadData.append('file', file);
+
+        try {
+            let token = '';
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const userObj = JSON.parse(userStr);
+                    token = userObj.token || '';
+                } catch (e) {
+                    console.error('Error parsing user object from localStorage', e);
+                }
+            }
+
+            console.log('Sending upload request...');
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
+                body: uploadData
+            });
+
+            console.log('Upload response status:', res.status);
+
+            if (res.ok) {
+                const data = await res.json();
+                console.log('Upload success, data:', data);
+                const fullUrl = data.fileDownloadUri;
+
+                const urls = [...formData.imageUrls];
+                const emptyIndex = urls.findIndex(u => u.trim() === '');
+                if (emptyIndex >= 0) {
+                    urls[emptyIndex] = fullUrl;
+                } else {
+                    urls.push(fullUrl);
+                }
+                setFormData({ ...formData, imageUrls: urls });
+            } else {
+                const errText = await res.text();
+                console.error('Upload failed body:', errText);
+                alert(`Upload failed: ${res.status} ${res.statusText}\n${errText}\n\nYou must be logged in as an Administrator.`);
+            }
+        } catch (err: any) {
+            console.error('Upload error catch:', err);
+            alert(`Error uploading file: ${err.message || 'Unknown error'}. \nIs the backend running?`);
+        }
     };
 
     const removeImageUrl = (index: number) => {
@@ -225,58 +283,14 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
                                                 type="file"
                                                 className="hidden"
                                                 accept="image/*"
-                                                onChange={async (e) => {
+                                                onChange={(e) => {
                                                     const file = e.target.files?.[0];
                                                     if (!file) return;
-
-                                                    console.log('Selected file:', file.name, file.type, file.size);
-                                                    const uploadData = new FormData();
-                                                    uploadData.append('file', file);
-
-                                                    try {
-                                                        let token = '';
-                                                        const userStr = localStorage.getItem('user');
-                                                        if (userStr) {
-                                                            try {
-                                                                const userObj = JSON.parse(userStr);
-                                                                token = userObj.token || '';
-                                                            } catch (e) {
-                                                                console.error('Error parsing user object from localStorage', e);
-                                                            }
-                                                        }
-
-                                                        console.log('Sending upload request...');
-                                                        const res = await fetch('/api/upload', {
-                                                            method: 'POST',
-                                                            headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
-                                                            body: uploadData
-                                                        });
-
-                                                        console.log('Upload response status:', res.status);
-
-                                                        if (res.ok) {
-                                                            const data = await res.json();
-                                                            console.log('Upload success, data:', data);
-                                                            const fullUrl = data.fileDownloadUri;
-
-                                                            const urls = [...formData.imageUrls];
-                                                            const emptyIndex = urls.findIndex(u => u.trim() === '');
-                                                            if (emptyIndex >= 0) {
-                                                                urls[emptyIndex] = fullUrl;
-                                                            } else {
-                                                                urls.push(fullUrl);
-                                                            }
-                                                            setFormData({ ...formData, imageUrls: urls });
-                                                        } else {
-                                                            // Try to get error text
-                                                            const errText = await res.text();
-                                                            console.error('Upload failed body:', errText);
-                                                            alert(`Upload failed: ${res.status} ${res.statusText}\n${errText}`);
-                                                        }
-                                                    } catch (err: any) {
-                                                        console.error('Upload error catch:', err);
-                                                        alert(`Error uploading file: ${err.message || 'Unknown error'}. \nIs the backend running?`);
-                                                    }
+                                                    // Intercept file and open cropper instead of direct upload
+                                                    setCropFile(file);
+                                                    setIsCropOpen(true);
+                                                    // Reset input so selecting the same file triggers again
+                                                    e.target.value = '';
                                                 }}
                                             />
                                         </div>
@@ -352,6 +366,18 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
                     </button>
                 </div>
             </motion.div>
+
+            {/* Image Cropper Modal (Locked to 4:5 Portrait Ratio for Products) */}
+            <ImageCropperModal
+                isOpen={isCropOpen}
+                imageFile={cropFile}
+                aspectRatio={4 / 5}
+                onClose={() => {
+                    setIsCropOpen(false);
+                    setCropFile(null);
+                }}
+                onCropComplete={handleCroppedImageUpload}
+            />
         </div>
     );
 };

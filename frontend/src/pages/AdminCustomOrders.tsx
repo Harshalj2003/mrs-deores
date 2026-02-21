@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Clock, CheckCircle, DollarSign, X } from 'lucide-react';
 import { getAllCustomOrders, approveCustomOrder, quoteCustomOrder, rejectCustomOrder, updateCustomOrderStatus } from '../services/CustomOrderService';
@@ -84,7 +84,7 @@ const AdminCustomOrders: React.FC = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-neutral-light font-sans">
+        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
             <AdminSidebar />
             <main className="flex-1 p-6 lg:p-10 overflow-auto">
                 <div className="space-y-8">

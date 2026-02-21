@@ -11,6 +11,7 @@ import {
     ChevronDown,
     Clipboard,
     Settings,
+    User as UserIcon,
     Sun,
     Moon,
     Globe
@@ -44,13 +45,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
 
     // Branding settings
     const [logoSize, setLogoSize] = useState<'sm' | 'md' | 'lg'>('md');
-    const [showWebName, setShowWebName] = useState(true);
 
     useEffect(() => {
         api.get('/settings').then(res => {
             const s = res.data || {};
             if (s.brand_logo_size) setLogoSize(s.brand_logo_size as 'sm' | 'md' | 'lg');
-            setShowWebName(s.brand_show_webname !== 'false');
         }).catch(() => { });
     }, []);
 
@@ -68,6 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     ];
 
     const profileMenuItems = [
+        { label: 'My Profile', path: "/profile", icon: UserIcon },
         { label: t('myOrders'), path: "/orders", icon: Package },
         { label: t('customOrder'), path: "/custom-order", icon: Clipboard },
     ];
@@ -95,15 +95,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
         <nav className="sticky top-0 z-[100] bg-gradient-to-r from-[#FFF8E7] via-white to-[#FFF8E7] backdrop-blur-xl border-b border-primary/10 shadow-sm shadow-primary/5">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
 
-                {/* Logo — Full on desktop, text-only on mobile */}
-                <Link to="/" className="flex items-center gap-3 flex-shrink-0">
-                    <div className="hidden md:block">
-                        <BrandLogo variant="full" size={logoSize} showText={showWebName} />
-                    </div>
-                    <span className="md:hidden text-base font-black font-serif text-accent tracking-tight leading-tight">
-                        Mrs. Deore's<br />
-                        <span className="text-primary text-xs font-bold tracking-widest uppercase">Premix</span>
-                    </span>
+                {/* Logo */}
+                <Link to="/" className="flex items-center flex-shrink-0">
+                    <BrandLogo size={logoSize} />
                 </Link>
 
                 {/* Center Nav Links — Desktop */}
@@ -142,7 +136,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                         whileTap={{ scale: 0.92 }}
                         onClick={toggleTheme}
                         title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                        className="p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-2xl transition-all duration-300 shadow-sm overflow-hidden"
+                        className="hidden md:flex p-2.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-2xl transition-all duration-300 shadow-sm overflow-hidden"
                     >
                         <AnimatePresence mode="wait">
                             {isDark ? (
@@ -170,7 +164,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                     </motion.button>
 
                     {/* Language Switcher */}
-                    <div ref={langRef} className="relative">
+                    <div ref={langRef} className="relative hidden md:block">
                         <motion.button
                             whileHover={{ scale: 1.08 }}
                             whileTap={{ scale: 0.92 }}
@@ -213,7 +207,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                     </div>
 
                     {/* Smart Search */}
-                    <SearchBar mode="compact" />
+                    <div className={clsx(!currentUser ? "hidden md:block" : "block")}>
+                        <SearchBar mode="compact" />
+                    </div>
 
                     {/* Cart Button */}
                     <motion.div className="relative">
@@ -305,6 +301,52 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                                                     {t('adminPortal')}
                                                 </Link>
                                             )}
+                                        </div>
+
+                                        {/* Mobile Options (Theme & Lang) */}
+                                        <div className="md:hidden border-t border-gray-100 py-1.5 space-y-1">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleTheme(); }}
+                                                className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-primary/5 hover:text-primary transition-colors"
+                                            >
+                                                {isDark ? <Sun className="h-4 w-4 text-primary/60" /> : <Moon className="h-4 w-4 text-primary/60" />}
+                                                {isDark ? 'Light Mode' : 'Dark Mode'}
+                                            </button>
+
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); setLangOpen(v => !v); }}
+                                                className="w-full flex items-center justify-between px-4 py-2 text-sm font-medium text-gray-600 hover:bg-primary/5 hover:text-primary transition-colors"
+                                            >
+                                                <span className="flex items-center gap-3">
+                                                    <Globe className="h-4 w-4 text-primary/60" />
+                                                    Language
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase">{currentLang.code}</span>
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {langOpen && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: 'auto' }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="bg-gray-50/50 overflow-hidden"
+                                                    >
+                                                        {LANGUAGES.map(lang => (
+                                                            <button
+                                                                key={lang.code}
+                                                                onClick={(e) => { e.stopPropagation(); setLanguage(lang.code); setLangOpen(false); setProfileOpen(false); }}
+                                                                className={clsx(
+                                                                    'w-full flex items-center gap-2.5 px-4 pl-11 py-1.5 text-xs transition-colors',
+                                                                    currentLang.code === lang.code ? 'text-primary font-bold' : 'text-gray-500'
+                                                                )}
+                                                            >
+                                                                {lang.nativeName}
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
 
                                         {/* Logout */}

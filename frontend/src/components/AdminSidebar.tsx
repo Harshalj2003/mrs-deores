@@ -1,11 +1,13 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText, Grid } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText, Grid, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../contexts/ThemeContext';
 import { clsx } from 'clsx';
 import BrandLogo from './BrandLogo';
 
 const AdminSidebar: React.FC = () => {
     const location = useLocation();
+    const { theme, toggle: toggleTheme } = useTheme();
 
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
@@ -17,34 +19,66 @@ const AdminSidebar: React.FC = () => {
     ];
 
     return (
-        <div className="w-64 bg-white dark:bg-neutral-800 border-r border-gray-200 dark:border-neutral-700 flex flex-col h-screen sticky top-0">
-            <div className="p-6 border-b border-gray-100 dark:border-neutral-700 flex flex-col items-start gap-2">
-                <BrandLogo variant="full" className="h-10 text-gray-900 dark:text-white" />
-                <div className="text-[10px] text-primary dark:text-primary-light uppercase tracking-widest font-black ml-1">Admin Portal</div>
+        <div
+            data-admin="sidebar"
+            className="admin-sidebar w-64 flex flex-col h-screen sticky top-0"
+            style={{ backgroundColor: 'var(--admin-sidebar-bg)', borderRight: '1px solid var(--admin-sidebar-border)' }}
+        >
+            <div
+                className="p-6 flex flex-col items-start gap-2"
+                style={{ borderBottom: '1px solid var(--admin-sidebar-border)' }}
+            >
+                <BrandLogo variant="full" size="sm" showText={true} />
+                <div className="text-[10px] text-primary uppercase tracking-widest font-black ml-1 opacity-80">Admin Portal</div>
             </div>
 
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {menuItems.map((item) => (
-                    <Link
-                        key={item.id}
-                        to={item.path}
-                        className={clsx(
-                            "flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 group",
-                            location.pathname === item.path
-                                ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                : "text-gray-500 dark:text-gray-400 hover:bg-neutral-light dark:hover:bg-neutral-700/50 hover:text-primary dark:hover:text-primary-light"
-                        )}
-                    >
-                        <item.icon className={clsx("h-5 w-5", location.pathname === item.path ? "text-white" : "text-gray-400 dark:text-gray-500 group-hover:text-primary dark:group-hover:text-primary-light")} />
-                        <span className="font-medium">{item.label}</span>
-                    </Link>
-                ))}
+            <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+                {menuItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                        <Link
+                            key={item.id}
+                            to={item.path}
+                            className={clsx(
+                                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
+                                isActive
+                                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
+                                    : 'hover:bg-primary/10 hover:text-primary'
+                            )}
+                            style={!isActive ? { color: 'var(--admin-nav-text)' } : {}}
+                        >
+                            <item.icon className={clsx('h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-white' : 'group-hover:text-primary')} style={!isActive ? { color: 'var(--admin-nav-text)', opacity: 0.6 } : {}} />
+                            <span>{item.label}</span>
+                            {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/60" />}
+                        </Link>
+                    );
+                })}
             </nav>
 
-            <div className="p-4 border-t border-gray-100 dark:border-neutral-700">
-                <Link to="/" className="flex items-center space-x-3 p-3 text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors">
-                    <LogOut className="h-5 w-5" />
-                    <span className="font-medium">Exit Admin</span>
+            <div className="p-3 space-y-2" style={{ borderTop: '1px solid var(--admin-sidebar-border)' }}>
+                {/* Theme Toggle */}
+                <button
+                    onClick={toggleTheme}
+                    className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:bg-neutral-500/10"
+                    style={{ color: 'var(--admin-nav-text)' }}
+                >
+                    {theme === 'dark' ? (
+                        <>
+                            <Sun className="h-5 w-5" style={{ opacity: 0.6 }} />
+                            <span>Light Mode</span>
+                        </>
+                    ) : (
+                        <>
+                            <Moon className="h-5 w-5" style={{ opacity: 0.6 }} />
+                            <span>Dark Mode</span>
+                        </>
+                    )}
+                </button>
+
+                {/* Exit */}
+                <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:bg-red-500/10 hover:text-red-500" style={{ color: 'var(--admin-nav-text)' }}>
+                    <LogOut className="h-5 w-5" style={{ opacity: 0.6 }} />
+                    <span>Exit Admin</span>
                 </Link>
             </div>
         </div>

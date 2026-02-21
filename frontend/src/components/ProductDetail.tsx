@@ -58,7 +58,7 @@ const ProductDetail: React.FC = () => {
     if (loading) return (
         <div className="min-h-screen pt-32 pb-12 flex justify-center">
             <div className="flex flex-col items-center gap-4 animate-pulse">
-                <BrandLogo variant="icon" className="w-16 h-16 opacity-50" />
+                <BrandLogo className="opacity-50" />
                 <div className="h-4 w-32 bg-gray-200 rounded"></div>
             </div>
         </div>
