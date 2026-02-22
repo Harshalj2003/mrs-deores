@@ -6,9 +6,10 @@ import { motion } from "framer-motion";
 interface CategoryGridProps {
     categories: Category[];
     mobileCols?: number;
+    desktopCols?: number;
 }
 
-const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, mobileCols = 2 }) => {
+const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, mobileCols = 2, desktopCols = 4 }) => {
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -43,20 +44,16 @@ const CategoryGrid: React.FC<CategoryGridProps> = ({ categories, mobileCols = 2 
                     initial="hidden"
                     whileInView="show"
                     viewport={{ once: true, margin: "-80px" }}
-                    className="grid gap-6 md:gap-8"
+                    className="grid gap-6 md:gap-8 grid-dynamic-cols"
                     style={{
-                        // Mobile uses mobileCols, desktop uses desktopCols via CSS Grid
-                        gridTemplateColumns: `repeat(${mobileCols}, minmax(0, 1fr))`
-                    }}
+                        '--mobile-cols': mobileCols.toString(),
+                        '--desktop-cols': desktopCols.toString(),
+                    } as React.CSSProperties}
                 >
                     {categories.map((category) => (
                         <motion.div
                             key={category.id}
                             variants={item}
-                            style={{
-                                // Override for desktop via inline media query isn't possible —
-                                // we use a className trick: the parent wrapper controls cols at different breakpoints
-                            }}
                         >
                             <Link to={`/category/${category.id}`} className="group block">
                                 <motion.div

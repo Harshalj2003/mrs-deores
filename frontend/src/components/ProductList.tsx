@@ -8,6 +8,7 @@ import { SearchX, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
+import api from "../services/api";
 
 const ProductList: React.FC = () => {
     const { t } = useLanguage();
@@ -19,6 +20,8 @@ const ProductList: React.FC = () => {
     const [sortBy, setSortBy] = useState('id');
     const [order, setOrder] = useState('asc');
     const [isSortOpen, setIsSortOpen] = useState(false);
+    const [gridColsMobile, setGridColsMobile] = useState(2);
+    const [gridColsDesktop, setGridColsDesktop] = useState(4);
 
     const sortOptions = [
         { label: 'Featured', sort: 'id', order: 'asc' },
@@ -34,9 +37,10 @@ const ProductList: React.FC = () => {
 
         const fetchData = async () => {
             try {
-                const [allCats, productsData] = await Promise.all([
+                const [allCats, productsData, settingsRes] = await Promise.all([
                     getCategories(),
-                    getProducts(categoryId ? Number(categoryId) : undefined, sortBy, order)
+                    getProducts(categoryId ? Number(categoryId) : undefined, sortBy, order),
+                    api.get("settings").catch(() => ({ data: {} }))
                 ]);
 
                 if (categoryId) {
@@ -45,6 +49,10 @@ const ProductList: React.FC = () => {
                 }
 
                 setProducts(productsData);
+
+                const s = settingsRes.data || {};
+                if (s.grid_products_mobile) setGridColsMobile(parseInt(s.grid_products_mobile));
+                if (s.grid_products_desktop) setGridColsDesktop(parseInt(s.grid_products_desktop));
             } catch (err) {
                 console.error("Error loading products:", err);
                 setError("Failed to load products. Please try again.");
@@ -153,7 +161,11 @@ const ProductList: React.FC = () => {
                     />
                 ) : (
                     <div
-                        className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8"
+                        className="grid gap-6 md:gap-8 grid-dynamic-cols"
+                        style={{
+                            '--mobile-cols': gridColsMobile.toString(),
+                            '--desktop-cols': gridColsDesktop.toString(),
+                        } as React.CSSProperties}
                     >
                         {products.map((product) => (
                             <ProductCard key={product.id} product={product} />

@@ -51,9 +51,25 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     const [logoSize, setLogoSize] = useState<'sm' | 'md' | 'lg'>('md');
 
     useEffect(() => {
+        const cached = localStorage.getItem('siteSettings');
+        if (cached) {
+            try {
+                const s = JSON.parse(cached);
+                if (s.brand_logo_size) setLogoSize(s.brand_logo_size as 'sm' | 'md' | 'lg');
+            } catch (e) { }
+        }
+
         api.get('/settings').then(res => {
             const s = res.data || {};
             if (s.brand_logo_size) setLogoSize(s.brand_logo_size as 'sm' | 'md' | 'lg');
+
+            // Update shared cache
+            if (cached) {
+                const merged = { ...JSON.parse(cached), ...s };
+                localStorage.setItem('siteSettings', JSON.stringify(merged));
+            } else {
+                localStorage.setItem('siteSettings', JSON.stringify(s));
+            }
         }).catch(() => { });
     }, []);
 

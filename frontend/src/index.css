@@ -273,3 +273,15 @@
   background-attachment: fixed;
   opacity: 0.8;
 }
+
+@layer utilities {
+  .grid-dynamic-cols {
+    grid-template-columns: repeat(var(--mobile-cols, 2), minmax(0, 1fr));
+  }
+
+  @media (min-width: 768px) {
+    .grid-dynamic-cols {
+      grid-template-columns: repeat(var(--desktop-cols, 4), minmax(0, 1fr));
+    }
+  }
+}

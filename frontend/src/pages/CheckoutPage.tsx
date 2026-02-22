@@ -20,7 +20,7 @@ const CheckoutPage: React.FC = () => {
     const { items, clearCart } = useCartStore();
     const [step, setStep] = useState(1); // 1: Address, 2: Payment, 3: Success
     const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
-    const [orderId, setOrderId] = useState<number | null>(null);
+    const [orderId, _setOrderId] = useState<number | null>(null);
     const [couponCode, setCouponCode] = useState('');
     const [couponLoading, setCouponLoading] = useState(false);
     const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
@@ -28,7 +28,7 @@ const CheckoutPage: React.FC = () => {
     const [paymentSubFlow, setPaymentSubFlow] = useState<'CHOICE' | 'UPI_ID' | 'WAITING' | 'SUCCESS'>('CHOICE');
     const [upiId, setUpiId] = useState('');
     const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
-    const [paymentStatus, setPaymentStatus] = useState<'IDLE' | 'SUCCESS' | 'FAILED'>('IDLE');
+    const [, setPaymentStatus] = useState<'IDLE' | 'SUCCESS' | 'FAILED'>('IDLE');
     const navigate = useNavigate();
 
     const getTotalPrice = () => {
@@ -110,7 +110,7 @@ const CheckoutPage: React.FC = () => {
         }, 3000);
     };
 
-    const handleAppLaunch = (appId: string) => {
+    const handleAppLaunch = (_appId: string) => {
         setPaymentSubFlow('WAITING');
         // Simulate successful redirect/payment
         setTimeout(() => {

@@ -23,8 +23,14 @@ const Footer: React.FC = () => {
     });
 
     useEffect(() => {
+        const cached = localStorage.getItem('siteSettings');
+        if (cached) {
+            try { setSettings(JSON.parse(cached)); } catch (e) { }
+        }
+
         api.get('/settings').then(res => {
             setSettings(res.data);
+            localStorage.setItem('siteSettings', JSON.stringify(res.data));
         }).catch(() => {/* Use defaults on error */ });
     }, []);
 

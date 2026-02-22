@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Minus, HelpCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
 
 interface FAQItemProps {
     question: string;
@@ -53,6 +54,36 @@ const FAQSection: React.FC<FAQSectionProps> = ({
     title = "Frequently Asked Questions",
     subtitle = "Everything you need to know about MRS. DEORE traditions and quality."
 }) => {
+    const [faqNumber, setFaqNumber] = useState('918459424840');
+    const [faqMessage, setFaqMessage] = useState('Hello Mrs. Deores! I have a question about your authentic products.');
+
+    useEffect(() => {
+        const cached = localStorage.getItem('siteSettings');
+        if (cached) {
+            try {
+                const s = JSON.parse(cached);
+                if (s.faq_whatsapp_number) setFaqNumber(s.faq_whatsapp_number);
+                if (s.faq_whatsapp_message) setFaqMessage(s.faq_whatsapp_message);
+            } catch (e) { }
+        }
+
+        api.get('/settings').then(res => {
+            const s = res.data || {};
+            if (s.faq_whatsapp_number) setFaqNumber(s.faq_whatsapp_number);
+            if (s.faq_whatsapp_message) setFaqMessage(s.faq_whatsapp_message);
+
+            // Update shared cache
+            if (cached) {
+                const merged = { ...JSON.parse(cached), ...s };
+                localStorage.setItem('siteSettings', JSON.stringify(merged));
+            } else {
+                localStorage.setItem('siteSettings', JSON.stringify(s));
+            }
+        }).catch(() => { });
+    }, []);
+
+    const whatsappUrl = `https://wa.me/${faqNumber}?text=${encodeURIComponent(faqMessage)}`;
+
     return (
         <section className="py-24">
             <div className="max-w-4xl mx-auto">
@@ -61,7 +92,7 @@ const FAQSection: React.FC<FAQSectionProps> = ({
                         <HelpCircle className="h-4 w-4 text-primary" />
                         <span className="text-[10px] font-black uppercase tracking-widest text-primary">Knowledge Base</span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white font-serif tracking-tight mb-4">{title}</h2>
+                    <h2 className="text-4xl md:text-5xl font-black text-primary font-serif tracking-tight mb-4">{title}</h2>
                     <p className="text-gray-600 dark:text-neutral-500 max-w-lg mx-auto leading-relaxed">{subtitle}</p>
                 </div>
 
@@ -77,19 +108,19 @@ const FAQSection: React.FC<FAQSectionProps> = ({
                     </div>
                 </div>
 
-                <div className="mt-16 flex flex-col items-center">
-                    <div className="inline-flex items-center gap-6 p-2 pr-6 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-full shadow-lg">
+                <div className="mt-16 flex flex-col items-center px-4">
+                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 p-4 md:p-2 md:pr-6 bg-white dark:bg-neutral-900 border border-gray-100 dark:border-neutral-800 rounded-3xl md:rounded-full shadow-lg w-full max-w-sm md:max-w-none">
                         <div className="flex -space-x-3 overflow-hidden p-1">
                             <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-neutral-900 bg-primary/20 flex items-center justify-center font-black text-xs text-primary">MA</div>
                             <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-neutral-900 bg-secondary/20 flex items-center justify-center font-black text-xs text-secondary">SD</div>
                             <div className="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-neutral-900 bg-accent/20 flex items-center justify-center font-black text-xs text-accent">RD</div>
                         </div>
-                        <p className="text-sm font-bold text-gray-600 dark:text-neutral-400">Still have specific questions?</p>
+                        <p className="text-sm font-bold text-gray-600 dark:text-neutral-400 text-center md:text-left">Still have specific questions?</p>
                         <a
-                            href="https://wa.me/918459424840"
+                            href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-secondary text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-accent transition-all flex items-center gap-2 group"
+                            className="bg-secondary text-white px-6 py-3 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-accent transition-all flex items-center justify-center gap-2 group w-full md:w-auto mt-2 md:mt-0"
                         >
                             WhatsApp Us <ArrowRight className="h-3 w-3 group-hover:translate-x-1 transition-transform" />
                         </a>

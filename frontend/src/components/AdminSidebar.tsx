@@ -5,7 +5,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import { clsx } from 'clsx';
 import BrandLogo from './BrandLogo';
 
-const AdminSidebar: React.FC = () => {
+interface AdminSidebarProps {
+    isOpen?: boolean;
+    onClose?: () => void;
+}
+
+const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) => {
     const location = useLocation();
     const { theme, toggle: toggleTheme } = useTheme();
 
@@ -21,7 +26,11 @@ const AdminSidebar: React.FC = () => {
     return (
         <div
             data-admin="sidebar"
-            className="admin-sidebar w-64 flex flex-col h-screen sticky top-0"
+            className={clsx(
+                "admin-sidebar w-64 flex flex-col h-[100dvh] transition-all duration-300 z-50 fixed",
+                "md:sticky md:top-0 md:opacity-100 md:pointer-events-auto", // Desktop doesn't need translate-y changes
+                isOpen ? "translate-x-0 shadow-2xl left-0 opacity-100 pointer-events-auto" : "-translate-x-full md:translate-x-0 left-0 opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto"
+            )}
             style={{ backgroundColor: 'var(--admin-sidebar-bg)', borderRight: '1px solid var(--admin-sidebar-border)' }}
         >
             <div
@@ -39,6 +48,7 @@ const AdminSidebar: React.FC = () => {
                         <Link
                             key={item.id}
                             to={item.path}
+                            onClick={() => onClose?.()}
                             className={clsx(
                                 'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
                                 isActive

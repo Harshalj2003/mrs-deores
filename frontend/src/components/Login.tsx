@@ -128,7 +128,7 @@ const Login: React.FC = () => {
                         onClick={() => setLoginMode('email')}
                         className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${loginMode === 'email' ? 'bg-white dark:bg-neutral-700 shadow-sm text-primary dark:text-primary-light' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
                     >
-                        <Mail className="h-4 w-4" /> Email
+                        <User className="h-4 w-4" /> Password
                     </button>
                     <button
                         onClick={() => setLoginMode('otp')}
@@ -170,7 +170,7 @@ const Login: React.FC = () => {
                                 className="space-y-3"
                             >
                                 <div className="relative group">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
                                         className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"

@@ -31,21 +31,53 @@ const Home: React.FC = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [gridColsMobile, setGridColsMobile] = useState(2);
+    const [gridColsDesktop, setGridColsDesktop] = useState(4);
     const [heroEnabled, setHeroEnabled] = useState(true);
     const [showTagline, setShowTagline] = useState(true);
 
     useEffect(() => {
         const fetchAll = async () => {
+            // Load from cache first
+            const cachedSettings = localStorage.getItem('siteSettings');
+            const cachedCats = localStorage.getItem('siteCategories');
+
+            if (cachedSettings) {
+                try {
+                    const s = JSON.parse(cachedSettings);
+                    if (s.grid_categories_mobile) setGridColsMobile(parseInt(s.grid_categories_mobile));
+                    if (s.grid_categories_desktop) setGridColsDesktop(parseInt(s.grid_categories_desktop));
+                    setHeroEnabled(s.brand_hero_enabled !== 'false');
+                    setShowTagline(s.brand_show_tagline !== 'false');
+                } catch (e) { }
+            }
+            if (cachedCats) {
+                try { setCategories(JSON.parse(cachedCats)); } catch (e) { }
+            }
+
             try {
                 const [catRes, settingsRes] = await Promise.all([
                     api.get("categories"),
                     api.get("settings").catch(() => ({ data: {} }))
                 ]);
-                setCategories(catRes.data);
+
+                const cats = catRes.data;
                 const s = settingsRes.data || {};
+
+                setCategories(cats);
+                localStorage.setItem('siteCategories', JSON.stringify(cats));
+
                 if (s.grid_categories_mobile) setGridColsMobile(parseInt(s.grid_categories_mobile));
+                if (s.grid_categories_desktop) setGridColsDesktop(parseInt(s.grid_categories_desktop));
                 setHeroEnabled(s.brand_hero_enabled !== 'false');
                 setShowTagline(s.brand_show_tagline !== 'false');
+
+                // Update shared cache
+                if (cachedSettings) {
+                    const merged = { ...JSON.parse(cachedSettings), ...s };
+                    localStorage.setItem('siteSettings', JSON.stringify(merged));
+                } else {
+                    localStorage.setItem('siteSettings', JSON.stringify(s));
+                }
             } catch (error) {
                 console.error("Error fetching home data:", error);
             } finally {
@@ -162,7 +194,7 @@ const Home: React.FC = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
             >
-                <CategoryGrid categories={categories} mobileCols={gridColsMobile} />
+                <CategoryGrid categories={categories} mobileCols={gridColsMobile} desktopCols={gridColsDesktop} />
             </motion.div>
 
             <motion.div

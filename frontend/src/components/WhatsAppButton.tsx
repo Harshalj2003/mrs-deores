@@ -9,18 +9,28 @@ interface Settings {
     whatsapp_message: string;
     whatsapp_position: 'left' | 'right';
     whatsapp_size: 'sm' | 'md' | 'lg';
+    whatsapp_color?: string;
+    whatsapp_icon_url?: string;
 }
 
 const WhatsAppButton: React.FC = () => {
     const [settings, setSettings] = React.useState<Settings | null>(null);
 
     React.useEffect(() => {
-        api.get('/settings').then((res: { data: Settings }) => setSettings(res.data)).catch(() => { });
+        const cached = localStorage.getItem('siteSettings');
+        if (cached) {
+            try { setSettings(JSON.parse(cached)); } catch (e) { }
+        }
+
+        api.get('/settings').then((res: { data: Settings }) => {
+            setSettings(res.data);
+            localStorage.setItem('siteSettings', JSON.stringify(res.data));
+        }).catch(() => { });
     }, []);
 
     if (settings?.whatsapp_enabled === 'false') return null;
 
-    const phoneNumber = settings?.whatsapp_number || "918459424840";
+    const phoneNumber = settings?.whatsapp_number || "7038016741";
     const message = settings?.whatsapp_message || "Hello Mrs. Deores! I'm interested in your traditions. Could you help me with my order?";
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 
@@ -57,9 +67,33 @@ const WhatsAppButton: React.FC = () => {
                 <p className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">Chat on WhatsApp</p>
             </div>
 
-            <div className={`${sizeClasses[size as keyof typeof sizeClasses]} bg-[#25D366] text-white rounded-full shadow-2xl shadow-green-500/40 flex items-center justify-center border-4 border-white dark:border-neutral-900 relative ring-1 ring-black/5 dark:ring-white/5`}>
-                <MessageCircle className={`${iconSize[size as keyof typeof iconSize]} fill-current`} />
-                <span className="absolute top-1 right-1 h-3.5 w-3.5 bg-primary border-2 border-white dark:border-neutral-900 rounded-full animate-pulse shadow-sm"></span>
+            <div
+                className={`${sizeClasses[size as keyof typeof sizeClasses]} text-white rounded-full shadow-2xl flex items-center justify-center border-4 border-white dark:border-neutral-900 relative ring-1 ring-black/5 dark:ring-white/5`}
+                style={{
+                    backgroundColor: settings?.whatsapp_color || '#25D366',
+                    boxShadow: `0 25px 50px -12px ${settings?.whatsapp_color || '#25D366'}66`
+                }}
+            >
+                {settings?.whatsapp_icon_url ? (
+                    <img
+                        src={settings.whatsapp_icon_url}
+                        alt="WhatsApp support"
+                        className="w-[70%] h-[70%] object-contain rounded-full"
+                        onError={(e) => {
+                            // Fallback to MessageCircle if image fails to load
+                            e.currentTarget.style.display = 'none';
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement;
+                            if (fallback) fallback.style.display = 'block';
+                        }}
+                    />
+                ) : null}
+
+                <MessageCircle
+                    className={`${iconSize[size as keyof typeof iconSize]} fill-current text-white`}
+                    style={{ display: settings?.whatsapp_icon_url ? 'none' : 'block' }}
+                />
+
+                <span className="absolute top-1 right-1 h-3.5 w-3.5 bg-primary border-2 border-white dark:border-neutral-900 rounded-full animate-pulse shadow-sm z-10"></span>
             </div>
         </motion.a>
     );

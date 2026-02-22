@@ -18,12 +18,31 @@ const AboutPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        const cached = localStorage.getItem('siteSettings');
+        if (cached) {
+            try {
+                const s = JSON.parse(cached);
+                if (s.story_title) setTitle(s.story_title);
+                if (s.story_tagline) setTagline(s.story_tagline);
+                if (s.story_description) setDescription(s.story_description);
+                if (s.story_chapters) setChapters(JSON.parse(s.story_chapters));
+            } catch (e) { }
+        }
+
         api.get('/settings').then(res => {
-            const s = res.data as Record<string, string>;
+            const s = res.data;
             if (s.story_title) setTitle(s.story_title);
             if (s.story_tagline) setTagline(s.story_tagline);
             if (s.story_description) setDescription(s.story_description);
             try { if (s.story_chapters) setChapters(JSON.parse(s.story_chapters)); } catch { /**/ }
+
+            // Update shared cache
+            if (cached) {
+                const merged = { ...JSON.parse(cached), ...s };
+                localStorage.setItem('siteSettings', JSON.stringify(merged));
+            } else {
+                localStorage.setItem('siteSettings', JSON.stringify(s));
+            }
         }).finally(() => setLoading(false));
     }, []);
 

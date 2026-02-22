@@ -50,6 +50,19 @@ public class AdminStatsController {
                                                 || "PENDING".equalsIgnoreCase(o.getStatus()))
                                 .count();
 
+                long successfulOrders = allOrders.stream()
+                                .filter(o -> List.of("MOCK_PAID", "PAID", "SHIPPED", "DELIVERED")
+                                                .contains(o.getStatus() != null ? o.getStatus().toUpperCase() : ""))
+                                .count();
+
+                long cancelledOrders = allOrders.stream()
+                                .filter(o -> "CANCELLED".equalsIgnoreCase(o.getStatus()))
+                                .count();
+
+                long returnedOrders = allOrders.stream()
+                                .filter(o -> "RETURNED".equalsIgnoreCase(o.getStatus()))
+                                .count();
+
                 // Revenue: sum totalAmount for completed/paid orders
                 BigDecimal totalRevenue = allOrders.stream()
                                 .filter(o -> List.of("MOCK_PAID", "PAID", "SHIPPED", "DELIVERED")
@@ -74,6 +87,12 @@ public class AdminStatsController {
 
                 // ── Users ────────────────────────────────────────────
                 long totalUsers = userRepository.count();
+                long activeUsers = allOrders.stream()
+                                .filter(o -> o.getUser() != null)
+                                .map(o -> o.getUser().getId())
+                                .distinct()
+                                .count();
+                long inactiveUsers = totalUsers - activeUsers;
 
                 // ── Custom Orders ────────────────────────────────────
                 long totalCustomOrders = customOrderRepository.count();
@@ -105,6 +124,9 @@ public class AdminStatsController {
                 // ── Build response ───────────────────────────────────
                 stats.put("totalOrders", totalOrders);
                 stats.put("pendingOrders", pendingOrders);
+                stats.put("successfulOrders", successfulOrders);
+                stats.put("cancelledOrders", cancelledOrders);
+                stats.put("returnedOrders", returnedOrders);
                 stats.put("totalRevenue", totalRevenue);
                 stats.put("totalActiveProducts", totalActiveProducts);
                 stats.put("inStockProducts", inStockProducts);
@@ -112,6 +134,8 @@ public class AdminStatsController {
                 stats.put("lowStockProducts", lowStockProducts);
                 stats.put("totalCategories", totalCategories);
                 stats.put("totalUsers", totalUsers);
+                stats.put("activeUsers", activeUsers);
+                stats.put("inactiveUsers", inactiveUsers);
                 stats.put("totalCustomOrders", totalCustomOrders);
                 stats.put("pendingCustomOrders", pendingCustomOrders);
                 stats.put("recentOrders", recentOrders);

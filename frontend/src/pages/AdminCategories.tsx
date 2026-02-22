@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import AdminSidebar from '../components/AdminSidebar';
+
 import { Grid, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, Loader2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,9 +108,8 @@ const AdminCategories: React.FC = () => {
     const VIEW_MODES = ['AUTO', 'MANUAL'];
 
     return (
-        <div className="flex min-h-screen font-sans" style={{ backgroundColor: 'var(--admin-page-bg)' }}>
-            <AdminSidebar />
-            <main className="flex-1 p-6 lg:p-10 overflow-auto">
+        <>
+            <main className="p-6 lg:p-10 w-full overflow-auto">
                 <div className="max-w-5xl mx-auto">
                     <header className="mb-8 flex items-start justify-between">
                         <div>
@@ -327,13 +326,13 @@ const AdminCategories: React.FC = () => {
                 isOpen={isCropOpen}
                 imageFile={cropFile}
                 aspectRatio={4 / 5} // 4:5 portrait
+                onCropComplete={handleCroppedImageUpload}
                 onClose={() => {
                     setIsCropOpen(false);
                     setCropFile(null);
                 }}
-                onCropComplete={handleCroppedImageUpload}
             />
-        </div>
+        </>
     );
 };
 

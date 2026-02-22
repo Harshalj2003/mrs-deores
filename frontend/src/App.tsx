@@ -20,6 +20,7 @@ import AdminOrders from "./pages/AdminOrders";
 import useCartStore from "./store/useCartStore";
 import api from "./services/api";
 
+import AdminLayout from "./layouts/AdminLayout";
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import CheckoutLayout from "./layouts/CheckoutLayout";
@@ -73,11 +74,7 @@ const App: React.FC = () => {
   // Dynamic Layout Selection
   const getLayout = (pathname: string) => {
     if (pathname.startsWith('/admin')) {
-      // AdminDashboard has its own sidebar, so we use a fragment or AdminLayout
-      // However, AdminDashboard currently includes AdminSidebar. 
-      // If we wrap it in AdminLayout (which also has Sidebar), we get double sidebar.
-      // For now, let's use a simple wrapper for admin to avoid breaking existing AdminDashboard
-      return ({ children }: { children: React.ReactNode }) => <div className="min-h-screen bg-neutral-light">{children}</div>;
+      return AdminLayout;
     }
     if (['/login', '/register'].includes(pathname)) return AuthLayout;
     if (pathname === '/checkout') return CheckoutLayout;
