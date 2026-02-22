@@ -80,10 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
         { label: t('customOrder'), path: "/custom-order", icon: Clipboard },
         ...(currentUser
             ? [{ label: t('myOrders'), path: "/orders", icon: Package }]
-            : [
-                { label: t('login'), path: "/login", icon: null },
-                { label: t('signUp'), path: "/register", icon: null },
-            ]),
+            : []),
     ];
 
     const profileMenuItems = [

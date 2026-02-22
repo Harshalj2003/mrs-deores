@@ -20,6 +20,7 @@ com\mrsdeores\repository\CouponRepository.class
 com\mrsdeores\security\jwt\AuthEntryPointJwt.class
 com\mrsdeores\services\OrderService.class
 com\mrsdeores\models\Order.class
+com\mrsdeores\controllers\AuthController.class
 com\mrsdeores\security\services\UserDetailsImpl.class
 com\mrsdeores\controllers\AddressController.class
 com\mrsdeores\repository\CategoryRepository.class
@@ -37,6 +38,7 @@ com\mrsdeores\models\SiteSettings.class
 com\mrsdeores\repository\CartRepository.class
 com\mrsdeores\controllers\FileUploadController.class
 com\mrsdeores\payload\request\LoginRequest.class
+com\mrsdeores\controllers\AuthController$2.class
 com\mrsdeores\models\AdminAuthAttempt.class
 com\mrsdeores\models\AdminInvitation.class
 com\mrsdeores\repository\ProductRepository.class

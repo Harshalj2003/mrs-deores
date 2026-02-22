@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.mrsdeores.security.AuthContext;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -203,6 +204,34 @@ public class AuthController {
             return ResponseEntity.ok(new java.util.HashMap<String, String>() {
                 {
                     put("message", "Bootstrap invitation created successfully.");
+                    put("inviteToken", token);
+                    put("email", email);
+                }
+            });
+        } catch (AdminAuthService.AdminRegistrationException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Invite Admin — Secured endpoint for existing admins to invite team members.
+     */
+    @PostMapping("/admin/invite")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> inviteAdmin(@RequestBody java.util.Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        String phone = body.getOrDefault("phone", "").trim();
+
+        if (email.isEmpty() || phone.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email and phone are required."));
+        }
+
+        try {
+            // Re-use the bootstrap creation logic but logged as a regular invitation
+            String token = adminAuthService.createBootstrapInvite(email, phone);
+            return ResponseEntity.ok(new java.util.HashMap<String, String>() {
+                {
+                    put("message", "Invitation created successfully.");
                     put("inviteToken", token);
                     put("email", email);
                 }
