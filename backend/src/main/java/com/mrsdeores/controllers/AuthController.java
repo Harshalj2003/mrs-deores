@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.mrsdeores.security.AuthContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -53,13 +54,16 @@ public class AuthController {
     RoleRepository roleRepository;
 
     @Autowired
-    PasswordEncoder encoder;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     JwtUtils jwtUtils;
 
     @Autowired
     AdminAuthService adminAuthService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.admin.master-key:mrspremix_master_secure_key_12345}")
+    private String adminMasterKey;
 
     @Autowired
     PasswordResetTokenRepository passwordResetTokenRepository;
@@ -75,23 +79,40 @@ public class AuthController {
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        try {
+            // Set AuthContext based on the request (isAdmin flag)
+            AuthContext.setAdminAttempt(loginRequest.isAdmin());
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+            // Proceed with standard authentication
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
+            // Check if admin session is expired ONLY after successful authentication
+            // This prevents username enumeration and incorrect error messages
+            if (loginRequest.isAdmin()) {
+                if (adminAuthService.isSessionExpired(loginRequest.getUsername())) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(new MessageResponse(
+                                    "Your admin session has expired. Please contact the system owner."));
+                }
+            }
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles));
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            List<String> roles = userDetails.getAuthorities().stream()
+                    .map(item -> item.getAuthority())
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    roles));
+        } finally {
+            AuthContext.clear(); // CRITICAL: Clear thread-local after auth
+        }
     }
 
     @PostMapping("/signup")
@@ -111,7 +132,7 @@ public class AuthController {
         // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
+                passwordEncoder.encode(signUpRequest.getPassword()));
 
         // SECURITY: Always assign ROLE_USER — role is NEVER accepted from request body
         Set<Role> roles = new HashSet<>();
@@ -152,6 +173,42 @@ public class AuthController {
             // All other failures return 403 with generic message
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * Bootstrap Admin Invite — Hidden API for System Owner.
+     * Authorized via X-Master-Key header mismatching application properties.
+     */
+    @PostMapping("/admin/bootstrap-invite")
+    public ResponseEntity<?> createBootstrapInvite(
+            @RequestBody java.util.Map<String, String> body,
+            HttpServletRequest request) {
+
+        String providedKey = request.getHeader("X-Master-Key");
+        if (providedKey == null || !providedKey.equals(adminMasterKey)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new MessageResponse("Unauthorized. Invalid Master Key."));
+        }
+
+        String email = body.getOrDefault("email", "").trim();
+        String phone = body.getOrDefault("phone", "").trim();
+
+        if (email.isEmpty() || phone.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email and phone are required."));
+        }
+
+        try {
+            String token = adminAuthService.createBootstrapInvite(email, phone);
+            return ResponseEntity.ok(new java.util.HashMap<String, String>() {
+                {
+                    put("message", "Bootstrap invitation created successfully.");
+                    put("inviteToken", token);
+                    put("email", email);
+                }
+            });
+        } catch (AdminAuthService.AdminRegistrationException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
         }
     }
 
@@ -212,7 +269,7 @@ public class AuthController {
         }
 
         User user = resetToken.getUser();
-        user.setPassword(encoder.encode(newPassword));
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);

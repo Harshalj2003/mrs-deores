@@ -4,8 +4,6 @@ import com.mrsdeores.models.*;
 import com.mrsdeores.payload.request.AdminRegisterRequest;
 import com.mrsdeores.repository.AdminAuthAttemptRepository;
 import com.mrsdeores.repository.AdminInvitationRepository;
-import com.mrsdeores.repository.RoleRepository;
-import com.mrsdeores.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AdminAuthService {
@@ -33,16 +30,13 @@ public class AdminAuthService {
     private AdminAuthAttemptRepository attemptRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Value("${app.admin.secret-key:}")
     private String adminSecretKey;
+
+    @Value("${app.admin.master-key:mrspremix_master_secure_key_12345}")
+    private String adminMasterKey;
 
     /**
      * Register a new admin account using invitation token.
@@ -65,15 +59,18 @@ public class AdminAuthService {
             throw new AdminRegistrationException("Too many attempts. Please try again later.");
         }
 
-        // 2. Check if username or email already taken
-        if (userRepository.existsByUsername(request.getUsername())) {
+        // 2. Check if username or email already taken in ADMIN registry
+        if (invitationRepository.findByUsername(request.getUsername()).isPresent()) {
             logAttempt(request.getEmail(), ipAddress, false);
             throw new AdminRegistrationException("Admin registration not permitted.");
         }
 
-        if (userRepository.existsByEmail(request.getEmail())) {
-            logAttempt(request.getEmail(), ipAddress, false);
-            throw new AdminRegistrationException("Admin registration not permitted.");
+        if (invitationRepository.findByEmail(request.getEmail()).isPresent()) {
+            AdminInvitation inv = invitationRepository.findByEmail(request.getEmail()).get();
+            if (inv.getIsFullyEnrolled()) {
+                logAttempt(request.getEmail(), ipAddress, false);
+                throw new AdminRegistrationException("Admin registration not permitted.");
+            }
         }
 
         // 3. Find and validate invitation (email + phone + token must ALL match)
@@ -84,41 +81,66 @@ public class AdminAuthService {
                         request.getInviteToken())
                 .orElse(null);
 
-        if (invitation == null) {
+        if (invitation == null || invitation.isExpired()) {
             logAttempt(request.getEmail(), ipAddress, false);
-            logger.warn("SECURITY: Invalid admin registration attempt - email: {}, IP: {}", request.getEmail(),
+            logger.warn("SECURITY: Invalid/Expired admin invitation - email: {}, IP: {}", request.getEmail(),
                     ipAddress);
             throw new AdminRegistrationException("Admin registration not permitted.");
         }
 
-        // 4. Check if invitation is expired or used
-        if (invitation.getUsed() || invitation.isExpired()) {
-            logAttempt(request.getEmail(), ipAddress, false);
-            logger.warn("SECURITY: Expired/used invitation attempt - email: {}, IP: {}", request.getEmail(), ipAddress);
-            throw new AdminRegistrationException("Admin registration not permitted.");
-        }
-
-        // 5. Create admin user (role assigned SERVER-SIDE only)
-        User admin = new User(
-                request.getUsername(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword()));
-
-        Set<Role> roles = new HashSet<>();
-        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                .orElseThrow(() -> new RuntimeException("Error: Admin role not found."));
-        roles.add(adminRole);
-        admin.setRoles(roles);
-
-        userRepository.save(admin);
-
-        // 6. Mark invitation as used
+        // 5. Enroll admin (Isolated from users table)
+        invitation.setUsername(request.getUsername());
+        invitation.setPassword(passwordEncoder.encode(request.getPassword()));
+        invitation.setIsFullyEnrolled(true);
         invitation.setUsed(true);
+        invitation.setSessionExpiresAt(LocalDateTime.now().plusDays(5)); // Default 5 days session
+
         invitationRepository.save(invitation);
 
         // 7. Log successful attempt
         logAttempt(request.getEmail(), ipAddress, true);
-        logger.info("ADMIN CREATED: {} (email: {}) from IP: {}", request.getUsername(), request.getEmail(), ipAddress);
+        logger.info("ADMIN ENROLLED: {} (email: {}) from IP: {}", request.getUsername(), request.getEmail(), ipAddress);
+    }
+
+    /**
+     * Creates a bootstrap admin invitation using the master key.
+     * This bypassing the normal flow and is used by the system owner.
+     */
+    @Transactional
+    public String createBootstrapInvite(String email, String phone) {
+        // Prevent duplicate emails
+        if (invitationRepository.findByEmail(email).isPresent()) {
+            throw new AdminRegistrationException("An invitation or admin already exists for this email.");
+        }
+
+        AdminInvitation invitation = new AdminInvitation();
+        invitation.setEmail(email);
+        invitation.setPhone(phone);
+
+        // Generate a secure token
+        String token = UUID.randomUUID().toString().replace("-", "") + "-"
+                + UUID.randomUUID().toString().substring(0, 8);
+        invitation.setInviteToken(token);
+
+        invitation.setUsed(false);
+        invitation.setIsFullyEnrolled(false);
+        invitation.setExpiresAt(LocalDateTime.now().plusHours(24)); // Invite valid for 24 hours
+        invitation.setSessionExpiresAt(LocalDateTime.now().plusHours(24));
+
+        invitationRepository.save(invitation);
+
+        logger.info("BOOTSTRAP INVITE CREATED: for email {} with phone {}", email, phone);
+        return token;
+    }
+
+    /**
+     * Validates if the admin needs to re-enter their invitation token due to
+     * expiry.
+     */
+    public boolean isSessionExpired(String identifier) {
+        return invitationRepository.findByUsernameOrEmail(identifier, identifier)
+                .map(AdminInvitation::isSessionExpired)
+                .orElse(true);
     }
 
     private void logAttempt(String email, String ipAddress, boolean success) {

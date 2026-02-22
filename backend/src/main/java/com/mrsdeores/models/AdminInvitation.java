@@ -30,10 +30,26 @@ public class AdminInvitation {
     @Column(nullable = false)
     private Boolean used = false;
 
+    @Column(nullable = true, length = 20, unique = true)
+    private String username;
+
+    @Column(nullable = true, length = 120)
+    private String password;
+
+    @Column(name = "session_expires_at")
+    private LocalDateTime sessionExpiresAt;
+
+    @Column(name = "is_fully_enrolled", nullable = false)
+    private Boolean isFullyEnrolled = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public boolean isExpired() {
         return LocalDateTime.now().isAfter(expiresAt);
+    }
+
+    public boolean isSessionExpired() {
+        return sessionExpiresAt == null || LocalDateTime.now().isAfter(sessionExpiresAt);
     }
 }

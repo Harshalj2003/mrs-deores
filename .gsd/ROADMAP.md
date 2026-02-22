@@ -120,3 +120,19 @@
 
 
 
+---
+
+### Phase 9: Initial Admin Registration & Invite Flow
+**Status**:  Not Started
+**Objective**: Build a secure mechanism to generate initial admin invitations (\dmin_invitations\ rows) without manual database insertion.
+**Depends on**: Phase 8
+
+**Tasks**:
+- [ ] Add `app.admin.master-key` to properties & service.
+- [ ] Create `createBootstrapInvite` logic in `AdminAuthService`.
+- [ ] Build `POST /api/auth/admin/bootstrap` protected by `X-Master-Key`.
+- [ ] Add public access in `WebSecurityConfig` for the bootstrap endpoint.
+
+**Verification**:
+- [ ] System Owner can securely generate an invite link or token.
+- [ ] New admin data safely populated in DB.

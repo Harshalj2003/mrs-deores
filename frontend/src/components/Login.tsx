@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import AuthService from "../services/auth.service";
 import AuthTabs from "./AuthTabs";
 import { motion, AnimatePresence } from "framer-motion";
-import { Phone, Mail, Lock, Smartphone, ArrowRight, RefreshCw, User, KeyRound, ShieldAlert } from "lucide-react";
+import { Phone, Mail, Lock, Smartphone, ArrowRight, RefreshCw, User, KeyRound, ShieldAlert, Eye, EyeOff } from "lucide-react";
 
 const Login: React.FC = () => {
     const [loginMode, setLoginMode] = useState<'email' | 'otp'>('email');
@@ -30,6 +30,9 @@ const Login: React.FC = () => {
     const [message, setMessage] = useState("");
     const [touchedUser, setTouchedUser] = useState(false);
     const [touchedPass, setTouchedPass] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+
 
     const navigate = useNavigate();
 
@@ -38,8 +41,12 @@ const Login: React.FC = () => {
         setMessage("");
         setLoading(true);
 
-        if (loginMode === 'email') {
-            AuthService.login({ username: username.trim(), password: password.trim() }).then(
+        if (loginMode === 'email' || activeTab === 'admin') {
+            AuthService.login({
+                username,
+                password,
+                isAdmin: activeTab === 'admin'
+            }).then(
                 () => {
                     navigate(activeTab === 'admin' ? "/admin" : "/");
                     window.location.reload();
@@ -104,6 +111,7 @@ const Login: React.FC = () => {
                 setActiveTab(tab);
                 setMessage("");
                 if (tab === 'user') setAdminMode('login');
+                if (tab === 'admin') setLoginMode('email');
             }} />
 
             <div className="text-center">
@@ -174,7 +182,7 @@ const Login: React.FC = () => {
                                     <input
                                         type="text"
                                         className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
-                                        placeholder="Username or Email"
+                                        placeholder={activeTab === 'admin' ? "Email, Phone or Username" : "Username or Email"}
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         onBlur={() => setTouchedUser(true)}
@@ -189,14 +197,22 @@ const Login: React.FC = () => {
                                 <div className="relative group">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                     <input
-                                        type="password"
-                                        className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
+                                        type={showPassword ? "text" : "password"}
+                                        className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all"
                                         placeholder="Password (min. 6 characters)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         onBlur={() => setTouchedPass(true)}
                                         required
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+
                                     {touchedPass && password.trim().length > 0 && password.trim().length < 6 && (
                                         <p className="text-[11px] text-red-500 mt-1 px-1 font-medium">
                                             Password must be at least 6 characters.
@@ -335,14 +351,21 @@ const Login: React.FC = () => {
                         <div className="relative group">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-accent transition-colors" />
                             <input
-                                type="password"
-                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
+                                type={showAdminPassword ? "text" : "password"}
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-accent sm:text-sm sm:leading-6 outline-none transition-all"
                                 placeholder="Set Admin Password"
                                 value={adminPassword}
                                 onChange={(e) => setAdminPassword(e.target.value)}
                                 required
                                 minLength={6}
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-accent transition-colors"
+                            >
+                                {showAdminPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
                         </div>
 
                         <div className="relative group">
@@ -373,15 +396,23 @@ const Login: React.FC = () => {
             )}
 
             {/* Message display */}
-            {message && (
-                <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`text-center p-3 rounded-xl text-xs font-bold ${message.includes('success') ? 'bg-secondary/10 dark:bg-secondary/20 text-secondary dark:text-secondary-light' : 'bg-accent/10 dark:bg-accent/20 text-accent dark:text-accent-light'}`}
-                >
-                    {message}
-                </motion.div>
-            )}
+            <AnimatePresence>
+                {message && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                        transition={{ duration: 0.2 }}
+                        className={`text-center p-4 rounded-2xl text-sm font-bold shadow-lg border relative overflow-hidden flex items-center justify-center gap-2 ${message.includes('success')
+                            ? 'bg-secondary/10 dark:bg-secondary/20 text-secondary border-secondary/20 dark:border-secondary/30'
+                            : 'bg-red-50 dark:bg-red-900/10 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800/30'
+                            }`}
+                    >
+                        {message.includes('success') ? "✓" : "⚠"}
+                        <span className="relative z-10">{message}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {activeTab === 'user' && (
                 <p className="text-center text-sm text-gray-500 dark:text-gray-400">

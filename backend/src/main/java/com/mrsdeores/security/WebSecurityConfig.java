@@ -116,7 +116,7 @@ public class WebSecurityConfig {
         // Allow all methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         // Allow specific headers
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token", "x-master-key"));
         // Expost headers if needed
         configuration.setExposedHeaders(List.of("x-auth-token"));
         // Allow credentials

@@ -47,6 +47,7 @@ app:
     expiration-ms: 86400000 # 24 hours
   admin:
     secret-key: ${ADMIN_SECRET_KEY:DEORE-SUPER-ADMIN-2026}
+    master-key: ${ADMIN_MASTER_KEY:mrspremix_master_secure_key_12345}
   cors:
     allowed-origins: http://localhost:5173,http://localhost:3000,https://*.loca.lt,https://*.ngrok-free.app,https://*.ngrok-free.dev
   frontend:

@@ -9,6 +9,8 @@ export interface User {
 export interface LoginRequest {
     username?: string;
     password?: string;
+    isAdmin?: boolean;
+    inviteToken?: string;
 }
 
 export interface RegisterRequest {

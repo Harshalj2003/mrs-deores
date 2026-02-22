@@ -60,6 +60,7 @@ C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\ma
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\SiteSettingsRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\UserRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\repository\WishlistRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\security\AuthContext.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\security\jwt\AuthEntryPointJwt.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\security\jwt\AuthTokenFilter.java
 C:\Users\jadha\.gemini\antigravity\playground\drifting-triangulum\backend\src\main\java\com\mrsdeores\security\jwt\JwtUtils.java

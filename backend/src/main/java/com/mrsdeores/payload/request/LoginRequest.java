@@ -12,4 +12,9 @@ public class LoginRequest {
 
     @NotBlank
     private String password;
+
+    @com.fasterxml.jackson.annotation.JsonProperty("isAdmin")
+    private boolean isAdmin = false;
+
+    private String inviteToken;
 }

@@ -18,6 +18,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.mrsdeores.security.services.UserDetailsServiceImpl;
+import com.mrsdeores.services.AdminAuthService;
+import com.mrsdeores.security.AuthContext;
 
 public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
@@ -25,6 +27,9 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
+
+    @Autowired
+    private AdminAuthService adminAuthService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
@@ -35,6 +40,18 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
+                boolean isAdmin = jwtUtils.getIsAdminFromJwtToken(jwt);
+
+                if (isAdmin) {
+                    AuthContext.setAdminAttempt(true);
+                    // Real-time check: If admin session is expired in DB, reject authentication
+                    if (adminAuthService.isSessionExpired(username)) {
+                        logger.warn("SECURITY: Admin session expired in DB for user: {}. Forcing logout.", username);
+                        SecurityContextHolder.clearContext();
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
+                }
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -47,6 +64,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication: {}", e);
+        } finally {
+            AuthContext.clear();
         }
 
         filterChain.doFilter(request, response);
