@@ -9,7 +9,7 @@ INSERT INTO site_settings (setting_key, setting_value) VALUES
 
     -- Announcement bar defaults (disabled by default)
     ('announce_enabled',       'false'),
-    ('announce_text',          'Free Delivery on all orders! 🚚'),
+    ('announce_text',          'Free Delivery on all orders above ₹500! 🚚'),
     ('announce_color',         '')
 
 ON CONFLICT (setting_key) DO NOTHING;
