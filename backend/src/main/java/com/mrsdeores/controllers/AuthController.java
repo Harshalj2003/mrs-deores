@@ -44,6 +44,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AuthController.class);
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -245,10 +246,13 @@ public class AuthController {
      * Anti-enumeration: always returns 200 regardless of whether email exists.
      */
     @PostMapping("/forgot-password")
+    @org.springframework.transaction.annotation.Transactional
     public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> body) {
         String email = body.getOrDefault("email", "").trim();
+        logger.info("Password reset requested for email: {}", email);
         try {
-            userRepository.findByEmail(email).ifPresent(user -> {
+            userRepository.findByEmail(email).ifPresentOrElse(user -> {
+                logger.info("User found for email: {}. Proceeding to send email.", email);
                 // Remove old tokens for this user
                 passwordResetTokenRepository.deleteByUser(user);
                 // Generate new token
@@ -257,6 +261,8 @@ public class AuthController {
                 passwordResetTokenRepository.save(resetToken);
                 // Send email
                 String resetLink = frontendUrl + "/reset-password?token=" + token;
+                logger.info("Sending reset email from: {} to: {}", senderEmail, user.getEmail());
+
                 SimpleMailMessage message = new SimpleMailMessage();
                 message.setFrom(senderEmail);
                 message.setTo(user.getEmail());
@@ -268,11 +274,15 @@ public class AuthController {
                                 resetLink + "\n\n" +
                                 "If you did not request this, please ignore this email.\n\n" +
                                 "— Mrs. Deore's Premix Team");
+
                 mailSender.send(message);
+                logger.info("Successfully sent reset email to: {}", user.getEmail());
+            }, () -> {
+                logger.warn("Password reset attempted for non-existent email: {}", email);
             });
         } catch (Exception e) {
             // Log but don't expose error to client
-            System.err.println("Forgot password error: " + e.getMessage());
+            logger.error("Forgot password error for email {}: ", email, e);
         }
         return ResponseEntity.ok(new MessageResponse("If this email is registered, a reset link has been sent."));
     }
