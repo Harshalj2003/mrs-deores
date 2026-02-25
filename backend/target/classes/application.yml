@@ -1,19 +1,13 @@
 spring:
   application:
     name: mrs-deores-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE}
   datasource:
-    url: jdbc:postgresql://localhost:5432/mrsdeores
-    username: postgres
-    password: password
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -27,8 +21,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME:your-gmail@gmail.com}
-    password: ${MAIL_PASSWORD:your-gmail-app-password}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -36,24 +30,20 @@ spring:
           starttls:
             enable: true
 
-logging:
-  level:
-    org.springframework.web: INFO
-    org.hibernate: INFO
+server:
+  port: ${PORT:8080}
 
 app:
   jwt:
-    secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
-    expiration-ms: 86400000 # 24 hours
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS}
   admin:
-    secret-key: ${ADMIN_SECRET_KEY:DEORE-SUPER-ADMIN-2026}
-    master-key: ${ADMIN_MASTER_KEY:mrspremix_master_secure_key_12345}
-  cors:
-    allowed-origins: http://localhost:5173,http://localhost:3000,https://*.loca.lt,https://*.ngrok-free.app,https://*.ngrok-free.dev
+    secret-key: ${ADMIN_SECRET_KEY}
+    master-key: ${ADMIN_MASTER_KEY}
   frontend:
-    url: ${FRONTEND_URL:http://localhost:5173}
+    url: ${FRONTEND_URL}
 
 razorpay:
   key:
-    id: ${RAZORPAY_KEY_ID:rzp_test_1DP5mmOlF5G5ag}
-    secret: ${RAZORPAY_KEY_SECRET:secret123456789}
+    id: ${RAZORPAY_KEY_ID}
+    secret: ${RAZORPAY_KEY_SECRET}

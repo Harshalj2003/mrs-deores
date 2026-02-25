@@ -35,7 +35,7 @@ public class AdminAuthService {
     @Value("${app.admin.secret-key:}")
     private String adminSecretKey;
 
-    @Value("${app.admin.master-key:mrspremix_master_secure_key_12345}")
+    @Value("${app.admin.master-key}")
     private String adminMasterKey;
 
     /**

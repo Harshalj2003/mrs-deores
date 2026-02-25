@@ -12,7 +12,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -53,7 +52,8 @@ public class CartController {
     }
 
     @PutMapping("/items/{productId}")
-    public ResponseEntity<Cart> updateItem(@PathVariable("productId") Long productId, @RequestBody Map<String, Object> payload,
+    public ResponseEntity<Cart> updateItem(@PathVariable("productId") Long productId,
+            @RequestBody Map<String, Object> payload,
             @RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         Integer quantity = Integer.valueOf(payload.get("quantity").toString());

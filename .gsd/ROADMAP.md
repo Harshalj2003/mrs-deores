@@ -135,4 +135,24 @@
 
 **Verification**:
 - [ ] System Owner can securely generate an invite link or token.
+- [ ] System Owner can securely generate an invite link or token.
 - [ ] New admin data safely populated in DB.
+
+---
+
+### Phase 10: Secret Externalization & Environment Hardening
+**Status**: ✅ Completed
+**Objective**: Refactor the project to remove ALL hardcoded secrets and externalize them into environment variables for production readiness.
+**Depends on**: Phase 9
+
+**Tasks**:
+- [ ] **Externalize Backend Secrets**: Remove hardcoded DB, JWT, Razorpay, and Admin keys from source.
+- [ ] **Create Profile Structure**: Refactor into `application.yml`, `application-dev.yml`, and `application-prod.yml`.
+- [ ] **Environment Setup**: Create `.env` templates and update `.gitignore`.
+- [ ] **Frontend Hardening**: Externalize `VITE_API_URL` and remove hardcoded API endpoints.
+- [ ] **Security Reset**: Generate new secrets for all externalized keys.
+
+**Verification**:
+- [ ] App fails to start if required environment variables are missing (no fallbacks).
+- [ ] No secrets visible in any version-controlled file.
+- [ ] Production profile uses only environment variables.

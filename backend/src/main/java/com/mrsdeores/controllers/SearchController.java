@@ -97,6 +97,6 @@ public class SearchController {
         }
 
         // Limit to 12 results
-        return results.subList(0, Math.min(results.size(), 12));
+        return results.subList(0, Math.min(results.size(), 6));
     }
 }

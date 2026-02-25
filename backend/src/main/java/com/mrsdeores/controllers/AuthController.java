@@ -18,7 +18,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -63,7 +62,7 @@ public class AuthController {
     @Autowired
     AdminAuthService adminAuthService;
 
-    @org.springframework.beans.factory.annotation.Value("${app.admin.master-key:mrspremix_master_secure_key_12345}")
+    @org.springframework.beans.factory.annotation.Value("${app.admin.master-key}")
     private String adminMasterKey;
 
     @Autowired
