@@ -81,4 +81,4 @@ The project is designed for seamless deployment to platforms like **Render** or 
     - Run `npm run dev`
 
 ---
-*Created by [Your Name] | Specialized in Backend Engineering.*
+*Created by Harshal P. Jadhav | Specialized in Backend Engineering.*
