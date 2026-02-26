@@ -12,6 +12,7 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
     (config) => {
+        // Auth token injection
         const userStr = localStorage.getItem("user");
         if (userStr) {
             const user = JSON.parse(userStr);
@@ -19,6 +20,12 @@ instance.interceptors.request.use(
                 config.headers["Authorization"] = 'Bearer ' + user.token;
             }
         }
+
+        // Auto-detect FormData and let browser set correct multipart boundary
+        if (config.data instanceof FormData) {
+            delete config.headers["Content-Type"];
+        }
+
         return config;
     },
     (error) => {

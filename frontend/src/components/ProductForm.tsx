@@ -70,11 +70,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
 
         try {
             console.log('Sending upload request via api service...');
-            const res = await api.post('/upload', uploadData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            const res = await api.post('/upload', uploadData);
 
             console.log('Upload success, data:', res.data);
             const fullUrl = res.data.fileDownloadUri;
