@@ -1,4 +1,6 @@
 spring:
+  flyway:
+    validate-on-migrate: true
   jpa:
     hibernate:
       ddl-auto: validate
