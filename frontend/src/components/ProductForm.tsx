@@ -78,7 +78,22 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
             setFormData({ ...formData, imageUrls: urls });
         } catch (err: any) {
             console.error('Upload error:', err);
-            alert(`Error uploading file: ${err.message || 'Unknown error'}. \n\nEnsure you are logged in as an Administrator.`);
+            const raw: string = err.message || '';
+            let friendlyMsg = 'Image upload failed. Please try again.';
+            if (raw.toLowerCase().includes('invalid signature')) {
+                friendlyMsg = 'Upload failed: Server signature error. Please try refreshing the page and uploading again.';
+            } else if (raw.toLowerCase().includes('file type') || raw.toLowerCase().includes('format')) {
+                friendlyMsg = 'Unsupported file type. Use JPG, PNG, or WebP images.';
+            } else if (raw.toLowerCase().includes('too large') || raw.toLowerCase().includes('size')) {
+                friendlyMsg = 'File too large. Maximum upload size is 10MB.';
+            } else if (raw.toLowerCase().includes('signature')) {
+                friendlyMsg = 'Upload failed: Signature error. Refresh the page and try again.';
+            } else if (raw.toLowerCase().includes('network') || raw.toLowerCase().includes('fetch')) {
+                friendlyMsg = 'Network error during upload. Check your connection and try again.';
+            } else if (raw) {
+                friendlyMsg = `Upload failed: ${raw}`;
+            }
+            alert(friendlyMsg);
         }
     };
 

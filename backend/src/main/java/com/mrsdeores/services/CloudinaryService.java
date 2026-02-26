@@ -42,13 +42,15 @@ public class CloudinaryService {
 
         long timestamp = System.currentTimeMillis() / 1000L;
 
+        // CRITICAL: Only include params that are sent AS FORM FIELDS to Cloudinary.
+        // resource_type is a URL path segment, NOT a form field — including it here
+        // causes "Invalid Signature" because Cloudinary won't see it in the body.
+        // max_file_size is enforced server-side only — never include in signature
+        // params.
         Map<String, Object> paramsToSign = new HashMap<>();
         paramsToSign.put("timestamp", timestamp);
         paramsToSign.put("folder", folder);
-        paramsToSign.put("resource_type", resourceType);
-        paramsToSign.put("max_file_size", maxFileSizeMb * 1024 * 1024);
 
-        // Apply auto quality and format optimization for images
         if ("image".equals(resourceType)) {
             paramsToSign.put("allowed_formats", allowedFormats);
             paramsToSign.put("transformation", "f_auto,q_auto");
@@ -63,14 +65,14 @@ public class CloudinaryService {
             throw new RuntimeException("Signature generation failed", e);
         }
 
+        // Return everything the frontend needs — signature + signed params + cloud meta
         Map<String, Object> result = new HashMap<>(paramsToSign);
         result.put("signature", signature);
         result.put("api_key", cloudinary.config.asMap().get("api_key"));
         result.put("cloud_name", cloudinary.config.asMap().get("cloud_name"));
-        result.put("resource_type", resourceType);
-        result.remove("max_file_size"); // Do not expose size limit details to frontend
+        result.put("resource_type", resourceType); // Needed for upload URL, NOT part of signature
 
-        logger.info("Signature generated for mediaType={} folder={}", mediaType, folder);
+        logger.info("Signature generated for mediaType={} folder={} resourceType={}", mediaType, folder, resourceType);
         return result;
     }
 
