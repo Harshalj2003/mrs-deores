@@ -3,6 +3,7 @@ import type { Product, Category } from '../types/catalog.types';
 import { X, Save, Plus, Trash2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageCropperModal from './ImageCropperModal';
+import api from '../services/api';
 
 interface ProductFormProps {
     product?: Product;
@@ -68,47 +69,28 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
         uploadData.append('file', file);
 
         try {
-            let token = '';
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                try {
-                    const userObj = JSON.parse(userStr);
-                    token = userObj.token || '';
-                } catch (e) {
-                    console.error('Error parsing user object from localStorage', e);
+            console.log('Sending upload request via api service...');
+            const res = await api.post('/upload', uploadData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
                 }
-            }
-
-            console.log('Sending upload request...');
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                headers: token ? { 'Authorization': `Bearer ${token}` } : undefined,
-                body: uploadData
             });
 
-            console.log('Upload response status:', res.status);
+            console.log('Upload success, data:', res.data);
+            const fullUrl = res.data.fileDownloadUri;
 
-            if (res.ok) {
-                const data = await res.json();
-                console.log('Upload success, data:', data);
-                const fullUrl = data.fileDownloadUri;
-
-                const urls = [...formData.imageUrls];
-                const emptyIndex = urls.findIndex(u => u.trim() === '');
-                if (emptyIndex >= 0) {
-                    urls[emptyIndex] = fullUrl;
-                } else {
-                    urls.push(fullUrl);
-                }
-                setFormData({ ...formData, imageUrls: urls });
+            const urls = [...formData.imageUrls];
+            const emptyIndex = urls.findIndex(u => u.trim() === '');
+            if (emptyIndex >= 0) {
+                urls[emptyIndex] = fullUrl;
             } else {
-                const errText = await res.text();
-                console.error('Upload failed body:', errText);
-                alert(`Upload failed: ${res.status} ${res.statusText}\n${errText}\n\nYou must be logged in as an Administrator.`);
+                urls.push(fullUrl);
             }
+            setFormData({ ...formData, imageUrls: urls });
         } catch (err: any) {
-            console.error('Upload error catch:', err);
-            alert(`Error uploading file: ${err.message || 'Unknown error'}. \nIs the backend running?`);
+            console.error('Upload error:', err);
+            const errMsg = err.response?.data?.message || err.message || 'Unknown error';
+            alert(`Error uploading file: ${errMsg}. \n\nEnsure you are logged in as an Administrator.`);
         }
     };
 
