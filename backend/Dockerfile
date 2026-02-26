@@ -15,8 +15,8 @@ WORKDIR /app
 
 COPY --from=builder /app/target/*.jar app.jar
 
-# Create persistent upload directory
-RUN mkdir -p /app/uploads
+# Create persistent upload directory with write permissions
+RUN mkdir -p /app/uploads && chmod 777 /app/uploads
 
 EXPOSE 8080
 

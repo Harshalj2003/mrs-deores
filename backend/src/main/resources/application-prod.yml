@@ -15,10 +15,12 @@ server:
 logging:
   level:
     root: INFO
-    com.mrsdeores: INFO
+    com.mrsdeores: DEBUG
     org.springframework: INFO
     org.hibernate: INFO
 
 app:
   cors:
     allowed-origins: ${FRONTEND_URL}
+  upload:
+    dir: ${UPLOAD_DIR:uploads/}

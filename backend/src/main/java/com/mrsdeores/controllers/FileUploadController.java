@@ -1,11 +1,14 @@
 package com.mrsdeores.controllers;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -21,6 +24,8 @@ import java.util.UUID;
 @RequestMapping("/api/upload")
 public class FileUploadController {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
+
     @Value("${app.upload.dir}")
     private String uploadDirProperty;
 
@@ -34,9 +39,12 @@ public class FileUploadController {
     @PostConstruct
     public void init() {
         this.fileStorageLocation = Paths.get(uploadDirProperty).toAbsolutePath().normalize();
+        logger.info("Upload directory configured at: {}", this.fileStorageLocation);
         try {
             Files.createDirectories(this.fileStorageLocation);
+            logger.info("Upload directory ready. Writable: {}", Files.isWritable(this.fileStorageLocation));
         } catch (Exception ex) {
+            logger.error("FATAL: Could not create upload directory: {}", this.fileStorageLocation, ex);
             throw new RuntimeException("Could not create the upload directory: " + this.fileStorageLocation, ex);
         }
     }
@@ -47,6 +55,8 @@ public class FileUploadController {
         String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
         String fileName = UUID.randomUUID().toString() + "_" + originalFileName;
 
+        logger.info("Upload request received: {} ({} bytes)", originalFileName, file.getSize());
+
         try {
             if (fileName.contains("..")) {
                 throw new RuntimeException("Sorry! Filename contains invalid path sequence " + fileName);
@@ -55,7 +65,14 @@ public class FileUploadController {
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            String fileDownloadUri = "/uploads/" + fileName;
+            // Build full absolute URL so the frontend can display it
+            // e.g. https://mrsdeore-premix.onrender.com/uploads/uuid_filename.jpg
+            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                    .path("/uploads/")
+                    .path(fileName)
+                    .toUriString();
+
+            logger.info("Upload successful: {}", fileDownloadUri);
 
             Map<String, String> response = new HashMap<>();
             response.put("fileName", fileName);
@@ -63,6 +80,7 @@ public class FileUploadController {
 
             return ResponseEntity.ok(response);
         } catch (IOException ex) {
+            logger.error("Upload failed for file: {}", fileName, ex);
             throw new RuntimeException("Could not store file " + fileName + ". Please try again!", ex);
         }
     }
