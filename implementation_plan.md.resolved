@@ -1,0 +1,120 @@
+# Cloudinary Media Pipeline Integration
+
+Replace ephemeral disk uploads with a Cloudinary signed direct upload pipeline. Backend never proxies file bytes.
+
+**Flow:** Frontend → `POST /api/media/signature` (Backend) → Direct POST to Cloudinary → Frontend sends metadata → Backend stores URL+public_id only.
+
+---
+
+## Proposed Changes
+
+### [Backend] pom.xml
+
+#### [MODIFY] [pom.xml](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/pom.xml)
+- Add `com.cloudinary:cloudinary-http45:1.39.0`
+- Add `com.github.bucket4j:bucket4j-core:8.10.1` for rate limiting
+
+---
+
+### [Backend] Configuration Layer
+
+#### [NEW] CloudinaryConfig.java
+- `@Bean` reads `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` via `@Value`.
+- No secrets in code. No secrets in [application.yml](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/src/main/resources/application.yml).
+
+#### [NEW] CloudinaryService.java
+Central abstraction. Methods:
+- `generateUploadSignature(MediaType type, Long entityId)` → `Map<String,Object>` with signed params
+  - Folder: `categories/`, `products/{id}/`, `documents/`
+  - Enforces: max size, allowed formats, auto quality/format (`f_auto`, `q_auto`)
+  - Validates `MediaType` → maps to correct Cloudinary resource_type (`image`/`video`/`raw`)
+- `deleteMedia(String publicId, String resourceType)` → void, logs on failure (no exception thrown)
+
+#### [MODIFY] [application.yml](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/src/main/resources/application.yml)
+- Add `app.cloudinary.cloud-name`, `api-key`, `api-secret` binding stubs (values from env vars, no defaults).
+- Add `app.media.max-file-size-mb: 10` and `app.media.allowed-formats: jpg,jpeg,png,webp,mp4`
+
+---
+
+### [Backend] Signature Endpoint
+
+#### [MODIFY] [FileUploadController.java](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/src/main/java/com/mrsdeores/controllers/FileUploadController.java)
+- **Rename/Remap** to `MediaController.java` at `POST /api/media/signature`
+- `@PreAuthorize("hasRole('ADMIN')")` — Admin only
+- **Rate-limited** with Bucket4j: max 30 signatures/minute per admin (stops spam abuse)
+- Accepts body: `{ "mediaType": "CATEGORY"|"PRODUCT"|"DOCUMENT", "entityId": optional }`
+- Returns signed params only — no file bytes cross the backend
+- **Old `/api/upload` endpoint removed** entirely
+
+---
+
+### [Backend] Schema Migration
+
+#### [NEW] V19__Add_Cloudinary_Media_Fields.sql
+```sql
+ALTER TABLE product_images ADD COLUMN IF NOT EXISTS public_id VARCHAR(255);
+ALTER TABLE product_images ADD COLUMN IF NOT EXISTS resource_type VARCHAR(50) DEFAULT 'image';
+ALTER TABLE categories    ADD COLUMN IF NOT EXISTS public_id VARCHAR(255);
+ALTER TABLE categories    ADD COLUMN IF NOT EXISTS resource_type VARCHAR(50) DEFAULT 'image';
+```
+> Old rows get `NULL` public_id — backward compatible, existing image_urls still display.
+
+---
+
+### [Backend] Domain Models
+
+#### [MODIFY] [ProductImage.java](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/src/main/java/com/mrsdeores/models/ProductImage.java)
+- Add `publicId` (`@Column(name="public_id")`)
+- Add `resourceType` (`@Column(name="resource_type")`, default `"image"`)
+
+#### [MODIFY] [Category.java](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/src/main/java/com/mrsdeores/models/Category.java)
+- Same two fields.
+
+---
+
+### [Backend] Deletion Lifecycle
+
+#### [MODIFY] CategoryController + ProductController
+- **On Update (image replaced):** `cloudinaryService.deleteMedia(oldPublicId, oldResourceType)` called **only after** DB save success. If delete fails → log + skip (no crash).
+- **On Entity Delete:** Same delete-after-save pattern.
+- **Orphan Strategy:** New `OrphanCleanupService` with `@Scheduled(cron="0 0 3 * * SUN")` weekly scan — finds `product_images`/`categories` rows with `public_id` not matching any known Cloudinary asset and logs them for manual review.
+
+---
+
+### [Frontend] Upload Service
+
+#### [NEW] cloudinaryUploadService.ts
+- `uploadToCloudinary(file: File, mediaType: MediaTypeEnum, entityId?: number)`
+  1. Validate file type client-side (first line of defense)
+  2. `POST /api/media/signature` → signed params
+  3. Build [FormData](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/frontend/src/components/ProductForm.tsx#15-27) with [file](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/backend/Dockerfile) + all signed params
+  4. `POST https://api.cloudinary.com/v1_1/{cloudName}/{resourceType}/upload` directly
+  5. Returns `{ secureUrl, publicId, resourceType }`
+- Resource type → upload URL mapping is fully dynamic based on `mediaType`.
+
+---
+
+### [Frontend] Component Refactoring
+
+#### [MODIFY] [AdminCategories.tsx](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/frontend/src/pages/AdminCategories.tsx)
+- Replace `api.post('/upload', formData)` with `cloudinaryUploadService.uploadToCloudinary(file, 'CATEGORY')`
+- Store `publicId` alongside `imageUrl` in state; send both to backend on save.
+- Use lazy loading on `<img>` tags (`loading="lazy"`).
+
+#### [MODIFY] [ProductForm.tsx](file:///c:/Users/jadha/.gemini/antigravity/playground/mrsdeore/frontend/src/components/ProductForm.tsx)
+- Same refactor; `mediaType='PRODUCT'` + `entityId=product.id`.
+
+---
+
+## Verification Plan
+
+### Automated
+- `mvn clean package -DskipTests` — verifies Cloudinary SDK resolves
+- Flyway: `V19` migration applies on clean Render deploy
+
+### Manual
+1. Upload category image → URL is `res.cloudinary.com/dyfpdcteo/...`
+2. Update category with new image → old image removed from Cloudinary media library
+3. Old categories with `NULL` public_id display correctly (backward compat)
+4. Verify no files written to `/app/uploads` (no disk usage)
+5. Try hitting `/api/media/signature` as non-admin → `403 Forbidden`

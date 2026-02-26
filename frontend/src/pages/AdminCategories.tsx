@@ -279,8 +279,12 @@ const AdminCategories: React.FC = () => {
                                         <div className="flex-1 space-y-2">
                                             <input value={editCategory.imageUrl} onChange={e => setEditCategory(p => ({ ...p, imageUrl: e.target.value }))} placeholder="Image URL" className="w-full px-3 py-2 bg-neutral-light/50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary outline-none text-xs" />
                                             <label className="inline-flex items-center text-xs font-bold text-gray-600 hover:text-primary bg-gray-100 hover:bg-primary/10 px-3 py-2 rounded-lg cursor-pointer transition-all">
-                                                Upload from device
-                                                <input type="file" accept="image/*" className="hidden" onChange={e => {
+                                                {uploadProgress ? (
+                                                    <><Loader2 className="h-3 w-3 animate-spin mr-1" /> Uploading...</>
+                                                ) : (
+                                                    "Upload from device"
+                                                )}
+                                                <input type="file" accept="image/*" className="hidden" disabled={uploadProgress} onChange={e => {
                                                     const f = e.target.files?.[0];
                                                     if (f) {
                                                         setCropFile(f);
