@@ -9,6 +9,20 @@ spring:
     init:
       mode: never
 
+server:
+  port: ${PORT:8080}
+
+logging:
+  flyway:
+    validate-on-migrate: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  sql:
+    init:
+      mode: never
+
 logging:
   level:
     root: INFO
