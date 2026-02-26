@@ -3,7 +3,7 @@ import type { Product, Category } from '../types/catalog.types';
 import { X, Save, Plus, Trash2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageCropperModal from './ImageCropperModal';
-import api from '../services/api';
+import { uploadToCloudinary } from '../services/cloudinaryUploadService';
 
 interface ProductFormProps {
     product?: Product;
@@ -64,29 +64,21 @@ const ProductForm: React.FC<ProductFormProps> = ({ product, categories, onSave, 
         setIsCropOpen(false);
         setCropFile(null);
 
-        console.log('Starting cropped upload:', file.name, file.type, file.size);
-        const uploadData = new FormData();
-        uploadData.append('file', file);
-
         try {
-            console.log('Sending upload request via api service...');
-            const res = await api.post('/upload', uploadData);
-
-            console.log('Upload success, data:', res.data);
-            const fullUrl = res.data.fileDownloadUri;
+            const result = await uploadToCloudinary(file, 'PRODUCT',
+                formData.categoryId ? Number(formData.categoryId) : undefined);
 
             const urls = [...formData.imageUrls];
             const emptyIndex = urls.findIndex(u => u.trim() === '');
             if (emptyIndex >= 0) {
-                urls[emptyIndex] = fullUrl;
+                urls[emptyIndex] = result.secureUrl;
             } else {
-                urls.push(fullUrl);
+                urls.push(result.secureUrl);
             }
             setFormData({ ...formData, imageUrls: urls });
         } catch (err: any) {
             console.error('Upload error:', err);
-            const errMsg = err.response?.data?.message || err.message || 'Unknown error';
-            alert(`Error uploading file: ${errMsg}. \n\nEnsure you are logged in as an Administrator.`);
+            alert(`Error uploading file: ${err.message || 'Unknown error'}. \n\nEnsure you are logged in as an Administrator.`);
         }
     };
 

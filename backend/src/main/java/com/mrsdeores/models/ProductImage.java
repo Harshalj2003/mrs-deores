@@ -21,11 +21,25 @@ public class ProductImage {
     @Column(name = "image_url", nullable = false)
     private String imageUrl;
 
+    @Column(name = "public_id")
+    private String publicId;
+
+    @Column(name = "resource_type", length = 50)
+    private String resourceType = "image";
+
     @Column(name = "is_primary")
     private Boolean isPrimary = false;
 
     public ProductImage(String imageUrl, Product product, Boolean isPrimary) {
         this.imageUrl = imageUrl;
+        this.product = product;
+        this.isPrimary = isPrimary;
+    }
+
+    public ProductImage(String imageUrl, String publicId, String resourceType, Product product, Boolean isPrimary) {
+        this.imageUrl = imageUrl;
+        this.publicId = publicId;
+        this.resourceType = resourceType;
         this.product = product;
         this.isPrimary = isPrimary;
     }

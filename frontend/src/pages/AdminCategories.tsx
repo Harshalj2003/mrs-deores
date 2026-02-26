@@ -4,12 +4,15 @@ import { Grid, Plus, Edit2, Trash2, Save, X, Image as ImageIcon, Loader2, AlertC
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageCropperModal from '../components/ImageCropperModal';
+import { uploadToCloudinary } from '../services/cloudinaryUploadService';
 
 interface Category {
     id?: number;
     name: string;
     description: string;
     imageUrl: string;
+    publicId?: string;
+    resourceType?: string;
     displayOrder: number;
     gridSize: string;
     viewMode: string;
@@ -19,6 +22,8 @@ const EMPTY_CATEGORY: Category = {
     name: '',
     description: '',
     imageUrl: '',
+    publicId: '',
+    resourceType: 'image',
     displayOrder: 0,
     gridSize: 'MEDIUM',
     viewMode: 'AUTO',
@@ -33,6 +38,7 @@ const AdminCategories: React.FC = () => {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
     const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+    const [uploadProgress, setUploadProgress] = useState(false);
 
     // Image Cropper State
     const [cropFile, setCropFile] = useState<File | null>(null);
@@ -93,14 +99,20 @@ const AdminCategories: React.FC = () => {
     const handleCroppedImageUpload = async (file: File) => {
         setIsCropOpen(false);
         setCropFile(null);
-
-        const formData = new FormData();
-        formData.append('file', file);
+        setUploadProgress(true);
+        setError('');
         try {
-            const res = await api.post('/upload', formData);
-            setEditCategory(prev => ({ ...prev, imageUrl: res.data.fileDownloadUri }));
+            const result = await uploadToCloudinary(file, 'CATEGORY');
+            setEditCategory(prev => ({
+                ...prev,
+                imageUrl: result.secureUrl,
+                publicId: result.publicId,
+                resourceType: result.resourceType,
+            }));
         } catch (e: any) {
-            setError(e?.response?.data?.message || 'Image upload failed. Make sure you are logged in as admin.');
+            setError(e?.message || 'Image upload failed. Make sure you are logged in as admin.');
+        } finally {
+            setUploadProgress(false);
         }
     };
 

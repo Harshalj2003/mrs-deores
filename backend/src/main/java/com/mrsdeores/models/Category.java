@@ -24,6 +24,12 @@ public class Category {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "public_id")
+    private String publicId;
+
+    @Column(name = "resource_type", length = 50)
+    private String resourceType = "image";
+
     @Column(name = "display_order")
     private Integer displayOrder = 0;
 

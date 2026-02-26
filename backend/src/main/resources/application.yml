@@ -46,6 +46,13 @@ app:
     allowed-origins: ${FRONTEND_URL:http://localhost:5173}
   upload:
     dir: ${UPLOAD_DIR:uploads/}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME}
+    api-key: ${CLOUDINARY_API_KEY}
+    api-secret: ${CLOUDINARY_API_SECRET}
+  media:
+    max-file-size-mb: 10
+    allowed-formats: jpg,jpeg,png,webp,mp4,pdf
 
 razorpay:
   key:
