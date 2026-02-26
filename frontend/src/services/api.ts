@@ -38,12 +38,17 @@ instance.interceptors.response.use(
         return response;
     },
     (error) => {
-        // Global handler for invalid/expired tokens
-        if (error.response && error.response.status === 401) {
-            console.warn("Unauthorized request detected. Token may be expired or invalid. Logging out...");
+        // CRITICAL: Exclude auth endpoints from the 401 redirect.
+        // A failed login attempt returns 401 (Bad credentials) from /api/auth/signin.
+        // If we redirect on that, we create an infinite redirect loop that prevents any login.
+        const requestUrl: string = error.config?.url ?? "";
+        const isAuthEndpoint = requestUrl.includes("auth/");
+
+        if (error.response && error.response.status === 401 && !isAuthEndpoint) {
+            console.warn("Unauthorized request (non-auth). Token expired or invalid. Logging out...");
             localStorage.removeItem("user");
 
-            // Only redirect if not already on login/signup to avoid loops
+            // Redirect to login only if not already on auth pages
             if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
                 window.location.href = '/login';
             }

@@ -4,17 +4,26 @@ import com.mrsdeores.models.Category;
 import com.mrsdeores.models.ERole;
 import com.mrsdeores.models.Product;
 import com.mrsdeores.models.Role;
+import com.mrsdeores.models.User;
 import com.mrsdeores.repository.CategoryRepository;
 import com.mrsdeores.repository.ProductRepository;
 import com.mrsdeores.repository.RoleRepository;
+import com.mrsdeores.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
+
+        private static final Logger logger = LoggerFactory.getLogger(DataSeeder.class);
 
         @Autowired
         private RoleRepository roleRepository;
@@ -25,13 +34,48 @@ public class DataSeeder implements CommandLineRunner {
         @Autowired
         private ProductRepository productRepository;
 
+        @Autowired
+        private UserRepository userRepository;
+
+        @Autowired
+        private PasswordEncoder passwordEncoder;
+
+        @Value("${app.seed.admin-username:admin}")
+        private String adminUsername;
+
+        @Value("${app.seed.admin-email:admin@mrsdeores.com}")
+        private String adminEmail;
+
+        @Value("${app.seed.admin-password:ChangeMeNow123!}")
+        private String adminPassword;
+
         @Override
         public void run(String... args) throws Exception {
+                // 1. Seed Roles (idempotent)
+                Role userRole = null;
+                Role adminRole = null;
                 if (roleRepository.findByName(ERole.ROLE_USER).isEmpty()) {
-                        roleRepository.save(new Role(ERole.ROLE_USER));
-                        roleRepository.save(new Role(ERole.ROLE_ADMIN));
+                        userRole = roleRepository.save(new Role(ERole.ROLE_USER));
+                        adminRole = roleRepository.save(new Role(ERole.ROLE_ADMIN));
+                        logger.info("Seeded ROLE_USER and ROLE_ADMIN");
+                } else {
+                        userRole = roleRepository.findByName(ERole.ROLE_USER).orElseThrow();
+                        adminRole = roleRepository.findByName(ERole.ROLE_ADMIN).orElseThrow();
                 }
 
+                // 2. Seed Default Admin User (idempotent — only if not already present)
+                if (userRepository.findByUsername(adminUsername).isEmpty()) {
+                        User admin = new User(adminUsername, adminEmail,
+                                        passwordEncoder.encode(adminPassword));
+                        admin.setRoles(Set.of(userRole, adminRole));
+                        userRepository.save(admin);
+                        logger.info("Seeded default admin user: username='{}' email='{}'", adminUsername, adminEmail);
+                        logger.info("IMPORTANT: Change the default admin password via the admin panel immediately.");
+                } else {
+                        logger.debug("Default admin user '{}' already exists. Skipping seed.", adminUsername);
+                }
+
+                // 3. Seed demo Categories and Products (idempotent)
                 if (categoryRepository.count() == 0) {
                         categoryRepository.save(new Category("Traditional Snacks",
                                         "Crispy and authentic homemade snacks",
@@ -76,6 +120,8 @@ public class DataSeeder implements CommandLineRunner {
                                         "https://images.unsplash.com/photo-1541944743827-e04bb645f946?auto=format&fit=crop&w=800&q=80",
                                         p4, true));
                         productRepository.save(p4);
+
+                        logger.info("Seeded demo categories and products.");
                 }
         }
 }

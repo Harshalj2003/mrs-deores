@@ -53,6 +53,10 @@ app:
   media:
     max-file-size-mb: 10
     allowed-formats: jpg,jpeg,png,webp,mp4,pdf
+  seed:
+    admin-username: ${SEED_ADMIN_USERNAME:admin}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@mrsdeores.com}
+    admin-password: ${SEED_ADMIN_PASSWORD:ChangeMeNow123!}
 
 razorpay:
   key:
