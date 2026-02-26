@@ -15,6 +15,9 @@ WORKDIR /app
 
 COPY --from=builder /app/target/*.jar app.jar
 
+# Create persistent upload directory
+RUN mkdir -p /app/uploads
+
 EXPOSE 8080
 
 ENTRYPOINT ["java","-jar","app.jar"]

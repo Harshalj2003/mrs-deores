@@ -41,7 +41,11 @@ app:
     secret-key: ${ADMIN_SECRET_KEY}
     master-key: ${ADMIN_MASTER_KEY}
   frontend:
-    url: ${FRONTEND_URL}
+    url: ${FRONTEND_URL:http://localhost:5173}
+  cors:
+    allowed-origins: ${FRONTEND_URL:http://localhost:5173}
+  upload:
+    dir: ${UPLOAD_DIR:uploads/}
 
 razorpay:
   key:

@@ -1,11 +1,13 @@
 package com.mrsdeores.controllers;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,14 +21,23 @@ import java.util.UUID;
 @RequestMapping("/api/upload")
 public class FileUploadController {
 
-    private final Path fileStorageLocation;
+    @Value("${app.upload.dir}")
+    private String uploadDirProperty;
 
-    public FileUploadController() {
-        this.fileStorageLocation = Paths.get("src/main/resources/static/uploads").toAbsolutePath().normalize();
+    private Path fileStorageLocation;
+
+    /**
+     * Initialised after dependency injection so @Value is available.
+     * Creates the upload directory relative to the working directory.
+     * Works both locally and inside Docker (where the JAR runs from /app).
+     */
+    @PostConstruct
+    public void init() {
+        this.fileStorageLocation = Paths.get(uploadDirProperty).toAbsolutePath().normalize();
         try {
             Files.createDirectories(this.fileStorageLocation);
         } catch (Exception ex) {
-            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
+            throw new RuntimeException("Could not create the upload directory: " + this.fileStorageLocation, ex);
         }
     }
 
@@ -44,10 +55,6 @@ public class FileUploadController {
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Construct the file download URI
-            // Since we save to static/uploads, it should be accessible via
-            // /uploads/filename
-            // Assuming standard Spring Boot static resource mapping
             String fileDownloadUri = "/uploads/" + fileName;
 
             Map<String, String> response = new HashMap<>();
