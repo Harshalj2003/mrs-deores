@@ -33,4 +33,23 @@ instance.interceptors.request.use(
     }
 );
 
+instance.interceptors.response.use(
+    (response) => {
+        return response;
+    },
+    (error) => {
+        // Global handler for invalid/expired tokens
+        if (error.response && error.response.status === 401) {
+            console.warn("Unauthorized request detected. Token may be expired or invalid. Logging out...");
+            localStorage.removeItem("user");
+
+            // Only redirect if not already on login/signup to avoid loops
+            if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/signup')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default instance;

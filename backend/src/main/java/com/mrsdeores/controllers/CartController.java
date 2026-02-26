@@ -36,7 +36,7 @@ public class CartController {
     public ResponseEntity<Cart> getCart(@RequestParam(name = "sessionId", required = false) String sessionId) {
         User user = getAuthenticatedUser();
         if (user == null && sessionId == null) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(401).build();
         }
         return ResponseEntity.ok(cartService.getOrCreateCart(user, sessionId));
     }
