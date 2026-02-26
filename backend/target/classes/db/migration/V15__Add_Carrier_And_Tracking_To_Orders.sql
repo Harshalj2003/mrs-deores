@@ -1,2 +1,0 @@
-ALTER TABLE orders ADD COLUMN tracking_number VARCHAR(255);
-ALTER TABLE orders ADD COLUMN carrier VARCHAR(255);

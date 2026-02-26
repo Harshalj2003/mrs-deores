@@ -1,2 +1,0 @@
-ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(255);
-ALTER TABLE orders ADD COLUMN discount_amount NUMERIC(19, 2) DEFAULT 0.00;
