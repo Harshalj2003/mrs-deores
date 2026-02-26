@@ -118,8 +118,8 @@ public class WebSecurityConfig {
         configuration.setAllowedOriginPatterns(allowedOrigins);
         // Allow all methods
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        // Allow specific headers
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "x-auth-token", "x-master-key"));
+        // Allow all headers to prevent preflight blocks
+        configuration.setAllowedHeaders(List.of("*"));
         // Expost headers if needed
         configuration.setExposedHeaders(List.of("x-auth-token"));
         // Allow credentials
