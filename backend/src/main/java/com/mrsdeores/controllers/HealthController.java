@@ -8,7 +8,7 @@ public class HealthController {
 
     @GetMapping("/")
     public String home() {
-        return "Mrs Deore Backend is running 🚀";
+        return "Mrs Deore's Backend is running 🚀";
     }
 
     @GetMapping("/health")
