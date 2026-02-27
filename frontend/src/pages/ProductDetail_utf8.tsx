@@ -47,6 +47,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const [isWishlisted, setIsWishlisted] = useState(false);
     const [addingToCart, setAddingToCart] = useState(false);
     const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+    const [shareOpen, setShareOpen] = useState(false);
+    const [linkCopied, setLinkCopied] = useState(false);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -128,6 +130,33 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const bulkDifference = product.bulkMinQuantity ? product.bulkMinQuantity - quantity : 0;
     const showBulkReminder = product.bulkPrice && bulkDifference > 0 && bulkDifference <= 5;
 
+    const productUrl = `${window.location.origin}/products/${product.id}`;
+    const shareText = `Check out ${product.name} — ₹${product.sellingPrice.toLocaleString('en-IN')} at Mrs. Deore's Premix!`;
+
+    const handleShare = async () => {
+        // Use native Web Share API on supported devices (mobile)
+        if (navigator.share) {
+            try {
+                await navigator.share({ title: product.name, text: shareText, url: productUrl });
+                return;
+            } catch { /* user cancelled — fall through */ }
+        }
+        // Fallback: toggle dropdown
+        setShareOpen(prev => !prev);
+    };
+
+    const shareLinks = [
+        { label: 'WhatsApp', icon: '💬', url: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + productUrl)}` },
+        { label: 'Facebook', icon: '📘', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}` },
+        { label: 'Twitter / X', icon: '𝕏', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(productUrl)}` },
+    ];
+
+    const copyLink = () => {
+        navigator.clipboard.writeText(productUrl);
+        setLinkCopied(true);
+        setTimeout(() => { setLinkCopied(false); setShareOpen(false); }, 1500);
+    };
+
     return (
         <div className="bg-neutral-light dark:bg-neutral-900 min-h-screen pt-24 pb-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,9 +231,49 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                     {product.name}
                                 </h1>
                             </div>
-                            <button className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all">
-                                <Share2 className="h-4 w-4" />
-                            </button>
+                            <div className="relative">
+                                <button
+                                    onClick={handleShare}
+                                    className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all"
+                                    aria-label="Share this product"
+                                >
+                                    <Share2 className="h-4 w-4" />
+                                </button>
+
+                                {/* Share Dropdown */}
+                                <AnimatePresence>
+                                    {shareOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                                            transition={{ duration: 0.15 }}
+                                            className="absolute right-0 top-12 z-50 w-52 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl shadow-2xl overflow-hidden"
+                                        >
+                                            {shareLinks.map((s) => (
+                                                <a
+                                                    key={s.label}
+                                                    href={s.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={() => setShareOpen(false)}
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors"
+                                                >
+                                                    <span className="text-base">{s.icon}</span>
+                                                    {s.label}
+                                                </a>
+                                            ))}
+                                            <button
+                                                onClick={copyLink}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors border-t border-gray-100 dark:border-neutral-700"
+                                            >
+                                                <span className="text-base">🔗</span>
+                                                {linkCopied ? '✅ Link Copied!' : 'Copy Link'}
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
 
                         {/* Reviews summary placeholder */}

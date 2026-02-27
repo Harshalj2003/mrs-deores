@@ -1,3 +1,4 @@
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\CloudinaryConfig.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\DataSeeder.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\WebConfiguration.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AddressController.java
@@ -8,6 +9,8 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\CouponController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\CustomOrderController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\FileUploadController.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\HealthController.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\MediaController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\OrderController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ProductController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ReviewController.java
@@ -71,6 +74,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\AdminAuthService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CartService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CategoryService.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CloudinaryService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CouponService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CustomOrderService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\OrderService.java

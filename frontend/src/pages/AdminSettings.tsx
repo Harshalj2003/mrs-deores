@@ -648,8 +648,8 @@ const AdminSettings: React.FC = () => {
                         </div>
                     </SectionCard>
 
-                    {/* Save Button */}
-                    <div className="flex justify-end py-4">
+                    {/* Save Button — Sticky at bottom for visibility */}
+                    <div className="sticky bottom-0 z-30 -mx-6 lg:-mx-10 px-6 lg:px-10 py-4 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-neutral-700 flex justify-end">
                         <button
                             onClick={handleSave}
                             disabled={saving}

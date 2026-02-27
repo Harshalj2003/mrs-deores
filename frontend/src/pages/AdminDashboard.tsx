@@ -503,17 +503,17 @@ const AdminDashboard: React.FC = () => {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                             {[
-                                { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'text-primary dark:text-primary-light', bg: 'bg-primary/10' },
-                                { label: 'Active Users', value: stats?.activeUsers || 0, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-100 dark:bg-green-500/10' },
-                                { label: 'Inactive Users', value: stats?.inactiveUsers || 0, icon: AlertTriangle, color: 'text-gray-500', bg: 'bg-gray-100 dark:bg-neutral-700' },
-                                { label: 'Success Orders', value: stats?.successfulOrders || 0, icon: Package, color: 'text-emerald-600', bg: 'bg-emerald-100 dark:bg-emerald-500/10' },
-                                { label: 'Cancelled Orders', value: stats?.cancelledOrders || 0, icon: Boxes, color: 'text-orange-600', bg: 'bg-orange-100 dark:bg-orange-500/10' },
-                                { label: 'Returned Orders', value: stats?.returnedOrders || 0, icon: ArrowUpRight, color: 'text-red-600', bg: 'bg-red-100 dark:bg-red-500/10' },
+                                { label: 'Total Users', value: stats?.totalUsers || 0, icon: Users, color: 'text-primary dark:text-primary-light', bg: 'bg-gradient-to-br from-primary/15 to-primary/5 dark:from-primary/20 dark:to-primary/5' },
+                                { label: 'Active Users', value: stats?.activeUsers || 0, icon: CheckCircle2, color: 'text-green-600 dark:text-green-400', bg: 'bg-gradient-to-br from-green-500/15 to-green-500/5 dark:from-green-500/20 dark:to-green-500/5' },
+                                { label: 'Inactive Users', value: stats?.inactiveUsers || 0, icon: AlertTriangle, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-gradient-to-br from-yellow-500/15 to-yellow-500/5 dark:from-yellow-500/20 dark:to-yellow-500/5' },
+                                { label: 'Success Orders', value: stats?.successfulOrders || 0, icon: Package, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5' },
+                                { label: 'Cancelled Orders', value: stats?.cancelledOrders || 0, icon: Boxes, color: 'text-orange-600 dark:text-orange-400', bg: 'bg-gradient-to-br from-orange-500/15 to-orange-500/5 dark:from-orange-500/20 dark:to-orange-500/5' },
+                                { label: 'Returned Orders', value: stats?.returnedOrders || 0, icon: ArrowUpRight, color: 'text-red-600 dark:text-red-400', bg: 'bg-gradient-to-br from-red-500/15 to-red-500/5 dark:from-red-500/20 dark:to-red-500/5' },
                             ].map((s, i) => (
-                                <div key={i} className={`p-5 rounded-3xl ${s.bg} border border-white/40 dark:border-white/5`}>
+                                <div key={i} className={`p-5 rounded-3xl ${s.bg} border border-white/40 dark:border-white/5 backdrop-blur-sm`}>
                                     <s.icon className={`h-5 w-5 mb-3 ${s.color}`} />
                                     <p className="text-xl font-black text-gray-900 dark:text-white">{s.value}</p>
-                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">{s.label}</p>
+                                    <p className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mt-1">{s.label}</p>
                                 </div>
                             ))}
                         </div>

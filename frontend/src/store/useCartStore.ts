@@ -85,6 +85,9 @@ const useCartStore = create<CartState>()(
                 const user = AuthService.getCurrentUser();
                 if (!user) return;
 
+                // Admins don't have carts — skip sync to avoid 401 that wipes session
+                if (user.roles?.includes('ROLE_ADMIN')) return;
+
                 try {
                     // First, merge local items if any
                     const { items: localItems } = get();

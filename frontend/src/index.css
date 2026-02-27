@@ -149,18 +149,33 @@
     background-color: #271608 !important;
   }
 
-  /* Input / form fields */
+  /* Input / form fields — INTELLIGENT TEXT CONTRAST */
+  /* Dark mode: always light text on dark backgrounds */
   .dark input,
   .dark textarea,
   .dark select {
     background-color: #1E1208 !important;
     border-color: #4A2D14 !important;
     color: #F0DEC8 !important;
+    caret-color: #F0DEC8 !important;
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
     color: #7D5F45 !important;
+  }
+
+  /* Light mode: always dark text on light backgrounds */
+  input,
+  textarea,
+  select {
+    color: #1F2937;
+    caret-color: #1F2937;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #9CA3AF;
   }
 
   /* Admin sidebar */

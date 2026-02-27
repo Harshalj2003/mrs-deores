@@ -1,7 +1,9 @@
 package com.mrsdeores.controllers;
 
+import com.mrsdeores.models.AdminInvitation;
 import com.mrsdeores.models.Order;
 import com.mrsdeores.models.Product;
+import com.mrsdeores.repository.AdminInvitationRepository;
 import com.mrsdeores.repository.CategoryRepository;
 import com.mrsdeores.repository.CustomOrderRepository;
 import com.mrsdeores.repository.OrderRepository;
@@ -37,6 +39,9 @@ public class AdminStatsController {
 
         @Autowired
         private CustomOrderRepository customOrderRepository;
+
+        @Autowired
+        private AdminInvitationRepository adminInvitationRepository;
 
         @GetMapping("/stats")
         public ResponseEntity<Map<String, Object>> getStats() {
@@ -87,8 +92,11 @@ public class AdminStatsController {
 
                 // ── Users ────────────────────────────────────────────
                 long totalUsers = userRepository.count();
+                // Active users = users who placed orders in the last 30 days
+                java.time.LocalDate thirtyDaysAgo = java.time.LocalDate.now().minusDays(30);
                 long activeUsers = allOrders.stream()
-                                .filter(o -> o.getUser() != null)
+                                .filter(o -> o.getUser() != null && o.getCreatedAt() != null
+                                                && o.getCreatedAt().toLocalDate().isAfter(thirtyDaysAgo))
                                 .map(o -> o.getUser().getId())
                                 .distinct()
                                 .count();
@@ -165,5 +173,32 @@ public class AdminStatsController {
                 stats.put("couponMetrics", couponMetrics);
 
                 return ResponseEntity.ok(stats);
+        }
+
+        /**
+         * List all admin invitations — for the Invite Team history panel.
+         * Returns: email, phone, token (masked), enrollment status, created date.
+         */
+        @GetMapping("/invitations")
+        public ResponseEntity<List<Map<String, Object>>> listInvitations() {
+                List<AdminInvitation> invitations = adminInvitationRepository.findAllByOrderByCreatedAtDesc();
+                List<Map<String, Object>> result = invitations.stream().map(inv -> {
+                        Map<String, Object> dto = new HashMap<>();
+                        dto.put("id", inv.getId());
+                        dto.put("email", inv.getEmail());
+                        dto.put("phone", inv.getPhone());
+                        // Mask token: show first 8 chars + "..."
+                        String token = inv.getInviteToken();
+                        dto.put("tokenPreview", token != null && token.length() > 8
+                                        ? token.substring(0, 8) + "..."
+                                        : token);
+                        dto.put("isFullyEnrolled", inv.getIsFullyEnrolled());
+                        dto.put("used", inv.getUsed());
+                        dto.put("username", inv.getUsername());
+                        dto.put("createdAt", inv.getCreatedAt() != null ? inv.getCreatedAt().toString() : null);
+                        dto.put("expiresAt", inv.getExpiresAt() != null ? inv.getExpiresAt().toString() : null);
+                        return dto;
+                }).collect(Collectors.toList());
+                return ResponseEntity.ok(result);
         }
 }

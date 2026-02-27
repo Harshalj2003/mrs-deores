@@ -1,6 +1,19 @@
-import React, { useState } from 'react';
-import { UserPlus, Mail, Phone, Copy, Check, ShieldCheck, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Mail, Phone, Copy, Check, ShieldCheck, ArrowRight, Clock, CheckCircle2, XCircle, Users } from 'lucide-react';
 import api from '../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface Invitation {
+    id: number;
+    email: string;
+    phone: string;
+    tokenPreview: string;
+    isFullyEnrolled: boolean;
+    used: boolean;
+    username: string | null;
+    createdAt: string | null;
+    expiresAt: string | null;
+}
 
 const AdminTeam: React.FC = () => {
     const [email, setEmail] = useState('');
@@ -9,6 +22,25 @@ const AdminTeam: React.FC = () => {
     const [error, setError] = useState('');
     const [invitationResult, setInvitationResult] = useState<{ email: string; token: string } | null>(null);
     const [copied, setCopied] = useState(false);
+
+    // Invitation History
+    const [invitations, setInvitations] = useState<Invitation[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(true);
+
+    const fetchInvitations = async () => {
+        try {
+            const res = await api.get('/admin/invitations');
+            setInvitations(res.data || []);
+        } catch (err) {
+            console.error('Failed to fetch invitations', err);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchInvitations();
+    }, []);
 
     const handleInvite = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,6 +56,8 @@ const AdminTeam: React.FC = () => {
             });
             setEmail('');
             setPhone('');
+            // Refresh invitation history
+            fetchInvitations();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to create invitation. Please try again.');
         } finally {
@@ -39,8 +73,15 @@ const AdminTeam: React.FC = () => {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const formatDate = (dateStr: string | null) => {
+        if (!dateStr) return '—';
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) +
+            ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    };
+
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="max-w-6xl mx-auto space-y-10 p-6 lg:p-10">
             <div className="flex flex-col gap-1">
                 <h1 className="text-2xl font-black text-gray-900 dark:text-white font-serif italic lowercase tracking-tight">
                     Invite Team Member
@@ -65,7 +106,7 @@ const AdminTeam: React.FC = () => {
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                             placeholder="staff@mrsdeore.com"
-                                            className="block w-full rounded-2xl border-none bg-neutral-light dark:bg-neutral-900 py-4 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
+                                            className="block w-full rounded-2xl border-none bg-neutral-light dark:bg-neutral-900 py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
                                             required
                                         />
                                     </div>
@@ -80,7 +121,7 @@ const AdminTeam: React.FC = () => {
                                             value={phone}
                                             onChange={(e) => setPhone(e.target.value)}
                                             placeholder="70380XXXXX"
-                                            className="block w-full rounded-2xl border-none bg-neutral-light dark:bg-neutral-900 py-4 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary outline-none transition-all"
+                                            className="block w-full rounded-2xl border-none bg-neutral-light dark:bg-neutral-900 py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary outline-none transition-all"
                                             required
                                         />
                                     </div>
@@ -128,7 +169,7 @@ const AdminTeam: React.FC = () => {
 
                                 <div className="w-full space-y-2 mt-4">
                                     <p className="text-[10px] uppercase font-black tracking-widest text-green-800/60 dark:text-green-500/60">Invite token</p>
-                                    <code className="block w-full p-3 rounded-xl bg-white dark:bg-neutral-900 text-[10px] font-mono border border-green-100 dark:border-green-500/20 break-all">
+                                    <code className="block w-full p-3 rounded-xl bg-white dark:bg-neutral-900 text-[10px] font-mono border border-green-100 dark:border-green-500/20 break-all text-gray-900 dark:text-green-300">
                                         {invitationResult.token}
                                     </code>
                                 </div>
@@ -169,6 +210,100 @@ const AdminTeam: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* ── Invitation History ────────────────────────────── */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white dark:bg-neutral-800 rounded-3xl border border-gray-100 dark:border-neutral-700 shadow-sm overflow-hidden"
+            >
+                <div className="px-8 py-6 border-b border-gray-100 dark:border-neutral-700 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black text-gray-900 dark:text-white font-serif">Invitation History</h2>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                                {invitations.length} invitation{invitations.length !== 1 ? 's' : ''} total
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {historyLoading ? (
+                    <div className="p-12 text-center">
+                        <div className="h-8 w-8 mx-auto rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                        <p className="text-sm text-gray-400 mt-3">Loading history...</p>
+                    </div>
+                ) : invitations.length === 0 ? (
+                    <div className="p-12 text-center">
+                        <Users className="h-8 w-8 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                        <p className="text-sm text-gray-400 italic">No invitations created yet.</p>
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="border-b border-gray-100 dark:border-neutral-700">
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Email</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Phone</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Token</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <AnimatePresence>
+                                    {invitations.map((inv) => (
+                                        <motion.tr
+                                            key={inv.id}
+                                            initial={{ opacity: 0, y: 5 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="border-b border-gray-50 dark:border-neutral-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors"
+                                        >
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Mail className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                                                    <span className="font-medium text-gray-900 dark:text-white text-xs">{inv.email}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-xs text-gray-600 dark:text-gray-400">{inv.phone}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <code className="text-[10px] font-mono bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded-lg text-gray-600 dark:text-gray-400">
+                                                    {inv.tokenPreview}
+                                                </code>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                {inv.isFullyEnrolled ? (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold">
+                                                        <CheckCircle2 className="h-3 w-3" /> Enrolled
+                                                        {inv.username && <span className="opacity-60">({inv.username})</span>}
+                                                    </span>
+                                                ) : inv.used ? (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-100 dark:bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 text-[10px] font-bold">
+                                                        <Clock className="h-3 w-3" /> Token Used
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-600 dark:text-gray-400 text-[10px] font-bold">
+                                                        <XCircle className="h-3 w-3" /> Pending
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-[11px] text-gray-500 dark:text-gray-400">{formatDate(inv.createdAt)}</span>
+                                            </td>
+                                        </motion.tr>
+                                    ))}
+                                </AnimatePresence>
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </motion.div>
         </div>
     );
 };

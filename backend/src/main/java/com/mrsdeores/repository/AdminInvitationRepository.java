@@ -4,6 +4,7 @@ import com.mrsdeores.models.AdminInvitation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,4 +18,6 @@ public interface AdminInvitationRepository extends JpaRepository<AdminInvitation
     Optional<AdminInvitation> findByUsernameOrEmail(String username, String email);
 
     Optional<AdminInvitation> findByUsernameOrEmailOrPhone(String username, String email, String phone);
+
+    List<AdminInvitation> findAllByOrderByCreatedAtDesc();
 }
