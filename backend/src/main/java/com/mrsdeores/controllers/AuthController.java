@@ -106,6 +106,15 @@ public class AuthController {
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
 
+            // Update lastLoginAt for regular users (not admins — they're staff, not
+            // customers)
+            if (!loginRequest.isAdmin()) {
+                userRepository.findById(userDetails.getId()).ifPresent(user -> {
+                    user.setLastLoginAt(java.time.LocalDateTime.now());
+                    userRepository.save(user);
+                });
+            }
+
             return ResponseEntity.ok(new JwtResponse(jwt,
                     userDetails.getId(),
                     userDetails.getUsername(),

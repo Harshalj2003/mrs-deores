@@ -1,6 +1,7 @@
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\CloudinaryConfig.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\DataSeeder.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\WebConfiguration.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ActivityController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AddressController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AdminStatsController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AuthController.java
@@ -70,6 +71,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\security\services\UserDetailsImpl.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\security\services\UserDetailsServiceImpl.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\security\WebSecurityConfig.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\ActiveSessionService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\AddressService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\AdminAuthService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CartService.java

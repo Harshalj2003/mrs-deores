@@ -36,10 +36,14 @@ import ResetPassword from "./pages/ResetPassword";
 import ProfilePage from "./pages/ProfilePage";
 import Policies from "./pages/Policies";
 import AdminTeam from "./pages/AdminTeam";
+import useHeartbeat from "./hooks/useHeartbeat";
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
   const location = useLocation();
+
+  // Send heartbeat for real-time active user tracking (skips admins automatically)
+  useHeartbeat();
 
   useEffect(() => {
     const user = AuthService.getCurrentUser();

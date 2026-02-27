@@ -9,6 +9,7 @@ import com.mrsdeores.repository.CustomOrderRepository;
 import com.mrsdeores.repository.OrderRepository;
 import com.mrsdeores.repository.ProductRepository;
 import com.mrsdeores.repository.UserRepository;
+import com.mrsdeores.services.ActiveSessionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -42,6 +43,9 @@ public class AdminStatsController {
 
         @Autowired
         private AdminInvitationRepository adminInvitationRepository;
+
+        @Autowired
+        private ActiveSessionService activeSessionService;
 
         @GetMapping("/stats")
         public ResponseEntity<Map<String, Object>> getStats() {
@@ -92,14 +96,8 @@ public class AdminStatsController {
 
                 // ── Users ────────────────────────────────────────────
                 long totalUsers = userRepository.count();
-                // Active users = users who placed orders in the last 30 days
-                java.time.LocalDate thirtyDaysAgo = java.time.LocalDate.now().minusDays(30);
-                long activeUsers = allOrders.stream()
-                                .filter(o -> o.getUser() != null && o.getCreatedAt() != null
-                                                && o.getCreatedAt().toLocalDate().isAfter(thirtyDaysAgo))
-                                .map(o -> o.getUser().getId())
-                                .distinct()
-                                .count();
+                // Active users = real-time live sessions (heartbeat-based)
+                long activeUsers = activeSessionService.getLiveCount();
                 long inactiveUsers = totalUsers - activeUsers;
 
                 // ── Custom Orders ────────────────────────────────────
@@ -200,5 +198,88 @@ public class AdminStatsController {
                         return dto;
                 }).collect(Collectors.toList());
                 return ResponseEntity.ok(result);
+        }
+
+        /**
+         * Real-time active sessions with time-window filtering.
+         * Short windows (≤7h): in-memory heartbeat sessions.
+         * Long windows (1d–3m): DB query on users.last_login_at.
+         */
+        @GetMapping("/active-sessions")
+        public ResponseEntity<?> getActiveSessions(@RequestParam(defaultValue = "10m") String window) {
+                java.time.Duration duration = parseWindow(window);
+
+                if (duration.toHours() <= 7) {
+                        // In-memory live sessions
+                        List<ActiveSessionService.SessionInfo> sessions = activeSessionService
+                                        .getActiveSessions(duration);
+                        List<Map<String, Object>> result = sessions.stream().map(s -> {
+                                Map<String, Object> dto = new HashMap<>();
+                                dto.put("userId", s.getUserId());
+                                dto.put("sessionStart", s.getSessionStart().toString());
+                                dto.put("lastSeen", s.getLastSeen().toString());
+                                dto.put("durationSeconds", s.getDurationSeconds());
+                                dto.put("isLive", java.time.Duration.between(s.getLastSeen(), java.time.Instant.now())
+                                                .toMinutes() < 2);
+                                return dto;
+                        }).collect(Collectors.toList());
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("sessions", result);
+                        response.put("count", result.size());
+                        response.put("window", window);
+                        response.put("source", "live");
+                        return ResponseEntity.ok(response);
+                } else {
+                        // DB-based: users who logged in within the time window
+                        java.time.LocalDateTime since = java.time.LocalDateTime.now().minus(duration);
+                        long count = userRepository.countByLastLoginAtAfter(since);
+                        Map<String, Object> response = new HashMap<>();
+                        response.put("count", count);
+                        response.put("window", window);
+                        response.put("source", "database");
+                        response.put("sessions", List.of()); // No individual sessions for DB queries
+                        return ResponseEntity.ok(response);
+                }
+        }
+
+        /**
+         * Fetch brief user info by ID — on-demand, for drill-down in the sessions
+         * table.
+         * Returns only username + email (not full user object).
+         */
+        @GetMapping("/users/{id}/brief")
+        public ResponseEntity<?> getUserBrief(@PathVariable Long id) {
+                return userRepository.findById(id)
+                                .map(user -> {
+                                        Map<String, Object> brief = new HashMap<>();
+                                        brief.put("id", user.getId());
+                                        brief.put("username", user.getUsername());
+                                        brief.put("email", user.getEmail());
+                                        brief.put("lastLoginAt",
+                                                        user.getLastLoginAt() != null ? user.getLastLoginAt().toString()
+                                                                        : null);
+                                        brief.put("createdAt",
+                                                        user.getCreatedAt() != null ? user.getCreatedAt().toString()
+                                                                        : null);
+                                        return ResponseEntity.ok(brief);
+                                })
+                                .orElse(ResponseEntity.notFound().build());
+        }
+
+        /**
+         * Parse window string like "10m", "1h", "7h", "1d", "1w", "1m", "3m" to
+         * Duration.
+         */
+        private java.time.Duration parseWindow(String window) {
+                return switch (window.toLowerCase()) {
+                        case "10m" -> java.time.Duration.ofMinutes(10);
+                        case "1h" -> java.time.Duration.ofHours(1);
+                        case "7h" -> java.time.Duration.ofHours(7);
+                        case "1d" -> java.time.Duration.ofDays(1);
+                        case "1w" -> java.time.Duration.ofDays(7);
+                        case "1m" -> java.time.Duration.ofDays(30);
+                        case "3m" -> java.time.Duration.ofDays(90);
+                        default -> java.time.Duration.ofMinutes(10);
+                };
         }
 }

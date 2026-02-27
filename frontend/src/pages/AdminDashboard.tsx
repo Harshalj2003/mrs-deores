@@ -50,6 +50,257 @@ const statusColors: Record<string, string> = {
     CANCELLED: 'bg-red-100 text-red-700',
 };
 
+// ────────────────────────────────────────────────────────────────────
+// Live Sessions Panel — real-time active users with time filters
+// ────────────────────────────────────────────────────────────────────
+interface ActiveSession {
+    userId: number;
+    sessionStart: string;
+    lastSeen: string;
+    durationSeconds: number;
+    isLive: boolean;
+}
+interface SessionsResponse {
+    sessions: ActiveSession[];
+    count: number;
+    window: string;
+    source: 'live' | 'database';
+}
+interface UserBrief {
+    id: number;
+    username: string;
+    email: string;
+    lastLoginAt: string | null;
+    createdAt: string | null;
+}
+
+const TIME_WINDOWS = [
+    { key: '10m', label: '10 min' },
+    { key: '1h', label: '1 hour' },
+    { key: '7h', label: '7 hours' },
+    { key: '1d', label: '1 day' },
+    { key: '1w', label: '1 week' },
+    { key: '1m', label: '1 month' },
+    { key: '3m', label: '3 months' },
+];
+
+const formatDuration = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${h}h ${m}m`;
+};
+
+const formatTime = (iso: string): string => {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+};
+
+const LiveSessionsPanel: React.FC = () => {
+    const [window, setWindow] = useState('10m');
+    const [data, setData] = useState<SessionsResponse | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [expandedUserId, setExpandedUserId] = useState<number | null>(null);
+    const [userBrief, setUserBrief] = useState<UserBrief | null>(null);
+    const [briefLoading, setBriefLoading] = useState(false);
+
+    const fetchSessions = async () => {
+        try {
+            setLoading(true);
+            const res = await api.get(`/admin/active-sessions?window=${window}`);
+            setData(res.data);
+        } catch (err) {
+            console.error('Failed to fetch active sessions', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Fetch on mount + on window change + auto-refresh every 15s
+    useEffect(() => {
+        fetchSessions();
+        const interval = setInterval(fetchSessions, 15000);
+        return () => clearInterval(interval);
+    }, [window]);
+
+    const handleExpand = async (userId: number) => {
+        if (expandedUserId === userId) {
+            setExpandedUserId(null);
+            setUserBrief(null);
+            return;
+        }
+        setExpandedUserId(userId);
+        setUserBrief(null);
+        setBriefLoading(true);
+        try {
+            const res = await api.get(`/admin/users/${userId}/brief`);
+            setUserBrief(res.data);
+        } catch {
+            setUserBrief(null);
+        } finally {
+            setBriefLoading(false);
+        }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55 }}
+            className="bg-white dark:bg-neutral-800 rounded-[2.5rem] border border-gray-100 dark:border-neutral-700 shadow-sm mb-10 overflow-hidden"
+        >
+            {/* Header */}
+            <div className="px-8 py-6 border-b border-gray-100 dark:border-neutral-700 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center">
+                            <Users className="h-5 w-5 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-500 border-2 border-white dark:border-neutral-800 animate-pulse" />
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-black text-gray-900 dark:text-white font-serif">Live Active Users</h2>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                            {data ? `${data.count} user${data.count !== 1 ? 's' : ''} • ${data.source === 'live' ? 'Real-time' : 'Historical'}` : 'Loading...'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Time Filter Buttons */}
+                <div className="flex gap-1.5 flex-wrap">
+                    {TIME_WINDOWS.map(tw => (
+                        <button
+                            key={tw.key}
+                            onClick={() => setWindow(tw.key)}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${window === tw.key
+                                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
+                                    : 'bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-600'
+                                }`}
+                        >
+                            {tw.label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Sessions Table */}
+            {loading && !data ? (
+                <div className="p-12 text-center">
+                    <div className="h-8 w-8 mx-auto rounded-full border-2 border-green-500 border-t-transparent animate-spin" />
+                    <p className="text-sm text-gray-400 mt-3">Fetching live sessions...</p>
+                </div>
+            ) : data?.sessions && data.sessions.length > 0 ? (
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                        <thead>
+                            <tr className="border-b border-gray-100 dark:border-neutral-700">
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest w-8">#</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">User ID</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Session Duration</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Last Seen</th>
+                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.sessions.map((session, idx) => (
+                                <React.Fragment key={session.userId}>
+                                    <tr
+                                        onClick={() => handleExpand(session.userId)}
+                                        className="border-b border-gray-50 dark:border-neutral-700/50 last:border-0 hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
+                                    >
+                                        <td className="px-6 py-4 text-xs text-gray-400">{idx + 1}</td>
+                                        <td className="px-6 py-4">
+                                            <span className="font-mono text-xs font-bold text-gray-900 dark:text-white bg-gray-100 dark:bg-neutral-900 px-2 py-1 rounded-lg">
+                                                #{session.userId}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                                {formatDuration(session.durationSeconds)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                {formatTime(session.lastSeen)}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {session.isLive ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-500/10 text-green-700 dark:text-green-400 text-[10px] font-bold">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
+                                                    Live Now
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 text-[10px] font-bold">
+                                                    <Clock className="h-3 w-3" />
+                                                    Away
+                                                </span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                    {/* Expanded user details row */}
+                                    {expandedUserId === session.userId && (
+                                        <tr className="bg-green-50/50 dark:bg-green-500/[0.03]">
+                                            <td colSpan={5} className="px-6 py-4">
+                                                {briefLoading ? (
+                                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                        <div className="h-4 w-4 rounded-full border-2 border-green-500 border-t-transparent animate-spin" />
+                                                        Fetching user details...
+                                                    </div>
+                                                ) : userBrief ? (
+                                                    <div className="flex flex-wrap gap-6 text-xs">
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Username</span>
+                                                            <span className="font-bold text-gray-900 dark:text-white">{userBrief.username}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Email</span>
+                                                            <span className="font-bold text-gray-900 dark:text-white">{userBrief.email}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Last Login</span>
+                                                            <span className="text-gray-600 dark:text-gray-400">
+                                                                {userBrief.lastLoginAt ? new Date(userBrief.lastLoginAt).toLocaleString('en-IN') : 'Never'}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Joined</span>
+                                                            <span className="text-gray-600 dark:text-gray-400">
+                                                                {userBrief.createdAt ? new Date(userBrief.createdAt).toLocaleDateString('en-IN') : '—'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-xs text-red-400">Failed to load user details</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div className="p-12 text-center">
+                    <Users className="h-8 w-8 mx-auto text-gray-300 dark:text-gray-600 mb-3" />
+                    <p className="text-sm text-gray-400 italic">
+                        {data?.source === 'database'
+                            ? `${data.count} user${data.count !== 1 ? 's' : ''} logged in during this period`
+                            : 'No active sessions right now'}
+                    </p>
+                    {data?.source === 'database' && data.count > 0 && (
+                        <p className="text-[10px] text-gray-400 mt-2">
+                            Historical data — individual sessions not available for this time range
+                        </p>
+                    )}
+                </div>
+            )}
+        </motion.div>
+    );
+};
+
 const AdminDashboard: React.FC = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [loading, setLoading] = useState(false);
@@ -518,6 +769,9 @@ const AdminDashboard: React.FC = () => {
                             ))}
                         </div>
                     </motion.div>
+
+                    {/* ── Live Active Sessions Panel ── */}
+                    <LiveSessionsPanel />
 
                     {/* ── Bottom Catalog Row ── */}
                     <motion.div
