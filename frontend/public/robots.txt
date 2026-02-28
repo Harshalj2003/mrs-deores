@@ -10,4 +10,4 @@ Disallow: /orders
 Disallow: /profile
 Disallow: /wishlist
 
-Sitemap: https://mrsdeore-premix.onrender.com/sitemap.xml
+Sitemap: https://mrs-deores.onrender.com/sitemap.xml
