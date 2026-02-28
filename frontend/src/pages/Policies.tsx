@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Shield, FileText, Truck, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useLocation } from 'react-router-dom';
@@ -114,8 +115,25 @@ const Policies: React.FC = () => {
         }
     };
 
+    const policyTitles = {
+        privacy: 'Privacy Policy',
+        terms: 'Terms of Service',
+        shipping: 'Shipping & Returns',
+    };
+
+    const policyDescriptions = {
+        privacy: 'Read our privacy policy. We are committed to safeguarding your personal information at Mrs. Deore Premix.',
+        terms: 'Terms of service for using the Mrs. Deore Premix platform. Product representation, usage restrictions, and wholesale tiers.',
+        shipping: 'Shipping timelines, delivery information, and return policy for Mrs. Deore Premix orders.',
+    };
+
     return (
         <div className="min-h-screen bg-neutral-light dark:bg-neutral-950 pt-32 pb-20">
+            <Helmet>
+                <title>{policyTitles[activeTab]} – Mrs. Deore Premix</title>
+                <meta name="description" content={policyDescriptions[activeTab]} />
+                <link rel="canonical" href={`https://mrsdeore-premix.onrender.com/${activeTab}`} />
+            </Helmet>
             <div className="container mx-auto px-4 max-w-6xl">
                 <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-accent transition-all mb-8 group">
                     <div className="p-2 bg-white dark:bg-neutral-900 rounded-full shadow-sm group-hover:-translate-x-1 transition-transform">
@@ -134,8 +152,8 @@ const Policies: React.FC = () => {
                                     key={tab.id}
                                     to={tab.path}
                                     className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-500 font-bold text-sm group ${activeTab === tab.id
-                                            ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 z-10'
-                                            : 'text-gray-500 dark:text-neutral-500 hover:bg-white dark:hover:bg-neutral-900'
+                                        ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105 z-10'
+                                        : 'text-gray-500 dark:text-neutral-500 hover:bg-white dark:hover:bg-neutral-900'
                                         }`}
                                 >
                                     <div className={`p-2 rounded-xl transition-colors ${activeTab === tab.id ? 'bg-white/20' : 'bg-gray-100 dark:bg-neutral-800'}`}>

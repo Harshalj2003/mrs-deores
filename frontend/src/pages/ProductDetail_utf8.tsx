@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -159,6 +160,14 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
 
     return (
         <div className="bg-neutral-light dark:bg-neutral-900 min-h-screen pt-24 pb-20">
+            <Helmet>
+                <title>{product.name} – Mrs. Deore Premix</title>
+                <meta name="description" content={product.description ? product.description.slice(0, 160) : `Buy ${product.name} from Mrs. Deore Premix. Authentic homemade traditional products.`} />
+                <meta property="og:title" content={`${product.name} – Mrs. Deore Premix`} />
+                <meta property="og:description" content={product.description ? product.description.slice(0, 160) : `Buy ${product.name} from Mrs. Deore Premix.`} />
+                <meta property="og:url" content={`https://mrsdeore-premix.onrender.com/product/${product.id}`} />
+                <link rel="canonical" href={`https://mrsdeore-premix.onrender.com/product/${product.id}`} />
+            </Helmet>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Breadcrumbs */}
                 <nav className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-8">

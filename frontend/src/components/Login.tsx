@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { Helmet } from 'react-helmet-async';
 import AuthService from "../services/auth.service";
 import AuthTabs from "./AuthTabs";
 import { motion, AnimatePresence } from "framer-motion";
@@ -107,6 +108,11 @@ const Login: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Sign In – Mrs. Deore Premix</title>
+                <meta name="description" content="Sign in to your Mrs. Deore Premix account. Access your orders, wishlist, and personalized shopping experience." />
+                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/login" />
+            </Helmet>
             <AuthTabs activeTab={activeTab} setActiveTab={(tab) => {
                 setActiveTab(tab);
                 setMessage("");

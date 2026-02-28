@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { Helmet } from 'react-helmet-async';
 import AuthService from "../services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Lock, Phone, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
@@ -96,6 +97,11 @@ const Register: React.FC = () => {
 
     return (
         <div className="space-y-6">
+            <Helmet>
+                <title>Create Account – Mrs. Deore Premix</title>
+                <meta name="description" content="Join Mrs. Deore Premix and start your journey into authentic homemade traditions. Create your account today." />
+                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/register" />
+            </Helmet>
             <div className="text-center">
                 <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic">Join Our Tradition</h2>
                 <p className="text-sm text-gray-500 mt-1">Create an account to start your journey</p>

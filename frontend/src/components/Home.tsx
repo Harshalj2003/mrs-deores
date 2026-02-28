@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from 'react-helmet-async';
 import api from "../services/api";
 import type { Category } from "../types/catalog.types";
 import CategoryGrid from "./CategoryGrid";
@@ -119,6 +120,11 @@ const Home: React.FC = () => {
 
     return (
         <div className="bg-background min-h-screen">
+            <Helmet>
+                <title>Mrs. Deore Premix – Authentic Homemade Traditions</title>
+                <meta name="description" content="Explore authentic homemade premix products by Mrs. Deore. Handcrafted masalas, snacks, and traditional recipes made with love and natural ingredients." />
+                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/" />
+            </Helmet>
             {/* Hero Section — conditionally shown based on brand_hero_enabled */}
             {heroEnabled && (
                 <div className="relative bg-[#FFF8E7] overflow-hidden">

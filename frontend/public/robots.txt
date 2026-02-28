@@ -1,0 +1,13 @@
+# Mrs. Deore Premix - Robots.txt
+# Allow all search engine crawlers to index public pages
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /checkout
+Disallow: /orders
+Disallow: /profile
+Disallow: /wishlist
+
+Sitemap: https://mrsdeore-premix.onrender.com/sitemap.xml

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Helmet } from 'react-helmet-async';
 import { useParams } from "react-router-dom";
 import { getProducts, getCategories } from "../services/ProductService";
 import type { Product, Category } from "../types/catalog.types";
@@ -91,6 +92,10 @@ const ProductList: React.FC = () => {
 
     return (
         <div className="bg-white min-h-screen py-12">
+            <Helmet>
+                <title>{category ? `${category.name} – Mrs. Deore Premix` : 'All Products – Mrs. Deore Premix'}</title>
+                <meta name="description" content={category?.description || 'Browse authentic homemade premix products from Mrs. Deore. Traditional masalas, snacks, and more.'} />
+            </Helmet>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {category && (
                     <div className="mb-8 text-center">
