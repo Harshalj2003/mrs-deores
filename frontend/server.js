@@ -23,7 +23,7 @@ const axiosInstance = axios.create({
 });
 
 // The backend API URL (fallback to localhost for dev, but use Render URL in prod)
-const API_BASE_URL = process.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = (process.env.VITE_API_BASE_URL || 'http://localhost:8080') + '/api';
 // The frontend URL (for og:url)
 const FRONTEND_URL = process.env.VITE_FRONTEND_URL || 'https://mrs-deores.onrender.com';
 
