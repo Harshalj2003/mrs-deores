@@ -50,6 +50,6 @@ public class AdminInvitation {
     }
 
     public boolean isSessionExpired() {
-        return sessionExpiresAt == null || LocalDateTime.now().isAfter(sessionExpiresAt);
+        return sessionExpiresAt != null && LocalDateTime.now().isAfter(sessionExpiresAt);
     }
 }
