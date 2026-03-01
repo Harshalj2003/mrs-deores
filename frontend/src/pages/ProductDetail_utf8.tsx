@@ -176,7 +176,20 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                     {product.name}
                                 </h1>
                             </div>
-                            <button className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all">
+                            <button
+                                onClick={() => {
+                                    if (navigator.share) {
+                                        navigator.share({
+                                            title: product.name,
+                                            text: 'Check out ' + product.name + ' at Mrs. Deore Premix!',
+                                            url: window.location.href,
+                                        }).catch(console.error);
+                                    } else {
+                                        navigator.clipboard.writeText(window.location.href);
+                                        alert('Link copied to clipboard!');
+                                    }
+                                }}
+                                className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all">
                                 <Share2 className="h-4 w-4" />
                             </button>
                         </div>
