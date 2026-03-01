@@ -36,8 +36,7 @@ app.use(async (req, res, next) => {
     const isBot = isbot(req.get('user-agent'));
 
     if (isBot) {
-        // If it's a bot AND they are visiting a specific product page: /product/123
-        const productMatch = req.url.match(/^\/product\/(\d+)$/);
+        const productMatch = req.url.match(/^\/product\/([a-zA-Z0-9_-]+)/);
 
         if (productMatch) {
             const productId = productMatch[1];
@@ -102,7 +101,7 @@ const distPath = path.join(__dirname, 'dist');
 app.use(express.static(distPath));
 
 // For any other route, send the React index.html (SPA Fallback)
-app.get(/.*/, (req, res) => {
+app.use((req, res) => {
     // If the index.html doesn't exist (e.g. they haven't built the frontend), send a basic error
     const indexPath = path.join(distPath, 'index.html');
     if (fs.existsSync(indexPath)) {
