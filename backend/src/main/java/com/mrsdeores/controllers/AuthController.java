@@ -35,6 +35,7 @@ import com.mrsdeores.payload.response.MessageResponse;
 import com.mrsdeores.repository.PasswordResetTokenRepository;
 import com.mrsdeores.repository.RoleRepository;
 import com.mrsdeores.repository.UserRepository;
+import com.mrsdeores.repository.AdminInvitationRepository;
 import com.mrsdeores.security.jwt.JwtUtils;
 import com.mrsdeores.security.services.UserDetailsImpl;
 import com.mrsdeores.services.AdminAuthService;
@@ -50,6 +51,9 @@ public class AuthController {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    AdminInvitationRepository adminInvitationRepository;
 
     @Autowired
     RoleRepository roleRepository;
@@ -83,6 +87,17 @@ public class AuthController {
         try {
             // Set AuthContext based on the request (isAdmin flag)
             AuthContext.setAdminAttempt(loginRequest.isAdmin());
+
+            // SECURITY FIX: Prevent Admins from logging in via Normal User portal
+            if (!loginRequest.isAdmin()) {
+                boolean isAdminIdentity = adminInvitationRepository
+                        .findByUsernameOrEmail(loginRequest.getUsername(), loginRequest.getUsername())
+                        .isPresent();
+                if (isAdminIdentity) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(new MessageResponse("Administrators must log in through the Admin Portal."));
+                }
+            }
 
             // Proceed with standard authentication
             Authentication authentication = authenticationManager.authenticate(

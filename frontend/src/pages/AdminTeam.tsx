@@ -13,6 +13,7 @@ interface Invitation {
     username: string | null;
     createdAt: string | null;
     expiresAt: string | null;
+    sessionExpiresAt: string | null;
 }
 
 const AdminTeam: React.FC = () => {
@@ -218,8 +219,8 @@ const AdminTeam: React.FC = () => {
                                                                 type="button"
                                                                 onClick={() => setExpiryType(type)}
                                                                 className={`py-2 px-1 text-[10px] font-black uppercase tracking-widest rounded-xl border transition-all ${expiryType === type
-                                                                        ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20 dark:text-primary-light'
-                                                                        : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 text-gray-500 hover:border-gray-300 dark:hover:border-neutral-600'
+                                                                    ? 'bg-primary/10 border-primary text-primary dark:bg-primary/20 dark:text-primary-light'
+                                                                    : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700 text-gray-500 hover:border-gray-300 dark:hover:border-neutral-600'
                                                                     }`}
                                                             >
                                                                 {type === 'days' ? '1 Day' : type === 'weeks' ? '1 Week' : type === 'months' ? '1 Month' : 'Custom'}
@@ -425,10 +426,26 @@ const AdminTeam: React.FC = () => {
                                                 <button
                                                     onClick={() => {
                                                         setEditingSessionId(inv.id);
-                                                        // Reset edit state to defaults or parse from existing if needed
-                                                        setEditEnableSessionExpiry(!!inv.expiresAt || true); // Defaulting to true for edit
-                                                        setEditExpiryType('days');
-                                                        setEditCustomDays(5);
+
+                                                        // Sync UI with actual database state
+                                                        const isExpiryEnabled = inv.sessionExpiresAt !== null && inv.sessionExpiresAt !== undefined;
+                                                        setEditEnableSessionExpiry(isExpiryEnabled);
+
+                                                        if (isExpiryEnabled && inv.sessionExpiresAt) {
+                                                            // Calculate days remaining
+                                                            const diffTime = new Date(inv.sessionExpiresAt).getTime() - new Date().getTime();
+                                                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                                                            const days = diffDays > 0 ? diffDays : 1;
+
+                                                            setEditCustomDays(days);
+                                                            if (days === 1) setEditExpiryType('days');
+                                                            else if (days === 7) setEditExpiryType('weeks');
+                                                            else if (days === 30) setEditExpiryType('months');
+                                                            else setEditExpiryType('custom');
+                                                        } else {
+                                                            setEditExpiryType('days');
+                                                            setEditCustomDays(5);
+                                                        }
                                                     }}
                                                     className="inline-flex items-center justify-center h-8 w-8 rounded-xl bg-gray-100 dark:bg-neutral-800 text-gray-500 hover:text-primary hover:bg-primary/10 transition-colors"
                                                     title="Update Session"
@@ -507,8 +524,8 @@ const AdminTeam: React.FC = () => {
                                                                 type="button"
                                                                 onClick={() => setEditExpiryType(type)}
                                                                 className={`py-2 px-1 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${editExpiryType === type
-                                                                        ? 'bg-primary text-white shadow-md'
-                                                                        : 'bg-white dark:bg-neutral-800 text-gray-500 border border-gray-200 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-700'
+                                                                    ? 'bg-primary text-white shadow-md'
+                                                                    : 'bg-white dark:bg-neutral-800 text-gray-500 border border-gray-200 dark:border-neutral-700 hover:bg-gray-100 dark:hover:bg-neutral-700'
                                                                     }`}
                                                             >
                                                                 {type === 'days' ? '1 Day' : type === 'weeks' ? '1 Week' : type === 'months' ? '1 Month' : 'Custom'}

@@ -11,10 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.mrsdeores.repository.UserRepository;
-import com.mrsdeores.repository.RoleRepository;
-import java.util.HashSet;
-import java.util.Set;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -32,12 +28,6 @@ public class AdminAuthService {
 
     @Autowired
     private AdminAuthAttemptRepository attemptRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -103,24 +93,8 @@ public class AdminAuthService {
         invitation.setPassword(passwordEncoder.encode(request.getPassword()));
         invitation.setIsFullyEnrolled(true);
         invitation.setUsed(true);
-        invitation.setSessionExpiresAt(LocalDateTime.now().plusDays(5)); // Default 5 days session
 
         invitationRepository.save(invitation);
-
-        // 6. Create Parallel User Profile for Storefront Access
-        // Admins need a standard User profile to save addresses, carts, and place
-        // orders.
-        if (!userRepository.existsByUsername(request.getUsername())
-                && !userRepository.existsByEmail(request.getEmail())) {
-            User storefrontUser = new User(request.getUsername(), request.getEmail(), invitation.getPassword());
-            Set<Role> roles = new HashSet<>();
-            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-            storefrontUser.setRoles(roles);
-            userRepository.save(storefrontUser);
-            logger.info("STOREFRONT ACCESS: Created parallel user profile for admin {}", request.getUsername());
-        }
 
         // 7. Log successful attempt
         logAttempt(request.getEmail(), ipAddress, true);

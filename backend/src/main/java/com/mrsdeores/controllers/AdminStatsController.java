@@ -199,6 +199,9 @@ public class AdminStatsController {
                         dto.put("username", inv.getUsername());
                         dto.put("createdAt", inv.getCreatedAt() != null ? inv.getCreatedAt().toString() : null);
                         dto.put("expiresAt", inv.getExpiresAt() != null ? inv.getExpiresAt().toString() : null);
+                        dto.put("sessionExpiresAt",
+                                        inv.getSessionExpiresAt() != null ? inv.getSessionExpiresAt().toString()
+                                                        : null);
                         return dto;
                 }).collect(Collectors.toList());
                 return ResponseEntity.ok(result);
