@@ -1,5 +1,6 @@
 com\mrsdeores\models\Product.class
 com\mrsdeores\security\jwt\JwtUtils.class
+com\mrsdeores\services\CloudinaryService.class
 com\mrsdeores\controllers\CustomOrderController.class
 com\mrsdeores\models\Cart.class
 com\mrsdeores\controllers\WishlistController.class
@@ -32,6 +33,7 @@ com\mrsdeores\services\ReviewService.class
 com\mrsdeores\config\WebConfiguration.class
 com\mrsdeores\services\RazorpayService.class
 com\mrsdeores\repository\UserRepository.class
+com\mrsdeores\services\ActiveSessionService.class
 com\mrsdeores\services\AddressService.class
 com\mrsdeores\controllers\AuthController$1.class
 com\mrsdeores\models\SiteSettings.class
@@ -39,10 +41,13 @@ com\mrsdeores\repository\CartRepository.class
 com\mrsdeores\controllers\FileUploadController.class
 com\mrsdeores\payload\request\LoginRequest.class
 com\mrsdeores\controllers\AuthController$2.class
+com\mrsdeores\controllers\MediaController.class
 com\mrsdeores\models\AdminAuthAttempt.class
+com\mrsdeores\config\CloudinaryConfig.class
 com\mrsdeores\models\AdminInvitation.class
 com\mrsdeores\repository\ProductRepository.class
 com\mrsdeores\repository\WishlistRepository.class
+com\mrsdeores\controllers\HealthController.class
 com\mrsdeores\services\WishlistService.class
 com\mrsdeores\controllers\CouponController.class
 com\mrsdeores\models\Role.class
@@ -51,6 +56,7 @@ com\mrsdeores\services\CustomOrderService.class
 com\mrsdeores\security\AuthContext.class
 com\mrsdeores\payload\request\ReviewRequest.class
 com\mrsdeores\repository\PasswordResetTokenRepository.class
+com\mrsdeores\config\KeepAliveScheduler.class
 com\mrsdeores\controllers\ReviewController.class
 com\mrsdeores\models\Wishlist.class
 com\mrsdeores\repository\AdminAuthAttemptRepository.class
@@ -64,6 +70,7 @@ com\mrsdeores\controllers\CategoryController.class
 com\mrsdeores\models\Category.class
 com\mrsdeores\models\User.class
 com\mrsdeores\repository\CustomOrderRepository.class
+com\mrsdeores\controllers\ActivityController.class
 com\mrsdeores\controllers\SearchController.class
 com\mrsdeores\payload\response\MessageResponse.class
 com\mrsdeores\payload\request\AdminRegisterRequest.class
@@ -73,6 +80,7 @@ com\mrsdeores\payload\request\SignupRequest.class
 com\mrsdeores\payload\response\JwtResponse.class
 com\mrsdeores\repository\SiteSettingsRepository.class
 com\mrsdeores\models\CustomOrder.class
+com\mrsdeores\services\ActiveSessionService$SessionInfo.class
 com\mrsdeores\repository\AddressRepository.class
 com\mrsdeores\services\CouponService.class
 com\mrsdeores\controllers\CartController.class

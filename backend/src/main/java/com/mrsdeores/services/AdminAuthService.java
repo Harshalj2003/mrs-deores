@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.mrsdeores.repository.UserRepository;
+import com.mrsdeores.repository.RoleRepository;
+import java.util.HashSet;
+import java.util.Set;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -28,6 +32,12 @@ public class AdminAuthService {
 
     @Autowired
     private AdminAuthAttemptRepository attemptRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository roleRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -97,17 +107,33 @@ public class AdminAuthService {
 
         invitationRepository.save(invitation);
 
+        // 6. Create Parallel User Profile for Storefront Access
+        // Admins need a standard User profile to save addresses, carts, and place
+        // orders.
+        if (!userRepository.existsByUsername(request.getUsername())
+                && !userRepository.existsByEmail(request.getEmail())) {
+            User storefrontUser = new User(request.getUsername(), request.getEmail(), invitation.getPassword());
+            Set<Role> roles = new HashSet<>();
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+            roles.add(userRole);
+            storefrontUser.setRoles(roles);
+            userRepository.save(storefrontUser);
+            logger.info("STOREFRONT ACCESS: Created parallel user profile for admin {}", request.getUsername());
+        }
+
         // 7. Log successful attempt
         logAttempt(request.getEmail(), ipAddress, true);
         logger.info("ADMIN ENROLLED: {} (email: {}) from IP: {}", request.getUsername(), request.getEmail(), ipAddress);
     }
 
     /**
-     * Creates a bootstrap admin invitation using the master key.
-     * This bypassing the normal flow and is used by the system owner.
+     * Creates a bootstrap admin invitation using the master key or by another
+     * admin.
+     * Optionally configures how long the session will last upon enrollment.
      */
     @Transactional
-    public String createBootstrapInvite(String email, String phone) {
+    public String createBootstrapInvite(String email, String phone, Integer sessionExpiryDays) {
         // Prevent duplicate emails
         if (invitationRepository.findByEmail(email).isPresent()) {
             throw new AdminRegistrationException("An invitation or admin already exists for this email.");
@@ -125,7 +151,13 @@ public class AdminAuthService {
         invitation.setUsed(false);
         invitation.setIsFullyEnrolled(false);
         invitation.setExpiresAt(LocalDateTime.now().plusHours(24)); // Invite valid for 24 hours
-        invitation.setSessionExpiresAt(LocalDateTime.now().plusHours(24));
+
+        // Handle session expiry customization
+        if (sessionExpiryDays != null && sessionExpiryDays > 0) {
+            invitation.setSessionExpiresAt(LocalDateTime.now().plusDays(sessionExpiryDays));
+        } else {
+            invitation.setSessionExpiresAt(null); // Explicitly no expiry (or handled by DB default)
+        }
 
         invitationRepository.save(invitation);
 
@@ -141,6 +173,24 @@ public class AdminAuthService {
         return invitationRepository.findByUsernameOrEmail(identifier, identifier)
                 .map(AdminInvitation::isSessionExpired)
                 .orElse(true);
+    }
+
+    /**
+     * Updates the session expiry for an existing admin invitation.
+     */
+    @Transactional
+    public void updateInvitationSession(Long id, Integer sessionExpiryDays) {
+        AdminInvitation invitation = invitationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Invitation not found."));
+
+        if (sessionExpiryDays != null && sessionExpiryDays > 0) {
+            invitation.setSessionExpiresAt(LocalDateTime.now().plusDays(sessionExpiryDays));
+        } else {
+            invitation.setSessionExpiresAt(null);
+        }
+
+        invitationRepository.save(invitation);
+        logger.info("ADMIN SESSION UPDATED: Invitation ID {} updated by system owner.", id);
     }
 
     private void logAttempt(String email, String ipAddress, boolean success) {

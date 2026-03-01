@@ -204,12 +204,23 @@ public class AuthController {
         String email = body.getOrDefault("email", "").trim();
         String phone = body.getOrDefault("phone", "").trim();
 
+        // Parse session settings
+        boolean enableSessionExpiry = Boolean.parseBoolean(body.getOrDefault("enableSessionExpiry", "true"));
+        Integer sessionExpiryDays = null;
+        if (enableSessionExpiry) {
+            try {
+                sessionExpiryDays = Integer.parseInt(body.getOrDefault("sessionExpiryDays", "5"));
+            } catch (NumberFormatException e) {
+                sessionExpiryDays = 5; // fallback
+            }
+        }
+
         if (email.isEmpty() || phone.isEmpty()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Email and phone are required."));
         }
 
         try {
-            String token = adminAuthService.createBootstrapInvite(email, phone);
+            String token = adminAuthService.createBootstrapInvite(email, phone, sessionExpiryDays);
             return ResponseEntity.ok(new java.util.HashMap<String, String>() {
                 {
                     put("message", "Bootstrap invitation created successfully.");
@@ -231,13 +242,24 @@ public class AuthController {
         String email = body.getOrDefault("email", "").trim();
         String phone = body.getOrDefault("phone", "").trim();
 
+        // Parse session settings
+        boolean enableSessionExpiry = Boolean.parseBoolean(body.getOrDefault("enableSessionExpiry", "true"));
+        Integer sessionExpiryDays = null;
+        if (enableSessionExpiry) {
+            try {
+                sessionExpiryDays = Integer.parseInt(body.getOrDefault("sessionExpiryDays", "5"));
+            } catch (NumberFormatException e) {
+                sessionExpiryDays = 5; // fallback
+            }
+        }
+
         if (email.isEmpty() || phone.isEmpty()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Email and phone are required."));
         }
 
         try {
             // Re-use the bootstrap creation logic but logged as a regular invitation
-            String token = adminAuthService.createBootstrapInvite(email, phone);
+            String token = adminAuthService.createBootstrapInvite(email, phone, sessionExpiryDays);
             return ResponseEntity.ok(new java.util.HashMap<String, String>() {
                 {
                     put("message", "Invitation created successfully.");

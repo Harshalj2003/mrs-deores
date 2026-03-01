@@ -10,6 +10,7 @@ import com.mrsdeores.repository.OrderRepository;
 import com.mrsdeores.repository.ProductRepository;
 import com.mrsdeores.repository.UserRepository;
 import com.mrsdeores.services.ActiveSessionService;
+import com.mrsdeores.services.AdminAuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -46,6 +47,9 @@ public class AdminStatsController {
 
         @Autowired
         private ActiveSessionService activeSessionService;
+
+        @Autowired
+        private AdminAuthService adminAuthService;
 
         @GetMapping("/stats")
         public ResponseEntity<Map<String, Object>> getStats() {
@@ -198,6 +202,36 @@ public class AdminStatsController {
                         return dto;
                 }).collect(Collectors.toList());
                 return ResponseEntity.ok(result);
+        }
+
+        /**
+         * Update session expiry for an existing invitation/admin.
+         */
+        @PutMapping("/invitations/{id}/session")
+        public ResponseEntity<?> updateInvitationSession(
+                        @PathVariable Long id,
+                        @RequestBody Map<String, String> body) {
+                try {
+                        boolean enableSessionExpiry = Boolean
+                                        .parseBoolean(body.getOrDefault("enableSessionExpiry", "true"));
+                        Integer sessionExpiryDays = null;
+                        if (enableSessionExpiry) {
+                                try {
+                                        sessionExpiryDays = Integer
+                                                        .parseInt(body.getOrDefault("sessionExpiryDays", "1"));
+                                } catch (NumberFormatException e) {
+                                        sessionExpiryDays = 1; // fallback
+                                }
+                        }
+
+                        adminAuthService.updateInvitationSession(id, sessionExpiryDays);
+
+                        Map<String, String> response = new HashMap<>();
+                        response.put("message", "Session updated successfully");
+                        return ResponseEntity.ok(response);
+                } catch (Exception e) {
+                        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+                }
         }
 
         /**
