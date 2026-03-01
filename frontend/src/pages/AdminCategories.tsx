@@ -148,76 +148,78 @@ const AdminCategories: React.FC = () => {
                         <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 text-primary animate-spin" /></div>
                     ) : (
                         <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-gray-100 bg-neutral-light/40">
-                                        <th className="text-left px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Category</th>
-                                        <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest hidden md:table-cell">Grid Size</th>
-                                        <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest hidden md:table-cell">View Mode</th>
-                                        <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest hidden sm:table-cell">Order</th>
-                                        <th className="text-right px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {categories.length === 0 ? (
-                                        <tr><td colSpan={5} className="text-center py-16 text-gray-400">No categories found. Click "Add Category" to start.</td></tr>
-                                    ) : categories.map((cat) => (
-                                        <tr key={cat.id} className="hover:bg-neutral-light/30 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="h-10 w-10 rounded-xl bg-neutral-light border border-gray-200 overflow-hidden flex-shrink-0">
-                                                        {cat.imageUrl ? (
-                                                            <img src={cat.imageUrl} alt="" className="h-full w-full object-cover" />
-                                                        ) : (
-                                                            <div className="h-full flex items-center justify-center"><Grid className="h-4 w-4 text-gray-300" /></div>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-gray-900 text-sm">{cat.name}</p>
-                                                        <p className="text-xs text-gray-400 truncate max-w-[180px]">{cat.description || '—'}</p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4 hidden md:table-cell">
-                                                <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-lg">
-                                                    {cat.gridSize || 'MEDIUM'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-4 hidden md:table-cell">
-                                                <span className="text-xs text-gray-500 font-medium">{cat.viewMode || 'AUTO'}</span>
-                                            </td>
-                                            <td className="px-4 py-4 hidden sm:table-cell text-sm text-gray-500">{cat.displayOrder ?? 0}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <motion.button
-                                                        whileHover={{ scale: 1.1 }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        onClick={() => openEdit(cat)}
-                                                        className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
-                                                    >
-                                                        <Edit2 className="h-4 w-4" />
-                                                    </motion.button>
-                                                    {deleteConfirmId === cat.id ? (
-                                                        <div className="flex items-center gap-1">
-                                                            <button onClick={() => handleDelete(cat.id!)} className="text-xs px-2 py-1 bg-red-500 text-white rounded-lg font-bold">Yes, delete</button>
-                                                            <button onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg font-bold">Cancel</button>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-gray-100 bg-neutral-light/40">
+                                            <th className="text-left px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[200px]">Category</th>
+                                            <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[120px]">Grid Size</th>
+                                            <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[120px]">View Mode</th>
+                                            <th className="text-left px-4 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[100px]">Order</th>
+                                            <th className="text-right px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest min-w-[120px]">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {categories.length === 0 ? (
+                                            <tr><td colSpan={5} className="text-center py-16 text-gray-400">No categories found. Click "Add Category" to start.</td></tr>
+                                        ) : categories.map((cat) => (
+                                            <tr key={cat.id} className="hover:bg-neutral-light/30 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-10 w-10 rounded-xl bg-neutral-light border border-gray-200 overflow-hidden flex-shrink-0">
+                                                            {cat.imageUrl ? (
+                                                                <img src={cat.imageUrl} alt="" className="h-full w-full object-cover" />
+                                                            ) : (
+                                                                <div className="h-full flex items-center justify-center"><Grid className="h-4 w-4 text-gray-300" /></div>
+                                                            )}
                                                         </div>
-                                                    ) : (
+                                                        <div>
+                                                            <p className="font-bold text-gray-900 text-sm whitespace-nowrap">{cat.name}</p>
+                                                            <p className="text-xs text-gray-400 truncate max-w-[180px]">{cat.description || '—'}</p>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="text-xs font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-lg whitespace-nowrap">
+                                                        {cat.gridSize || 'MEDIUM'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    <span className="text-xs text-gray-500 font-medium whitespace-nowrap">{cat.viewMode || 'AUTO'}</span>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-gray-500">{cat.displayOrder ?? 0}</td>
+                                                <td className="px-6 py-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
                                                         <motion.button
                                                             whileHover={{ scale: 1.1 }}
                                                             whileTap={{ scale: 0.9 }}
-                                                            onClick={() => setDeleteConfirmId(cat.id!)}
-                                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                            onClick={() => openEdit(cat)}
+                                                            className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                                                         >
-                                                            <Trash2 className="h-4 w-4" />
+                                                            <Edit2 className="h-4 w-4" />
                                                         </motion.button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                        {deleteConfirmId === cat.id ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <button onClick={() => handleDelete(cat.id!)} className="text-xs px-2 py-1 bg-red-500 text-white rounded-lg font-bold whitespace-nowrap">Yes, delete</button>
+                                                                <button onClick={() => setDeleteConfirmId(null)} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg font-bold">Cancel</button>
+                                                            </div>
+                                                        ) : (
+                                                            <motion.button
+                                                                whileHover={{ scale: 1.1 }}
+                                                                whileTap={{ scale: 0.9 }}
+                                                                onClick={() => setDeleteConfirmId(cat.id!)}
+                                                                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </motion.button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     )}
                 </div>
