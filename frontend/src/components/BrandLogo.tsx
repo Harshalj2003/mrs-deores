@@ -18,7 +18,7 @@ const BrandLogo: React.FC<BrandLogoProps> = ({ size = 'md', className }) => {
     return (
         <div className={clsx("flex items-center", className)}>
             <img
-                src="/web_name.svg"
+                src="/web_logo.svg"
                 alt="MRS. DEORE PREMIX"
                 className={clsx(
                     sizeMap[size],
