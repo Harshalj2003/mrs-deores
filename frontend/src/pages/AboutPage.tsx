@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
 import api from '../services/api';
 
@@ -57,11 +57,11 @@ const AboutPage: React.FC = () => {
 
     return (
         <div className="bg-background min-h-screen">
-            <Helmet>
-                <title>About Us – Mrs. Deore Premix | Our Story & Traditions</title>
-                <meta name="description" content="Discover the story behind Mrs. Deore Premix. Made with love, served with tradition — authentic homemade premix products from Maharashtra." />
-                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/about" />
-            </Helmet>
+            <SEO
+                title="About Us – Mrs. Deore Premix | Our Story & Traditions"
+                description="Discover the story behind Mrs. Deore Premix. Made with love, served with tradition — authentic homemade premix products from Maharashtra."
+                url="https://mrsdeore-premix.onrender.com/about"
+            />
             {/* Hero */}
             <div className="relative bg-gradient-to-br from-[#FFF8E7] via-[#FFECD2] to-[#FFF8E7] overflow-hidden">
                 <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(#C2410C 1px, transparent 1px)', backgroundSize: '24px 24px' }} />

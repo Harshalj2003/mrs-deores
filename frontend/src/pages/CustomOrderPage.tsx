@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Utensils, MessageCircle, DollarSign, Upload, Search, CheckCircle, ArrowRight } from 'lucide-react';
 import { getProducts } from '../services/ProductService';
@@ -54,11 +54,11 @@ const CustomOrderPage: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto px-6 py-12">
-            <Helmet>
-                <title>Custom Orders – Mrs. Deore Premix | Personalized Traditional Products</title>
-                <meta name="description" content="Request a custom traditional premix or bulk package tailored to your needs. Custom ingredient ratios, branded packaging, and quality guaranteed." />
-                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/custom-order" />
-            </Helmet>
+            <SEO
+                title="Custom Orders – Mrs. Deore Premix | Personalized Traditional Products"
+                description="Request a custom traditional premix or bulk package tailored to your needs. Custom ingredient ratios, branded packaging, and quality guaranteed."
+                url="https://mrsdeore-premix.onrender.com/custom-order"
+            />
             <div className="text-center mb-12">
                 <motion.span
                     initial={{ opacity: 0, y: 10 }}

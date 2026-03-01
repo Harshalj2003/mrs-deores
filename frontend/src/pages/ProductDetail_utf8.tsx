@@ -1,5 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet-async';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,28 +8,9 @@ import {
 import type { Product } from '../types/catalog.types';
 import api from '../services/api';
 import useCartStore from '../store/useCartStore';
+import useWishlistStore from '../store/useWishlistStore';
 import ReviewSection from '../components/ReviewSection';
-import ProductCard from '../components/ProductCard';
-import FAQSection from '../components/FAQSection';
-
-const pdpFAQs = [
-    {
-        question: "How do I ensure the best taste from this premix?",
-        answer: "Detailed cooking instructions are provided on the packaging. Generally, using fresh ghee and following the water-to-premix ratio accurately ensures the most authentic taste."
-    },
-    {
-        question: "Is this product suitable for children and seniors?",
-        answer: "Yes! Since we use natural ingredients and no chemical additives, our products are safe and healthy for family members of all ages."
-    },
-    {
-        question: "Can I get a discount for buying in bulk?",
-        answer: "Yes, we offer 'Blessing' tiers for bulk purchases. Check the wholesale pricing section above the product description for unit-price breaks."
-    },
-    {
-        question: "What if the seal is broken on delivery?",
-        answer: "Your safety is our priority. If you receive a damaged package or broken seal, reach out to us on WhatsApp within 24 hours with a photo, and we will ship a replacement immediately."
-    }
-];
+import SEO from '../components/SEO';
 
 interface ProductDetailProps {
     currentUser?: any;
@@ -39,17 +19,16 @@ interface ProductDetailProps {
 const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const { id } = useParams<{ id: string }>();
     const addItem = useCartStore(state => state.addItem);
+    const { toggleItem, isInWishlist } = useWishlistStore();
 
     const [product, setProduct] = useState<Product | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
-    const [isWishlisted, setIsWishlisted] = useState(false);
     const [addingToCart, setAddingToCart] = useState(false);
-    const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
-    const [shareOpen, setShareOpen] = useState(false);
-    const [linkCopied, setLinkCopied] = useState(false);
+
+    const isWishlisted = useMemo(() => product ? isInWishlist(product.id) : false, [product, isInWishlist]);
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -65,20 +44,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
             }
         };
 
-        const fetchRelated = async () => {
-            try {
-                const relatedRes = await api.get(`/products/${id}/related`);
-                setRelatedProducts(relatedRes.data);
-            } catch (err) {
-                console.error("Failed to load related products", err);
-                // Do not set global error; just fail silently for related reel
-            }
-        };
-
-        if (id) {
-            fetchProduct();
-            fetchRelated();
-        }
+        if (id) fetchProduct();
     }, [id]);
 
     if (loading) {
@@ -128,46 +94,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
         ? product.bulkPrice
         : product.sellingPrice;
 
-    const bulkDifference = product.bulkMinQuantity ? product.bulkMinQuantity - quantity : 0;
-    const showBulkReminder = product.bulkPrice && bulkDifference > 0 && bulkDifference <= 5;
-
-    const productUrl = `${window.location.origin}/products/${product.id}`;
-    const shareText = `Check out ${product.name} — ₹${product.sellingPrice.toLocaleString('en-IN')} at Mrs. Deore's Premix!`;
-
-    const handleShare = async () => {
-        // Use native Web Share API on supported devices (mobile)
-        if (navigator.share) {
-            try {
-                await navigator.share({ title: product.name, text: shareText, url: productUrl });
-                return;
-            } catch { /* user cancelled — fall through */ }
-        }
-        // Fallback: toggle dropdown
-        setShareOpen(prev => !prev);
-    };
-
-    const shareLinks = [
-        { label: 'WhatsApp', icon: '💬', url: `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + productUrl)}` },
-        { label: 'Facebook', icon: '📘', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}` },
-        { label: 'Twitter / X', icon: '𝕏', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(productUrl)}` },
-    ];
-
-    const copyLink = () => {
-        navigator.clipboard.writeText(productUrl);
-        setLinkCopied(true);
-        setTimeout(() => { setLinkCopied(false); setShareOpen(false); }, 1500);
-    };
-
     return (
         <div className="bg-neutral-light dark:bg-neutral-900 min-h-screen pt-24 pb-20">
-            <Helmet>
-                <title>{product.name} – Mrs. Deore Premix</title>
-                <meta name="description" content={product.description ? product.description.slice(0, 160) : `Buy ${product.name} from Mrs. Deore Premix. Authentic homemade traditional products.`} />
-                <meta property="og:title" content={`${product.name} – Mrs. Deore Premix`} />
-                <meta property="og:description" content={product.description ? product.description.slice(0, 160) : `Buy ${product.name} from Mrs. Deore Premix.`} />
-                <meta property="og:url" content={`https://mrsdeore-premix.onrender.com/product/${product.id}`} />
-                <link rel="canonical" href={`https://mrsdeore-premix.onrender.com/product/${product.id}`} />
-            </Helmet>
+            {product && (
+                <SEO
+                    title={`${product.name} - Mrs. Deore Premix`}
+                    description={product.description.substring(0, 150) + '...'}
+                    image={activeImageUrl}
+                    url={`https://mrs-deores.onrender.com/products/${product.id}`}
+                />
+            )}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Breadcrumbs */}
                 <nav className="flex items-center gap-2 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-8">
@@ -206,8 +142,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                             )}
 
                             <button
-                                onClick={(e) => { e.preventDefault(); setIsWishlisted(!isWishlisted); }}
-                                className="absolute top-4 right-4 h-12 w-12 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center shadow-md text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                                onClick={(e) => { e.preventDefault(); toggleItem(product); }}
+                                className="absolute top-4 right-4 h-12 w-12 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center shadow-md text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors z-10"
                             >
                                 <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-red-500 text-red-500' : ''} transition-colors duration-300`} />
                             </button>
@@ -240,49 +176,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                     {product.name}
                                 </h1>
                             </div>
-                            <div className="relative">
-                                <button
-                                    onClick={handleShare}
-                                    className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all"
-                                    aria-label="Share this product"
-                                >
-                                    <Share2 className="h-4 w-4" />
-                                </button>
-
-                                {/* Share Dropdown */}
-                                <AnimatePresence>
-                                    {shareOpen && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                                            transition={{ duration: 0.15 }}
-                                            className="absolute right-0 top-12 z-50 w-52 bg-white dark:bg-neutral-800 border border-gray-100 dark:border-neutral-700 rounded-2xl shadow-2xl overflow-hidden"
-                                        >
-                                            {shareLinks.map((s) => (
-                                                <a
-                                                    key={s.label}
-                                                    href={s.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={() => setShareOpen(false)}
-                                                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors"
-                                                >
-                                                    <span className="text-base">{s.icon}</span>
-                                                    {s.label}
-                                                </a>
-                                            ))}
-                                            <button
-                                                onClick={copyLink}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-700/50 transition-colors border-t border-gray-100 dark:border-neutral-700"
-                                            >
-                                                <span className="text-base">🔗</span>
-                                                {linkCopied ? '✅ Link Copied!' : 'Copy Link'}
-                                            </button>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                            <button className="h-10 w-10 bg-gray-50 dark:bg-neutral-700/50 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-primary hover:text-white transition-all">
+                                <Share2 className="h-4 w-4" />
+                            </button>
                         </div>
 
                         {/* Reviews summary placeholder */}
@@ -301,7 +197,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                         </div>
 
                         {product.bulkMinQuantity && product.bulkPrice && (
-                            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-2xl p-4 mb-4">
+                            <div className="bg-primary/5 dark:bg-primary/10 border border-primary/10 dark:border-primary/20 rounded-2xl p-4 mb-8">
                                 <div className="flex items-start gap-3">
                                     <div className="mt-0.5 bg-primary/20 p-1.5 rounded-full"><Package className="h-4 w-4 text-primary" /></div>
                                     <div>
@@ -310,27 +206,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                     </div>
                                 </div>
                             </div>
-                        )}
-
-                        {showBulkReminder && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="bg-secondary/5 dark:bg-secondary/10 border border-dashed border-secondary/30 rounded-2xl p-4 mb-8 flex items-center justify-between group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="h-2 w-2 bg-secondary rounded-full animate-pulse" />
-                                    <p className="text-xs font-bold text-secondary">
-                                        Add {bulkDifference} more to unlock wholesale pricing!
-                                    </p>
-                                </div>
-                                <button
-                                    onClick={() => setQuantity(product.bulkMinQuantity!)}
-                                    className="text-[10px] font-black uppercase tracking-widest text-secondary hover:underline"
-                                >
-                                    Apply Now
-                                </button>
-                            </motion.div>
                         )}
 
                         <div className="prose prose-sm dark:prose-invert text-gray-600 dark:text-gray-400 mb-8 whitespace-pre-wrap leading-relaxed">
@@ -361,26 +236,28 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                         </button>
                                     </div>
 
-                                    <button
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={handleAddToCart}
                                         disabled={addingToCart}
                                         className={`flex-1 flex items-center justify-center gap-2 h-14 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${addingToCart
                                             ? 'bg-green-500 text-white cursor-not-allowed'
-                                            : 'bg-primary text-white hover:bg-accent shadow-lg shadow-primary/20'
+                                            : 'bg-primary text-white hover:bg-accent shadow-lg shadow-primary/20 backdrop-blur-md bg-opacity-90'
                                             }`}
                                     >
                                         <AnimatePresence mode="wait">
                                             {addingToCart ? (
-                                                <motion.div key="success" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
+                                                <motion.div key="success" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex items-center gap-2">
                                                     <CheckCircle2 className="h-5 w-5" /> Added
                                                 </motion.div>
                                             ) : (
-                                                <motion.div key="default" initial={{ scale: 0 }} animate={{ scale: 1 }} className="flex items-center gap-2">
+                                                <motion.div key="default" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={{ type: "spring", stiffness: 300, damping: 20 }} className="flex items-center gap-2">
                                                     <ShoppingBag className="h-5 w-5" /> Add to Cart
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
-                                    </button>
+                                    </motion.button>
                                 </div>
                             ) : (
                                 <button disabled className="w-full h-14 bg-gray-100 dark:bg-neutral-800 text-gray-400 dark:text-gray-600 rounded-2xl font-black text-sm uppercase tracking-widest cursor-not-allowed flex items-center justify-center gap-2">
@@ -404,34 +281,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                     </div>
                 </div>
 
-                {/* Related Products Section */}
-                {relatedProducts.length > 0 && (
-                    <div className="mt-32 pt-24 border-t border-gray-100 dark:border-neutral-800">
-                        <div className="text-center mb-16">
-                            <span className="text-secondary font-black uppercase tracking-[0.2em] text-[10px] block mb-4">Complete your Taste</span>
-                            <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white font-serif tracking-tight">Related Traditions</h2>
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                            {relatedProducts.map(p => (
-                                <ProductCard key={p.id} product={p} />
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* FAQ Section */}
-                <div className="mt-24">
-                    <FAQSection
-                        items={pdpFAQs}
-                        title="Common Questions"
-                        subtitle="Detailed insights into our handmade traditions."
-                    />
-                </div>
-
-                {/* Reviews & Ratings Section */}
-                {product && (
-                    <ReviewSection productId={product.id} currentUser={currentUser} />
-                )}
+                {/* Reviews Section */}
+                <ReviewSection productId={product.id} currentUser={currentUser} />
             </div>
         </div>
     );
