@@ -109,7 +109,7 @@ export default function NotificationDropdown() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute right-0 top-full mt-3 w-80 sm:w-96 bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col"
+                        className="absolute -right-[4.5rem] sm:right-0 top-full mt-3 w-[92vw] sm:w-96 max-w-[360px] sm:max-w-none bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col origin-top-right"
                     >
                         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900">
                             <h3 className="font-bold text-sm">Notifications</h3>
