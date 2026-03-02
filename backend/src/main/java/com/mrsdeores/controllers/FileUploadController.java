@@ -8,7 +8,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
@@ -65,12 +64,9 @@ public class FileUploadController {
             Path targetLocation = this.fileStorageLocation.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
-            // Build full absolute URL so the frontend can display it
-            // e.g. https://mrsdeore-premix.onrender.com/uploads/uuid_filename.jpg
-            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/uploads/")
-                    .path(fileName)
-                    .toUriString();
+            // Build relative URL so the frontend proxy routes it correctly (e.g. over
+            // Ngrok)
+            String fileDownloadUri = "/uploads/" + fileName;
 
             logger.info("Upload successful: {}", fileDownloadUri);
 

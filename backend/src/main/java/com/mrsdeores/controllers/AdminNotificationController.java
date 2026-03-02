@@ -4,6 +4,10 @@ import com.mrsdeores.models.Notification;
 import com.mrsdeores.models.User;
 import com.mrsdeores.repository.NotificationRepository;
 import com.mrsdeores.repository.UserRepository;
+import com.mrsdeores.repository.AdminInvitationRepository;
+import com.mrsdeores.repository.AdminNotificationReadRepository;
+import com.mrsdeores.models.AdminNotificationRead;
+import com.mrsdeores.models.AdminInvitation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +39,12 @@ public class AdminNotificationController {
     @Autowired
     private NotificationReadRepository notificationReadRepository;
 
+    @Autowired
+    private AdminInvitationRepository adminInvitationRepository;
+
+    @Autowired
+    private AdminNotificationReadRepository adminNotificationReadRepository;
+
     @GetMapping
     public ResponseEntity<?> getAllSentNotifications(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
@@ -52,6 +62,9 @@ public class AdminNotificationController {
             if (!n.isGlobal() && n.getTargetUser() != null) {
                 dto.put("targetUserEmail", n.getTargetUser().getEmail());
                 dto.put("targetUsername", n.getTargetUser().getUsername());
+            }
+            if (!n.isGlobal() && n.getTargetAdminUsername() != null) {
+                dto.put("targetAdminUsername", n.getTargetAdminUsername());
             }
             if (n.getSender() != null) {
                 dto.put("senderUsername", n.getSender().getUsername());
@@ -78,7 +91,7 @@ public class AdminNotificationController {
         String title = payload.get("title");
         String message = payload.get("message");
         String type = payload.getOrDefault("type", "INFO");
-        String targetUserIdStr = payload.get("targetUserId"); // If null/empty -> Global Broadcast
+        String targetIdentifier = payload.get("targetUserId"); // Now expects Email or Username, not ID
         String attachmentUrl = payload.get("attachmentUrl");
         String attachmentType = payload.get("attachmentType");
 
@@ -94,14 +107,19 @@ public class AdminNotificationController {
         notification.setAttachmentUrl(attachmentUrl);
         notification.setAttachmentType(attachmentType);
 
-        if (targetUserIdStr != null && !targetUserIdStr.trim().isEmpty()) {
-            try {
-                Long targetUserId = Long.parseLong(targetUserIdStr);
-                User user = userRepository.findById(targetUserId)
-                        .orElseThrow(() -> new RuntimeException("Target user not found"));
-                notification.setTargetUser(user);
-            } catch (NumberFormatException e) {
-                return ResponseEntity.badRequest().body(Map.of("message", "Invalid Target User ID"));
+        if (targetIdentifier != null && !targetIdentifier.trim().isEmpty()) {
+            User targetUser = userRepository.findByUsernameOrEmail(targetIdentifier, targetIdentifier).orElse(null);
+            if (targetUser != null) {
+                notification.setTargetUser(targetUser);
+            } else {
+                AdminInvitation targetAdmin = adminInvitationRepository
+                        .findByUsernameOrEmail(targetIdentifier, targetIdentifier).orElse(null);
+                if (targetAdmin != null) {
+                    notification.setTargetAdminUsername(targetAdmin.getUsername());
+                } else {
+                    return ResponseEntity.badRequest()
+                            .body(Map.of("message", "Target user or admin not found with provided username/email"));
+                }
             }
         }
 
@@ -119,6 +137,7 @@ public class AdminNotificationController {
             Map<String, Object> dto = new HashMap<>();
             dto.put("userId", r.getId().getUserId());
             dto.put("readAt", r.getReadAt() != null ? r.getReadAt().toString() : null);
+            dto.put("type", "USER");
             userRepository.findById(r.getId().getUserId()).ifPresent(u -> {
                 dto.put("username", u.getUsername());
                 dto.put("email", u.getEmail());
@@ -126,6 +145,32 @@ public class AdminNotificationController {
             });
             return dto;
         }).collect(Collectors.toList());
+
+        List<AdminNotificationRead> adminReads = adminNotificationReadRepository.findByIdNotificationId(id);
+        List<Map<String, Object>> adminReadList = adminReads.stream().map(r -> {
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("adminUsername", r.getId().getAdminUsername());
+            dto.put("readAt", r.getReadAt() != null ? r.getReadAt().toString() : null);
+            dto.put("type", "ADMIN");
+            adminInvitationRepository.findByUsername(r.getId().getAdminUsername()).ifPresent(a -> {
+                dto.put("username", a.getUsername());
+                dto.put("email", a.getEmail());
+                dto.put("phone", a.getPhone());
+            });
+            return dto;
+        }).collect(Collectors.toList());
+
+        readList.addAll(adminReadList);
+        // Sort combined list by readAt descending
+        readList.sort((a, b) -> {
+            String dateA = (String) a.get("readAt");
+            String dateB = (String) b.get("readAt");
+            if (dateA == null)
+                return 1;
+            if (dateB == null)
+                return -1;
+            return dateB.compareTo(dateA);
+        });
 
         return ResponseEntity.ok(readList);
     }

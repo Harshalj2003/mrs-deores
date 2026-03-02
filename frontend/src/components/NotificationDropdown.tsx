@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Video, Link as LinkIcon } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Video, Link as LinkIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { clsx } from 'clsx';
+import { API_BASE } from '../config';
 
 interface NotificationItem {
     id: number;
@@ -63,6 +65,32 @@ export default function NotificationDropdown() {
         }
     };
 
+    const handleDelete = async (e: React.MouseEvent, id: number) => {
+        e.stopPropagation();
+        setNotifications(prev => prev.filter(n => n.id !== id));
+        if (selectedNotif?.id === id) setSelectedNotif(null);
+        try {
+            await api.delete(`/notifications/${id}`);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const getMediaUrl = (url: string | undefined) => {
+        if (!url) return '';
+
+        // Strip out legacy absolute localhost mapping from old tests
+        let cleanUrl = url;
+        if (cleanUrl.includes('localhost:8080')) {
+            cleanUrl = cleanUrl.replace(/https?:\/\/localhost:8080/g, '');
+        }
+
+        if (cleanUrl.startsWith('/api/') || cleanUrl.startsWith('/uploads/')) {
+            return (API_BASE || '') + cleanUrl;
+        }
+        return cleanUrl;
+    };
+
     const handleNotificationClick = (notif: NotificationItem) => {
         if (!notif.isRead) markAsRead(notif.id);
         setSelectedNotif(notif);
@@ -109,7 +137,7 @@ export default function NotificationDropdown() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="absolute -right-[4.5rem] sm:right-0 top-full mt-3 w-[92vw] sm:w-96 max-w-[360px] sm:max-w-none bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col origin-top-right"
+                        className="fixed inset-x-4 top-[4.5rem] sm:absolute sm:inset-x-auto sm:-right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-none bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col origin-top sm:origin-top-right"
                     >
                         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900">
                             <h3 className="font-bold text-sm">Notifications</h3>
@@ -133,7 +161,7 @@ export default function NotificationDropdown() {
                                             key={notif.id}
                                             onClick={() => handleNotificationClick(notif)}
                                             className={clsx(
-                                                "p-4 flex gap-3 cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 max-w-full group",
+                                                "p-4 flex gap-3 cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 max-w-full group relative",
                                                 !notif.isRead ? "bg-primary/5 dark:bg-primary/10" : ""
                                             )}
                                         >
@@ -171,6 +199,13 @@ export default function NotificationDropdown() {
                                                     <span className="h-2 w-2 rounded-full bg-primary block shadow-[0_0_8px_var(--color-primary)]"></span>
                                                 </div>
                                             )}
+                                            <button
+                                                onClick={(e) => handleDelete(e, notif.id)}
+                                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 bg-zinc-100 dark:bg-zinc-800 sm:bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all absolute right-2 top-2 sm:relative sm:right-auto sm:top-auto self-center"
+                                                title="Delete notification"
+                                            >
+                                                <X className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     ))}
                                 </div>
@@ -190,89 +225,92 @@ export default function NotificationDropdown() {
             </AnimatePresence>
 
             {/* Expanded Notification Modal */}
-            <AnimatePresence>
-                {selectedNotif && (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedNotif(null)}
-                            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                        />
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-[90vw] sm:max-w-lg bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
-                        >
-                            <div className="p-5 sm:p-6 md:p-8 flex-shrink-0">
-                                <div className="flex items-center gap-3 mb-3 sm:mb-4">
-                                    <div className="flex-shrink-0">
-                                        {getTypeIcon(selectedNotif.type)}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h3 className="text-lg sm:text-xl font-bold font-serif text-zinc-900 dark:text-white leading-tight truncate">
-                                            {selectedNotif.title}
-                                        </h3>
-                                        <div className="flex items-center gap-2 mt-1 text-[10px] sm:text-xs font-medium text-zinc-500 truncate">
-                                            <span>{new Date(selectedNotif.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-                                            {selectedNotif.senderUsername && (
-                                                <>
-                                                    <span>•</span>
-                                                    <span className="truncate">From: @{selectedNotif.senderUsername}</span>
-                                                </>
-                                            )}
+            {createPortal(
+                <AnimatePresence>
+                    {selectedNotif && (
+                        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setSelectedNotif(null)}
+                                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="relative w-full max-w-[90vw] sm:max-w-lg bg-white dark:bg-zinc-900 rounded-[2rem] shadow-2xl overflow-hidden border border-zinc-100 dark:border-zinc-800 flex flex-col max-h-[85vh] sm:max-h-[90vh]"
+                            >
+                                <div className="p-5 sm:p-6 md:p-8 flex-shrink-0">
+                                    <div className="flex items-center gap-3 mb-3 sm:mb-4">
+                                        <div className="flex-shrink-0">
+                                            {getTypeIcon(selectedNotif.type)}
                                         </div>
-                                    </div>
-                                </div>
-                                <div className="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs sm:text-sm whitespace-pre-wrap max-h-[150px] sm:max-h-none overflow-y-auto custom-scrollbar pr-2">
-                                    {selectedNotif.message}
-                                </div>
-                            </div>
-
-                            {/* Media Attachment Area */}
-                            {selectedNotif.attachmentUrl && selectedNotif.attachmentType !== 'NONE' && (
-                                <div className="bg-zinc-50 dark:bg-black/20 border-t border-zinc-100 dark:border-zinc-800 p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-shrink">
-                                    {selectedNotif.attachmentType === 'IMAGE' && (
-                                        <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800">
-                                            <img src={selectedNotif.attachmentUrl} alt="Attachment" className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px]" />
-                                        </div>
-                                    )}
-                                    {selectedNotif.attachmentType === 'VIDEO' && (
-                                        <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 bg-black flex justify-center">
-                                            <video src={selectedNotif.attachmentUrl} controls className="w-full h-auto max-w-full max-h-[200px] sm:max-h-[300px] object-contain" />
-                                        </div>
-                                    )}
-                                    {selectedNotif.attachmentType === 'LINK' && (
-                                        <a
-                                            href={selectedNotif.attachmentUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="group flex flex-col items-center justify-center p-6 sm:p-8 border-2 border-dashed border-primary/30 rounded-xl sm:rounded-2xl hover:bg-primary/5 transition-all w-full text-center"
-                                        >
-                                            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-2 sm:mb-3">
-                                                <LinkIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                                        <div className="min-w-0">
+                                            <h3 className="text-lg sm:text-xl font-bold font-serif text-zinc-900 dark:text-white leading-tight truncate">
+                                                {selectedNotif.title}
+                                            </h3>
+                                            <div className="flex items-center gap-2 mt-1 text-[10px] sm:text-xs font-medium text-zinc-500 truncate">
+                                                <span>{new Date(selectedNotif.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                                                {selectedNotif.senderUsername && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <span className="truncate">From: @{selectedNotif.senderUsername}</span>
+                                                    </>
+                                                )}
                                             </div>
-                                            <span className="font-bold text-sm sm:text-base text-primary group-hover:underline">Open Attached Link</span>
-                                            <span className="text-[10px] sm:text-xs text-zinc-500 mt-1 truncate max-w-[150px] sm:max-w-[200px]">{selectedNotif.attachmentUrl}</span>
-                                        </a>
-                                    )}
+                                        </div>
+                                    </div>
+                                    <div className="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs sm:text-sm whitespace-pre-wrap max-h-[150px] sm:max-h-none overflow-y-auto custom-scrollbar pr-2">
+                                        {selectedNotif.message}
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex justify-end flex-shrink-0">
-                                <button
-                                    onClick={() => setSelectedNotif(null)}
-                                    className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
-                                >
-                                    Dismiss
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                                {/* Media Attachment Area */}
+                                {selectedNotif.attachmentUrl && selectedNotif.attachmentType !== 'NONE' && (
+                                    <div className="bg-zinc-50 dark:bg-black/20 border-t border-zinc-100 dark:border-zinc-800 p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-shrink">
+                                        {selectedNotif.attachmentType === 'IMAGE' && (
+                                            <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800">
+                                                <img src={getMediaUrl(selectedNotif.attachmentUrl)} alt="Attachment" className="w-full h-auto object-cover max-h-[200px] sm:max-h-[300px]" />
+                                            </div>
+                                        )}
+                                        {selectedNotif.attachmentType === 'VIDEO' && (
+                                            <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-sm border border-zinc-200 dark:border-zinc-800 bg-black flex justify-center">
+                                                <video src={getMediaUrl(selectedNotif.attachmentUrl)} controls className="w-full h-auto max-w-full max-h-[200px] sm:max-h-[300px] object-contain" />
+                                            </div>
+                                        )}
+                                        {selectedNotif.attachmentType === 'LINK' && (
+                                            <a
+                                                href={selectedNotif.attachmentUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="group flex flex-col items-center justify-center p-6 sm:p-8 border-2 border-dashed border-primary/30 rounded-xl sm:rounded-2xl hover:bg-primary/5 transition-all w-full text-center"
+                                            >
+                                                <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform mb-2 sm:mb-3">
+                                                    <LinkIcon className="h-5 w-5 sm:h-6 sm:w-6" />
+                                                </div>
+                                                <span className="font-bold text-sm sm:text-base text-primary group-hover:underline">Open Attached Link</span>
+                                                <span className="text-[10px] sm:text-xs text-zinc-500 mt-1 truncate max-w-[150px] sm:max-w-[200px]">{selectedNotif.attachmentUrl}</span>
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex justify-end flex-shrink-0">
+                                    <button
+                                        onClick={() => setSelectedNotif(null)}
+                                        className="px-6 py-2.5 bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-xl font-bold text-sm hover:bg-zinc-300 dark:hover:bg-zinc-700 transition-colors"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>,
+                document.body
+            )}
         </div>
     );
 }

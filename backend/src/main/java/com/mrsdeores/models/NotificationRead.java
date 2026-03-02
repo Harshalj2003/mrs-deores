@@ -18,6 +18,9 @@ public class NotificationRead {
     @Column(name = "read_at", updatable = false)
     private LocalDateTime readAt = LocalDateTime.now();
 
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
+
     @Embeddable
     @Data
     @NoArgsConstructor

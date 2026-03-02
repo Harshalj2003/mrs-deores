@@ -195,14 +195,14 @@ const AdminNotificationsPage: React.FC = () => {
                                 <button type="button" onClick={() => { setReplyingTo(null); setTitle(''); }} className="mt-2 text-red-500 font-bold hover:underline">Cancel Reply</button>
                             </div>
                         )}
-
+                        {/* PUSH NOTIFICATION FIELD DETAILS */}
                         <form onSubmit={handleSend} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-1.5">Target Audience</label>
                                 <div className="relative">
                                     <input
                                         type="text"
-                                        placeholder="User ID (Leave blank for Global)"
+                                        placeholder="Username or Email (Leave blank for Global)"
                                         value={targetUserIdStr}
                                         onChange={e => setTargetUserIdStr(e.target.value)}
                                         className="w-full bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors pl-10"

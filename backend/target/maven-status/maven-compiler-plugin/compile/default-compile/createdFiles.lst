@@ -10,7 +10,9 @@ com\mrsdeores\controllers\AdminStatsController.class
 com\mrsdeores\controllers\OrderController.class
 com\mrsdeores\controllers\TestController.class
 com\mrsdeores\models\WishlistItem.class
+com\mrsdeores\models\AdminNotificationRead.class
 com\mrsdeores\models\Review.class
+com\mrsdeores\models\AdminNotificationRead$AdminNotificationReadId.class
 com\mrsdeores\repository\RoleRepository.class
 com\mrsdeores\controllers\WebhookController.class
 com\mrsdeores\models\PasswordResetToken.class
@@ -27,6 +29,7 @@ com\mrsdeores\controllers\AddressController.class
 com\mrsdeores\repository\CategoryRepository.class
 com\mrsdeores\services\ProductService.class
 com\mrsdeores\services\AdminAuthService.class
+com\mrsdeores\repository\AdminNotificationReadRepository.class
 com\mrsdeores\security\services\UserDetailsServiceImpl.class
 com\mrsdeores\config\DataSeeder.class
 com\mrsdeores\services\ReviewService.class

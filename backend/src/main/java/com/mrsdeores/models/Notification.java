@@ -46,7 +46,10 @@ public class Notification {
     @Column(name = "attachment_type", length = 20)
     private String attachmentType; // IMAGE, VIDEO, LINK
 
+    @Column(name = "target_admin_username", length = 50)
+    private String targetAdminUsername;
+
     public boolean isGlobal() {
-        return targetUser == null;
+        return targetUser == null && targetAdminUsername == null;
     }
 }
