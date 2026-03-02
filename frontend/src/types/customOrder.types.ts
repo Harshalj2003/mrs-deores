@@ -17,6 +17,12 @@ export interface CustomOrderResponse {
     agreedPrice: number | null;
     linkedOrder: { id: number } | null;
     referenceProduct: { id: number; name: string } | null;
+    user?: {
+        id: number;
+        username: string;
+        email: string;
+        phone: string | null;
+    };
     createdAt: string;
     updatedAt: string;
 }

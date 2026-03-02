@@ -29,6 +29,12 @@ const AdminCustomOrders: React.FC = () => {
     const [actionStatus, setActionStatus] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
 
+    const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+
+    const toggleExpand = (id: number) => {
+        setExpandedOrderId(prev => prev === id ? null : id);
+    };
+
     const fetchOrders = async () => {
         try {
             setLoading(true);
@@ -158,10 +164,65 @@ const AdminCustomOrders: React.FC = () => {
                                             </span>
                                         </div>
 
-                                        {/* Timeline */}
+                                        {/* Toggle Sender Details & History */}
                                         <div className="pt-2">
-                                            <OrderTimeline currentStatus={order.status} updatedAt={order.updatedAt} />
+                                            <button
+                                                onClick={() => toggleExpand(order.id)}
+                                                className="text-[10px] font-black uppercase tracking-widest text-primary hover:text-primary-dark transition-colors flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10"
+                                            >
+                                                {expandedOrderId === order.id ? 'Hide Details & History' : 'View Sender Details & History'}
+                                            </button>
                                         </div>
+
+                                        <AnimatePresence>
+                                            {expandedOrderId === order.id && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col md:flex-row gap-8">
+                                                        {/* Sender Details */}
+                                                        <div className="flex-1 space-y-3">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-200 pb-2">Sender Details</h4>
+                                                            {order.user ? (
+                                                                <div className="space-y-2">
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Name</p>
+                                                                        <p className="text-sm font-bold text-gray-900">{order.user.username}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Email</p>
+                                                                        <p className="text-sm text-gray-600">{order.user.email}</p>
+                                                                    </div>
+                                                                    {order.user.phone && (
+                                                                        <div>
+                                                                            <p className="text-[10px] font-bold text-gray-400 uppercase">Phone</p>
+                                                                            <p className="text-sm text-gray-600">{order.user.phone}</p>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-sm text-gray-500 italic">User details unavailable</p>
+                                                            )}
+                                                            {order.adminNote && (
+                                                                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                                                                    <p className="text-[10px] font-bold text-yellow-600 uppercase mb-1">Admin Note / Quote Info</p>
+                                                                    <p className="text-sm text-yellow-800">{order.adminNote}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        {/* History Timeline */}
+                                                        <div className="flex-1">
+                                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-200 pb-2 mb-4">Request History Logging</h4>
+                                                            <OrderTimeline currentStatus={order.status} updatedAt={order.updatedAt} />
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
 
                                     {/* Action Buttons */}

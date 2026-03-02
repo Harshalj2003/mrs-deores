@@ -70,6 +70,7 @@ interface UserBrief {
     id: number;
     username: string;
     email: string;
+    phone: string | null;
     lastLoginAt: string | null;
     createdAt: string | null;
 }
@@ -174,8 +175,8 @@ const LiveSessionsPanel: React.FC = () => {
                             key={tw.key}
                             onClick={() => setWindow(tw.key)}
                             className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${window === tw.key
-                                    ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
-                                    : 'bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-600'
+                                ? 'bg-green-500 text-white shadow-lg shadow-green-500/20'
+                                : 'bg-gray-100 dark:bg-neutral-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-neutral-600'
                                 }`}
                         >
                             {tw.label}
@@ -257,6 +258,10 @@ const LiveSessionsPanel: React.FC = () => {
                                                         <div>
                                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Email</span>
                                                             <span className="font-bold text-gray-900 dark:text-white">{userBrief.email}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Phone</span>
+                                                            <span className="font-bold text-gray-900 dark:text-white">{userBrief.phone || '—'}</span>
                                                         </div>
                                                         <div>
                                                             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Last Login</span>

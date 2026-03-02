@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText, Grid, Sun, Moon, UserPlus } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText, Grid, Sun, Moon, UserPlus, Bell } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { clsx } from 'clsx';
 import BrandLogo from './BrandLogo';
@@ -20,6 +20,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
         { id: 'categories', label: 'Categories', icon: Grid, path: '/admin/categories' },
         { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/admin/orders' },
         { id: 'custom-orders', label: 'Custom Requests', icon: FileText, path: '/admin/custom-orders' },
+        { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
         { id: 'team', label: 'Invite Team', icon: UserPlus, path: '/admin/team' },
         { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
     ];

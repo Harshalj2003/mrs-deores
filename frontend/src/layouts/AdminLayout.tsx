@@ -3,6 +3,7 @@ import AdminSidebar from '../components/AdminSidebar';
 import { Menu } from 'lucide-react';
 import type { User } from '../types/auth.types';
 import BrandLogo from '../components/BrandLogo';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -42,7 +43,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                         <BrandLogo size="sm" />
                     </div>
 
-                    <div className="w-8"></div>
+                    <div className="flex items-center gap-2 relative z-50">
+                        <NotificationDropdown />
+                    </div>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-4 md:p-8 md:pb-8 pb-32">

@@ -3,6 +3,7 @@ package com.mrsdeores.controllers;
 import com.mrsdeores.models.AdminInvitation;
 import com.mrsdeores.models.Order;
 import com.mrsdeores.models.Product;
+import com.mrsdeores.models.User;
 import com.mrsdeores.repository.AdminInvitationRepository;
 import com.mrsdeores.repository.CategoryRepository;
 import com.mrsdeores.repository.CustomOrderRepository;
@@ -239,50 +240,45 @@ public class AdminStatsController {
 
         /**
          * Real-time active sessions with time-window filtering.
-         * Short windows (≤7h): in-memory heartbeat sessions.
-         * Long windows (1d–3m): DB query on users.last_login_at.
+         * Unified to use DB 'last_login_at' for all windows, keeping users in the list
+         * even if their websocket/heartbeat drops, but marking them "Away" if > 2 mins.
          */
         @GetMapping("/active-sessions")
         public ResponseEntity<?> getActiveSessions(@RequestParam(defaultValue = "10m") String window) {
                 java.time.Duration duration = parseWindow(window);
+                java.time.LocalDateTime since = java.time.LocalDateTime.now().minus(duration);
 
-                if (duration.toHours() <= 7) {
-                        // In-memory live sessions
-                        List<ActiveSessionService.SessionInfo> sessions = activeSessionService
-                                        .getActiveSessions(duration);
-                        List<Map<String, Object>> result = sessions.stream().map(s -> {
-                                Map<String, Object> dto = new HashMap<>();
-                                dto.put("userId", s.getUserId());
-                                dto.put("sessionStart", s.getSessionStart().toString());
-                                dto.put("lastSeen", s.getLastSeen().toString());
-                                dto.put("durationSeconds", s.getDurationSeconds());
-                                dto.put("isLive", java.time.Duration.between(s.getLastSeen(), java.time.Instant.now())
-                                                .toMinutes() < 2);
-                                return dto;
-                        }).collect(Collectors.toList());
-                        Map<String, Object> response = new HashMap<>();
-                        response.put("sessions", result);
-                        response.put("count", result.size());
-                        response.put("window", window);
-                        response.put("source", "live");
-                        return ResponseEntity.ok(response);
-                } else {
-                        // DB-based: users who logged in within the time window
-                        java.time.LocalDateTime since = java.time.LocalDateTime.now().minus(duration);
-                        long count = userRepository.countByLastLoginAtAfter(since);
-                        Map<String, Object> response = new HashMap<>();
-                        response.put("count", count);
-                        response.put("window", window);
-                        response.put("source", "database");
-                        response.put("sessions", List.of()); // No individual sessions for DB queries
-                        return ResponseEntity.ok(response);
-                }
+                List<User> activeUsers = userRepository.findByLastLoginAtAfter(since);
+
+                List<Map<String, Object>> result = activeUsers.stream().map(u -> {
+                        Map<String, Object> dto = new HashMap<>();
+                        dto.put("userId", u.getId());
+                        // Since we don't have exact session start in DB easily, we use lastLoginAt as
+                        // reference
+                        dto.put("sessionStart", u.getLastLoginAt().toString());
+                        dto.put("lastSeen", u.getLastLoginAt().toString());
+
+                        long secondsSinceLogin = java.time.Duration
+                                        .between(u.getLastLoginAt(), java.time.LocalDateTime.now()).getSeconds();
+                        dto.put("durationSeconds", secondsSinceLogin > 0 ? secondsSinceLogin : 1);
+
+                        // "Live Now" = activity within the last 2 minutes
+                        dto.put("isLive", secondsSinceLogin < 120);
+                        return dto;
+                }).collect(Collectors.toList());
+
+                Map<String, Object> response = new HashMap<>();
+                response.put("sessions", result);
+                response.put("count", result.size());
+                response.put("window", window);
+                response.put("source", "database");
+                return ResponseEntity.ok(response);
         }
 
         /**
          * Fetch brief user info by ID — on-demand, for drill-down in the sessions
          * table.
-         * Returns only username + email (not full user object).
+         * Returns username, email, and phone.
          */
         @GetMapping("/users/{id}/brief")
         public ResponseEntity<?> getUserBrief(@PathVariable Long id) {
@@ -292,6 +288,7 @@ public class AdminStatsController {
                                         brief.put("id", user.getId());
                                         brief.put("username", user.getUsername());
                                         brief.put("email", user.getEmail());
+                                        brief.put("phone", user.getPhone());
                                         brief.put("lastLoginAt",
                                                         user.getLastLoginAt() != null ? user.getLastLoginAt().toString()
                                                                         : null);

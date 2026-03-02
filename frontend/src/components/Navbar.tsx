@@ -23,6 +23,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useLanguage, LANGUAGES } from "../contexts/LanguageContext";
 import SearchBar from "./SearchBar";
 import useWishlistStore from "../store/useWishlistStore";
+import NotificationDropdown from "./NotificationDropdown";
 
 import api from "../services/api";
 
@@ -254,6 +255,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                             )}
                         </AnimatePresence>
                     </motion.div>
+
+                    {/* Notifications */}
+                    {currentUser && (
+                        <NotificationDropdown />
+                    )}
 
                     {/* Cart Button */}
                     <motion.div className="relative">

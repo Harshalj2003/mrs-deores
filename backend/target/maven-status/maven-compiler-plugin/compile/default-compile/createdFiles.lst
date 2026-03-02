@@ -39,10 +39,13 @@ com\mrsdeores\controllers\AuthController$1.class
 com\mrsdeores\models\SiteSettings.class
 com\mrsdeores\repository\CartRepository.class
 com\mrsdeores\controllers\FileUploadController.class
+com\mrsdeores\repository\NotificationRepository.class
 com\mrsdeores\payload\request\LoginRequest.class
 com\mrsdeores\controllers\AuthController$2.class
 com\mrsdeores\controllers\MediaController.class
+com\mrsdeores\models\NotificationRead$NotificationReadId.class
 com\mrsdeores\models\AdminAuthAttempt.class
+com\mrsdeores\controllers\NotificationController.class
 com\mrsdeores\config\CloudinaryConfig.class
 com\mrsdeores\models\AdminInvitation.class
 com\mrsdeores\repository\ProductRepository.class
@@ -63,11 +66,13 @@ com\mrsdeores\repository\AdminAuthAttemptRepository.class
 com\mrsdeores\controllers\UserController.class
 com\mrsdeores\MrsDeoresApplication.class
 com\mrsdeores\models\CartItem.class
+com\mrsdeores\controllers\AdminNotificationController.class
 com\mrsdeores\services\CategoryService.class
 com\mrsdeores\models\PaymentDetails.class
 com\mrsdeores\security\WebSecurityConfig.class
 com\mrsdeores\controllers\CategoryController.class
 com\mrsdeores\models\Category.class
+com\mrsdeores\models\NotificationRead.class
 com\mrsdeores\models\User.class
 com\mrsdeores\repository\CustomOrderRepository.class
 com\mrsdeores\controllers\ActivityController.class
@@ -78,6 +83,7 @@ com\mrsdeores\controllers\ProductController.class
 com\mrsdeores\repository\AdminInvitationRepository.class
 com\mrsdeores\payload\request\SignupRequest.class
 com\mrsdeores\payload\response\JwtResponse.class
+com\mrsdeores\repository\NotificationReadRepository.class
 com\mrsdeores\repository\SiteSettingsRepository.class
 com\mrsdeores\models\CustomOrder.class
 com\mrsdeores\services\ActiveSessionService$SessionInfo.class
@@ -85,6 +91,7 @@ com\mrsdeores\repository\AddressRepository.class
 com\mrsdeores\services\CouponService.class
 com\mrsdeores\controllers\CartController.class
 com\mrsdeores\models\Coupon.class
+com\mrsdeores\models\Notification.class
 com\mrsdeores\models\ProductImage.class
 com\mrsdeores\models\Address.class
 com\mrsdeores\services\CartService.class

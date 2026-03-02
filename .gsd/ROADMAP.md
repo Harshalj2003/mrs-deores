@@ -156,3 +156,32 @@
 - [ ] App fails to start if required environment variables are missing (no fallbacks).
 - [ ] No secrets visible in any version-controlled file.
 - [ ] Production profile uses only environment variables.
+
+---
+
+### Phase 11: Global Notifications, Custom Order History & Advanced Analytics
+**Status**: ⬜ Not Started
+**Objective**: Implement interactive global notifications, detailed custom order history, and persistent live active user sessions for better admin-user engagement.
+**Depends on**: Phase 10
+
+**Tasks**:
+- [ ] **Custom Orders Improvements**:
+    - [ ] Add compact Custom Order History button opening history and sender details.
+    - [ ] Send notifications to admins on new custom order or user action.
+    - [ ] Send notifications to users when admin updates custom order status.
+- [ ] **Global Notification System**:
+    - [ ] Add Notification bell on top navigation bar.
+    - [ ] Add "Send Notification" option in admin left panel.
+    - [ ] Allow custom, interactive notifications to be broadcast to users.
+    - [ ] "Rollback" feature to delete notifications from all users' views.
+- [ ] **Live Active Users Fixes**:
+    - [ ] Show scrolling list view for all duration tabs (1 Day to 3 Months).
+    - [ ] Persist users in the list rather than removing them when they leave the website.
+    - [ ] Fetch real-time email, username, and phone number when admin clicks a record.
+- [ ] **Strict Flyway Enforcement**:
+    - [ ] Use Flyway migrations for all schema changes (`custom_order_history`, `notifications`, etc.).
+
+**Verification**:
+- [ ] Test admin broadcasting and rolling back a notification.
+- [ ] Test custom order notifications updating in real-time.
+- [ ] Verify phone numbers appear in Active Users dashboard.

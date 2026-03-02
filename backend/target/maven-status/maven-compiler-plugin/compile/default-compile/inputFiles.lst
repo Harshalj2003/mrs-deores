@@ -4,6 +4,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\config\WebConfiguration.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ActivityController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AddressController.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AdminNotificationController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AdminStatsController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\AuthController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\CartController.java
@@ -13,6 +14,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\FileUploadController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\HealthController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\MediaController.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\NotificationController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\OrderController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ProductController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ReviewController.java
@@ -31,6 +33,8 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Coupon.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\CustomOrder.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\ERole.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Notification.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\NotificationRead.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Order.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\OrderItem.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\PasswordResetToken.java
@@ -57,6 +61,8 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CategoryRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CouponRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CustomOrderRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\NotificationReadRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\NotificationRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\OrderRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\PasswordResetTokenRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\ProductRepository.java
