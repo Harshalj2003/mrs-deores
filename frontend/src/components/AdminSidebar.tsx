@@ -1,9 +1,10 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Settings, LogOut, FileText, Grid, Sun, Moon, UserPlus, Bell } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { clsx } from 'clsx';
 import BrandLogo from './BrandLogo';
+import { getAdminPendingCustomOrdersCount } from '../services/CustomOrderService';
 
 interface AdminSidebarProps {
     isOpen?: boolean;
@@ -13,13 +14,18 @@ interface AdminSidebarProps {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) => {
     const location = useLocation();
     const { theme, toggle: toggleTheme } = useTheme();
+    const [pendingOrders, setPendingOrders] = useState(0);
+
+    useEffect(() => {
+        getAdminPendingCustomOrdersCount().then(setPendingOrders).catch(() => { });
+    }, [location.pathname]); // Refresh count when navigation happens
 
     const menuItems = [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
         { id: 'products', label: 'Products', icon: Package, path: '/admin/products' },
         { id: 'categories', label: 'Categories', icon: Grid, path: '/admin/categories' },
         { id: 'orders', label: 'Orders', icon: ShoppingBag, path: '/admin/orders' },
-        { id: 'custom-orders', label: 'Custom Requests', icon: FileText, path: '/admin/custom-orders' },
+        { id: 'custom-orders', label: 'Custom Requests', icon: FileText, path: '/admin/custom-orders', badge: pendingOrders },
         { id: 'notifications', label: 'Notifications', icon: Bell, path: '/admin/notifications' },
         { id: 'team', label: 'Invite Team', icon: UserPlus, path: '/admin/team' },
         { id: 'settings', label: 'Settings', icon: Settings, path: '/admin/settings' },
@@ -52,7 +58,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
                             to={item.path}
                             onClick={() => onClose?.()}
                             className={clsx(
-                                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm',
+                                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm relative',
                                 isActive
                                     ? 'bg-primary text-white shadow-lg shadow-primary/30'
                                     : 'hover:bg-primary/10 hover:text-primary'
@@ -61,7 +67,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
                         >
                             <item.icon className={clsx('h-5 w-5 flex-shrink-0 transition-colors', isActive ? 'text-white' : 'group-hover:text-primary')} style={!isActive ? { color: 'var(--admin-nav-text)', opacity: 0.6 } : {}} />
                             <span>{item.label}</span>
-                            {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/60" />}
+                            {item.badge ? (
+                                <span className={clsx(
+                                    "ml-auto text-[10px] font-black w-5 h-5 flex items-center justify-center rounded-full shadow-sm",
+                                    isActive ? "bg-white text-primary" : "bg-red-500 text-white"
+                                )}>
+                                    {item.badge > 99 ? '99+' : item.badge}
+                                </span>
+                            ) : (
+                                isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-white/60" />
+                            )}
                         </Link>
                     );
                 })}

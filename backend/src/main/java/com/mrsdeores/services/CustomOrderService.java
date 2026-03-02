@@ -140,6 +140,61 @@ public class CustomOrderService {
     }
 
     /**
+     * User: Negotiate a Quote (reply to admin).
+     */
+    public CustomOrder negotiateRequest(Long id, User user, String customerNote) {
+        CustomOrder co = customOrderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Custom order not found"));
+
+        if (!co.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized");
+        }
+
+        co.setStatus("NEGOTIATING");
+        co.setCustomerNote(customerNote);
+        CustomOrder saved = customOrderRepository.save(co);
+
+        // Notify Admins
+        List<User> admins = userRepository.findByRoleName(ERole.ROLE_ADMIN);
+        for (User admin : admins) {
+            createNotification("Custom Request Negotiation",
+                    user.getUsername() + " replied to the quote for " + saved.getItemName(),
+                    "INFO", admin);
+        }
+
+        return saved;
+    }
+
+    /**
+     * User: Accept a Quote and select payment preference.
+     */
+    public CustomOrder acceptRequest(Long id, User user, String paymentMode, String customerNote) {
+        CustomOrder co = customOrderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Custom order not found"));
+
+        if (!co.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Not authorized");
+        }
+
+        co.setStatus("ACCEPTED_BY_CUSTOMER");
+        co.setPaymentMode(paymentMode);
+        if (customerNote != null && !customerNote.trim().isEmpty()) {
+            co.setCustomerNote(customerNote);
+        }
+        CustomOrder saved = customOrderRepository.save(co);
+
+        // Notify Admins
+        List<User> admins = userRepository.findByRoleName(ERole.ROLE_ADMIN);
+        for (User admin : admins) {
+            createNotification("Custom Request Accepted!",
+                    user.getUsername() + " accepted the quote for " + saved.getItemName() + " (" + paymentMode + ")",
+                    "SUCCESS", admin);
+        }
+
+        return saved;
+    }
+
+    /**
      * System: Update status (e.g., PAID, PROCESSING, SHIPPED, DELIVERED).
      */
     public CustomOrder updateStatus(Long id, String status) {

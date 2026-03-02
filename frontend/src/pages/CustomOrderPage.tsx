@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import SEO from '../components/SEO';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Utensils, MessageCircle, DollarSign, Upload, Search, CheckCircle, ArrowRight } from 'lucide-react';
+import { Package, Utensils, MessageCircle, DollarSign, Upload, Search, CheckCircle, ArrowRight, X } from 'lucide-react';
 import { getProducts } from '../services/ProductService';
-import { createCustomOrder } from '../services/CustomOrderService';
+import { createCustomOrder, negotiateCustomOrder, acceptCustomOrder } from '../services/CustomOrderService';
 import type { Product } from '../types/catalog.types';
 import type { CustomOrderResponse } from '../types/customOrder.types';
 import api from '../services/api';
@@ -28,6 +28,10 @@ const CustomOrderPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'request' | 'history'>('request');
     const [myRequests, setMyRequests] = useState<CustomOrderResponse[]>([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
+
+    const [negotiateModal, setNegotiateModal] = useState<{ id: number, note: string } | null>(null);
+    const [acceptModal, setAcceptModal] = useState<{ id: number, note: string, paymentMode: string } | null>(null);
+    const [actionLoading, setActionLoading] = useState(false);
 
     useEffect(() => {
         getProducts().then(setProducts).catch(console.error);
@@ -74,6 +78,34 @@ const CustomOrderPage: React.FC = () => {
             setError(err.response?.data?.message || 'Failed to submit. Please log in first.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleNegotiateSubmit = async () => {
+        if (!negotiateModal || !negotiateModal.note.trim()) return;
+        setActionLoading(true);
+        try {
+            await negotiateCustomOrder(negotiateModal.id, negotiateModal.note);
+            setNegotiateModal(null);
+            fetchMyRequests();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleAcceptSubmit = async () => {
+        if (!acceptModal || !acceptModal.paymentMode) return;
+        setActionLoading(true);
+        try {
+            await acceptCustomOrder(acceptModal.id, acceptModal.paymentMode, acceptModal.note);
+            setAcceptModal(null);
+            fetchMyRequests();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setActionLoading(false);
         }
     };
 
@@ -375,12 +407,30 @@ const CustomOrderPage: React.FC = () => {
                                             </div>
                                             <p className="text-sm text-gray-500">{order.description}</p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black uppercase text-gray-400">Qty: {order.quantity}</p>
-                                            {order.agreedPrice ? (
-                                                <p className="font-bold text-primary mt-1">₹{order.agreedPrice.toLocaleString()}</p>
-                                            ) : (
-                                                <p className="text-sm text-gray-500 mt-1">Budget: ₹{order.budget.toLocaleString()}</p>
+                                        <div className="flex flex-col gap-2 w-full md:w-auto mt-4 md:mt-0 items-end">
+                                            <div className="text-right">
+                                                <p className="text-[10px] items-end font-black uppercase text-gray-400">Qty: {order.quantity}</p>
+                                                {order.agreedPrice ? (
+                                                    <p className="font-bold text-primary mt-1">₹{order.agreedPrice.toLocaleString()}</p>
+                                                ) : (
+                                                    <p className="text-sm text-gray-500 mt-1">Budget: ₹{order.budget.toLocaleString()}</p>
+                                                )}
+                                            </div>
+                                            {order.status === 'QUOTED' && (
+                                                <div className="flex gap-2 shrink-0 mt-3 md:mt-1">
+                                                    <button
+                                                        onClick={() => setNegotiateModal({ id: order.id, note: '' })}
+                                                        className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-xl text-xs font-bold hover:bg-yellow-200 transition-colors"
+                                                    >
+                                                        Negotiate
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setAcceptModal({ id: order.id, note: '', paymentMode: '' })}
+                                                        className="px-4 py-2 bg-green-500 text-white rounded-xl text-xs font-bold hover:bg-green-600 transition-colors"
+                                                    >
+                                                        Accept Quote
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>
@@ -390,12 +440,124 @@ const CustomOrderPage: React.FC = () => {
                                             <p className="text-sm text-yellow-800">{order.adminNote}</p>
                                         </div>
                                     )}
+                                    {order.customerNote && ['NEGOTIATING', 'ACCEPTED_BY_CUSTOMER'].includes(order.status) && (
+                                        <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">Your Reply</p>
+                                            <p className="text-sm text-gray-800">{order.customerNote}</p>
+                                            {order.paymentMode && (
+                                                <p className="mt-2 text-xs font-bold text-primary">Preffered Payment: {order.paymentMode}</p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
             )}
+
+            {/* Negotiate Modal */}
+            <AnimatePresence>
+                {negotiateModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setNegotiateModal(null)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-black text-gray-900">Negotiate Quote</h3>
+                                <button onClick={() => setNegotiateModal(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <X className="h-5 w-5 text-gray-400" />
+                                </button>
+                            </div>
+                            <div className="space-y-4 mb-6">
+                                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Your Note to Admin</label>
+                                <textarea
+                                    value={negotiateModal.note}
+                                    onChange={(e) => setNegotiateModal({ ...negotiateModal, note: e.target.value })}
+                                    rows={4}
+                                    className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                                    placeholder="e.g. Can we do this for ₹500 instead?"
+                                />
+                            </div>
+                            <button
+                                onClick={handleNegotiateSubmit}
+                                disabled={actionLoading || !negotiateModal.note.trim()}
+                                className="w-full py-4 bg-yellow-500 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-yellow-600 transition-all disabled:opacity-50"
+                            >
+                                {actionLoading ? 'Sending...' : 'Send Message'}
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Accept Modal */}
+            <AnimatePresence>
+                {acceptModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setAcceptModal(null)}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl"
+                        >
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xl font-black text-gray-900">Accept Request</h3>
+                                <button onClick={() => setAcceptModal(null)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
+                                    <X className="h-5 w-5 text-gray-400" />
+                                </button>
+                            </div>
+                            <div className="space-y-4 mb-4">
+                                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Payment Preference</label>
+                                <select
+                                    value={acceptModal.paymentMode}
+                                    onChange={(e) => setAcceptModal({ ...acceptModal, paymentMode: e.target.value })}
+                                    className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                >
+                                    <option value="">Select an option</option>
+                                    <option value="Full Payment Online">Full Payment Online</option>
+                                    <option value="50% Downpayment (COD)">50% Downpayment (COD)</option>
+                                    <option value="100% COD">100% COD</option>
+                                </select>
+                            </div>
+                            <div className="space-y-4 mb-6">
+                                <label className="text-xs font-black uppercase tracking-widest text-gray-400">Add a Note (Optional)</label>
+                                <textarea
+                                    value={acceptModal.note}
+                                    onChange={(e) => setAcceptModal({ ...acceptModal, note: e.target.value })}
+                                    rows={2}
+                                    className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none resize-none"
+                                    placeholder="..."
+                                />
+                            </div>
+                            <button
+                                onClick={handleAcceptSubmit}
+                                disabled={actionLoading || !acceptModal.paymentMode}
+                                className="w-full py-4 bg-green-500 text-white rounded-2xl text-sm font-black uppercase tracking-widest hover:bg-green-600 transition-all disabled:opacity-50"
+                            >
+                                {actionLoading ? 'Processing...' : 'Confirm Acceptance'}
+                            </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

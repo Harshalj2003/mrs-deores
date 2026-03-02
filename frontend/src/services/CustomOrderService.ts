@@ -18,12 +18,27 @@ export const getCustomOrderById = async (id: number): Promise<CustomOrderRespons
     return response.data;
 };
 
+export const negotiateCustomOrder = async (id: number, customerNote: string): Promise<CustomOrderResponse> => {
+    const response = await api.put(`custom-orders/${id}/negotiate`, { customerNote });
+    return response.data;
+};
+
+export const acceptCustomOrder = async (id: number, paymentMode: string, customerNote?: string): Promise<CustomOrderResponse> => {
+    const response = await api.put(`custom-orders/${id}/accept`, { paymentMode, customerNote: customerNote || '' });
+    return response.data;
+};
+
 // ─── Admin Endpoints ─────────────────────────────────────────
 
 export const getAllCustomOrders = async (status?: string): Promise<CustomOrderResponse[]> => {
     const params = status ? { status } : {};
     const response = await api.get('custom-orders/admin/all', { params });
     return response.data;
+};
+
+export const getAdminPendingCustomOrdersCount = async (): Promise<number> => {
+    const response = await api.get('custom-orders/admin/pending-count');
+    return response.data.count;
 };
 
 export const approveCustomOrder = async (id: number, agreedPrice: number, adminNote?: string): Promise<CustomOrderResponse> => {

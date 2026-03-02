@@ -52,6 +52,12 @@ public class CustomOrder {
     @JoinColumn(name = "reference_product_id")
     private Product referenceProduct;
 
+    @Column(name = "customer_note", columnDefinition = "TEXT")
+    private String customerNote;
+
+    @Column(name = "payment_mode", length = 50)
+    private String paymentMode;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 

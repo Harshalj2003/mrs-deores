@@ -10,7 +10,10 @@ import OrderTimeline from '../components/OrderTimeline';
 const STATUS_COLORS: Record<CustomOrderStatus, string> = {
     REQUESTED: 'bg-blue-100 text-blue-700',
     QUOTED: 'bg-yellow-100 text-yellow-700',
+    NEGOTIATING: 'bg-orange-100 text-orange-700',
+    ACCEPTED_BY_CUSTOMER: 'bg-teal-100 text-teal-700',
     APPROVED: 'bg-green-100 text-green-700',
+    PAYMENT_PENDING: 'bg-amber-100 text-amber-700',
     PAID: 'bg-primary/10 text-primary',
     PROCESSING: 'bg-secondary/10 text-secondary',
     SHIPPED: 'bg-indigo-100 text-indigo-700',
@@ -212,6 +215,17 @@ const AdminCustomOrders: React.FC = () => {
                                                                     <p className="text-sm text-yellow-800">{order.adminNote}</p>
                                                                 </div>
                                                             )}
+                                                            {['NEGOTIATING', 'ACCEPTED_BY_CUSTOMER'].includes(order.status) && (order.customerNote || order.paymentMode) && (
+                                                                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                                                                    <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Customer Note / Negotiation</p>
+                                                                    {order.customerNote && <p className="text-sm text-blue-800 mb-2">{order.customerNote}</p>}
+                                                                    {order.paymentMode && (
+                                                                        <div className="pt-2 border-t border-blue-200 text-xs text-blue-900">
+                                                                            <span className="font-bold">Payment Pref:</span> {order.paymentMode}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                         </div>
 
                                                         {/* History Timeline */}
@@ -249,12 +263,28 @@ const AdminCustomOrders: React.FC = () => {
                                                 </button>
                                             </>
                                         )}
-                                        {order.status === 'QUOTED' && (
+                                        {['QUOTED', 'NEGOTIATING'].includes(order.status) && (
+                                            <>
+                                                <button
+                                                    onClick={() => openModal(order, 'approve')}
+                                                    className="px-4 py-2 bg-green-500 text-white rounded-xl text-xs font-bold hover:bg-green-600 transition-colors"
+                                                >
+                                                    Approve
+                                                </button>
+                                                <button
+                                                    onClick={() => openModal(order, 'quote')}
+                                                    className="px-4 py-2 bg-secondary text-white rounded-xl text-xs font-bold hover:bg-yellow-600 transition-colors"
+                                                >
+                                                    {order.status === 'NEGOTIATING' ? 'Re-Quote' : 'Edit Quote'}
+                                                </button>
+                                            </>
+                                        )}
+                                        {order.status === 'ACCEPTED_BY_CUSTOMER' && (
                                             <button
                                                 onClick={() => openModal(order, 'approve')}
-                                                className="px-4 py-2 bg-green-500 text-white rounded-xl text-xs font-bold hover:bg-green-600 transition-colors"
+                                                className="px-4 py-2 bg-green-500 text-white rounded-xl text-xs font-bold hover:bg-green-600 transition-colors shadow-md"
                                             >
-                                                Approve
+                                                Finalize Approval
                                             </button>
                                         )}
                                         {['PAID', 'PROCESSING', 'SHIPPED'].includes(order.status) && (

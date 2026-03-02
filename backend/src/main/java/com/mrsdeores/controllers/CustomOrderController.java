@@ -79,6 +79,46 @@ public class CustomOrderController {
         return ResponseEntity.ok(co);
     }
 
+    /**
+     * User: Negotiate a quote (reply to admin).
+     * Body: { "customerNote": "Can we do 500?" }
+     */
+    @PutMapping("/{id}/negotiate")
+    public ResponseEntity<?> negotiateRequest(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+        User user = getAuthenticatedUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(new MessageResponse("Not authenticated"));
+        }
+        try {
+            String customerNote = payload.getOrDefault("customerNote", "");
+            return ResponseEntity.ok(customOrderService.negotiateRequest(id, user, customerNote));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
+    /**
+     * User: Accept a quote and select payment preference.
+     * Body: { "paymentMode": "COD_50", "customerNote": "Proceeding with this!" }
+     */
+    @PutMapping("/{id}/accept")
+    public ResponseEntity<?> acceptRequest(@PathVariable("id") Long id, @RequestBody Map<String, String> payload) {
+        User user = getAuthenticatedUser();
+        if (user == null) {
+            return ResponseEntity.status(401).body(new MessageResponse("Not authenticated"));
+        }
+        try {
+            String paymentMode = payload.get("paymentMode");
+            if (paymentMode == null || paymentMode.isEmpty()) {
+                return ResponseEntity.badRequest().body(new MessageResponse("Payment mode is required"));
+            }
+            String customerNote = payload.getOrDefault("customerNote", "");
+            return ResponseEntity.ok(customOrderService.acceptRequest(id, user, paymentMode, customerNote));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new MessageResponse(e.getMessage()));
+        }
+    }
+
     // ─── Admin Endpoints ─────────────────────────────────────────
 
     /**
@@ -92,6 +132,19 @@ public class CustomOrderController {
             return ResponseEntity.ok(customOrderService.getRequestsByStatus(status));
         }
         return ResponseEntity.ok(customOrderService.getAllRequests());
+    }
+
+    /**
+     * Admin: Get count of pending custom requests for sidebar badge
+     */
+    @GetMapping("/admin/pending-count")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Long>> getPendingCount() {
+        long count = customOrderService
+                .getAllRequests().stream().filter(co -> "REQUESTED".equals(co.getStatus())
+                        || "NEGOTIATING".equals(co.getStatus()) || "ACCEPTED_BY_CUSTOMER".equals(co.getStatus()))
+                .count();
+        return ResponseEntity.ok(Map.of("count", count));
     }
 
     /**

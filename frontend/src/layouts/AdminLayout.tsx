@@ -48,8 +48,17 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     </div>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-4 md:p-8 md:pb-8 pb-32">
-                    {children}
+                {/* Desktop Top Right Header (Notifications) */}
+                <div className="hidden md:flex justify-end items-center px-8 py-4 sticky top-0 bg-transparent z-40 pointer-events-none">
+                    <div className="pointer-events-auto">
+                        <NotificationDropdown />
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4 md:px-8 md:pb-8 pb-32 -mt-10 md:-mt-16">
+                    <div className="pt-8 md:pt-4">
+                        {children}
+                    </div>
                 </div>
             </main>
         </div>
