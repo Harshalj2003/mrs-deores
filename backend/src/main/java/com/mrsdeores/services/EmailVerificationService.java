@@ -3,17 +3,12 @@ package com.mrsdeores.services;
 import com.mrsdeores.models.EmailVerificationOTP;
 import com.mrsdeores.repository.EmailVerificationOTPRepository;
 import com.mrsdeores.repository.UserRepository;
-import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -28,13 +23,7 @@ public class EmailVerificationService {
     private UserRepository userRepository;
 
     @Autowired
-    private JavaMailSender mailSender;
-
-    @Value("${spring.mail.from}")
-    private String senderEmail;
-
-    @Value("${app.frontend.url}")
-    private String frontendUrl;
+    private EmailService emailService;
 
     /**
      * Generates a 4-digit OTP and sends it to the user's email.
@@ -71,49 +60,9 @@ public class EmailVerificationService {
 
         otpRepository.save(otpEntity);
 
-        try {
-            sendOtpEmail(email, username, otp);
-            logger.info("Verification OTP sent to {}", email);
-        } catch (Exception e) {
-            logger.error("Failed to send verification email to {}: {}", email, e.getMessage());
-            throw new RuntimeException("Failed to send verification email. Please try again later.");
-        }
-    }
-
-    private void sendOtpEmail(String toEmail, String username, String otp) throws Exception {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
-        helper.setFrom(senderEmail);
-        helper.setTo(toEmail);
-        helper.setSubject("Verify your Mrs. Deore's account");
-
-        String htmlContent = String.format(
-                "<!DOCTYPE html><html><head><style>" +
-                        "body { font-family: 'Inter', sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb; }"
-                        +
-                        ".wrapper { background-color: #f9fafb; padding: 40px 20px; }" +
-                        ".container { max-width: 500px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; padding: 40px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; border: 1px solid #f1f5f9; }"
-                        +
-                        ".header { color: #f97316; font-size: 24px; font-weight: 800; margin-bottom: 20px; text-transform: uppercase; }"
-                        +
-                        ".otp-box { font-size: 36px; font-weight: 900; color: #ea580c; background-color: #fff7ed; padding: 20px; border-radius: 16px; margin: 30px 0; letter-spacing: 12px; border: 2px dashed #ffedd5; }"
-                        +
-                        ".footer { margin-top: 30px; font-size: 12px; color: #94a3b8; }" +
-                        "</style></head><body><div class='wrapper'><div class='container'>" +
-                        "<div class='header'>MRS. DEORE'S</div>" +
-                        "<h3>Hello %s,</h3>" +
-                        "<p>To complete your registration and unlock full access to our premium premixes, please use the 4-digit code below. This code is valid for <strong>15 minutes</strong>.</p>"
-                        +
-                        "<div class='otp-box'>%s</div>" +
-                        "<p style='font-size: 14px; color: #64748b;'>If you didn't create an account with us, you can safely ignore this email.</p>"
-                        +
-                        "<div class='footer'>&copy; 2026 Mrs. Deore's Premix Team<br/>Nashik, Maharashtra</div>" +
-                        "</div></div></body></html>",
-                username, otp);
-
-        helper.setText(htmlContent, true);
-        mailSender.send(message);
+        // Send OTP asynchronously
+        emailService.sendOtpEmail(email, username, otp);
+        logger.info("Verification OTP persistence complete for {}", email);
     }
 
     /**

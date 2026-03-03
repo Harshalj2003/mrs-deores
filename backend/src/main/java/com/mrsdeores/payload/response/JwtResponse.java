@@ -11,6 +11,7 @@ public class JwtResponse {
     private String username;
     private String email;
     private List<String> roles;
+    @com.fasterxml.jackson.annotation.JsonProperty("isEmailVerified")
     private boolean isEmailVerified;
 
     public JwtResponse(String accessToken, Long id, String username, String email, List<String> roles,

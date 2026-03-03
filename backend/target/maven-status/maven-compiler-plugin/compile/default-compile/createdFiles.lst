@@ -27,6 +27,7 @@ com\mrsdeores\models\Order.class
 com\mrsdeores\controllers\AuthController.class
 com\mrsdeores\security\services\UserDetailsImpl.class
 com\mrsdeores\controllers\AddressController.class
+com\mrsdeores\services\EmailService.class
 com\mrsdeores\repository\CategoryRepository.class
 com\mrsdeores\services\ProductService.class
 com\mrsdeores\services\AdminAuthService.class

@@ -43,6 +43,7 @@ public class User {
     private LocalDateTime lastLoginAt;
 
     @Column(name = "is_email_verified")
+    @com.fasterxml.jackson.annotation.JsonProperty("isEmailVerified")
     private Boolean isEmailVerified = false;
 
     public User(String username, String email, String password) {

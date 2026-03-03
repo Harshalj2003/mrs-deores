@@ -48,6 +48,7 @@ const Register: React.FC = () => {
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [showVerification, setShowVerification] = useState(false);
+    const [verificationSuccess, setVerificationSuccess] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,18 +252,32 @@ const Register: React.FC = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     className="text-center py-8 space-y-6"
                 >
-                    <div className="h-20 w-20 bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className={`h-20 w-20 ${verificationSuccess ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'} rounded-full flex items-center justify-center mx-auto mb-4`}>
                         <ShieldCheck className="h-10 w-10" />
                     </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white font-serif">Account Created!</h3>
+                    <h3 className="text-xl font-black text-gray-900 dark:text-white font-serif tracking-tight">
+                        {verificationSuccess ? "Account Verified!" : "Registration Complete!"}
+                    </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 px-8">
-                        Welcome! Your account for <span className="text-primary dark:text-primary-light font-bold">{formData.email}</span> is ready.
+                        {verificationSuccess
+                            ? `Welcome! Your account for ${formData.email} is now fully verified.`
+                            : `Almost there! Your account for ${formData.email} is created, but needs email verification.`}
                     </p>
-                    <Link to="/login"
-                        className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm hover:bg-accent transition-all shadow-lg shadow-primary/20"
-                    >
-                        GO TO LOGIN <ArrowRight className="h-4 w-4" />
-                    </Link>
+                    <div className="flex flex-col gap-3 px-8">
+                        {!verificationSuccess && (
+                            <button
+                                onClick={() => setShowVerification(true)}
+                                className="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm hover:bg-accent transition-all shadow-lg shadow-primary/20 transition-all duration-300"
+                            >
+                                VERIFY NOW <ArrowRight className="h-4 w-4" />
+                            </button>
+                        )}
+                        <Link to="/login"
+                            className={`inline-flex items-center justify-center gap-2 ${verificationSuccess ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white mb-2'} px-8 py-4 rounded-2xl font-black text-sm hover:opacity-90 transition-all`}
+                        >
+                            GO TO LOGIN <ArrowRight className="h-4 w-4" />
+                        </Link>
+                    </div>
                 </motion.div>
             )}
 
@@ -274,7 +289,9 @@ const Register: React.FC = () => {
                 }}
                 email={registeredEmail}
                 onSuccess={() => {
+                    setVerificationSuccess(true);
                     setSuccessful(true);
+                    setShowVerification(false);
                 }}
             />
         </div>

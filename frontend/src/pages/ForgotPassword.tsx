@@ -24,8 +24,13 @@ const ForgotPassword: React.FC = () => {
             await api.post('/auth/forgot-password', { email: email.trim() });
             setSent(true);
         } catch (err: any) {
-            // Even on error, show success to prevent email enumeration
-            setSent(true);
+            const resMessage = err.response?.data?.message || err.message;
+            if (err.response?.status === 429) {
+                setError(resMessage);
+            } else {
+                // For other errors (security/user non-existence), show success to prevent enumeration
+                setSent(true);
+            }
         } finally {
             setLoading(false);
         }
