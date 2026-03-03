@@ -8,6 +8,16 @@ import type { Product } from '../types/catalog.types';
 import type { CustomOrderResponse } from '../types/customOrder.types';
 import api from '../services/api';
 
+const PAYMENT_MODE_LABELS: Record<string, string> = {
+    'ONLINE': 'Full Payment Online',
+    'COD_50': '50% Downpayment (COD)',
+    'COD_100': '100% COD (Full)',
+    // Backwards compatibility for raw strings
+    'Full Payment Online': 'Full Payment Online',
+    '50% Downpayment (COD)': '50% Downpayment (COD)',
+    '100% COD': '100% COD (Full)'
+};
+
 const CustomOrderPage: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
@@ -455,7 +465,9 @@ const CustomOrderPage: React.FC = () => {
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">Your Reply</p>
                                             {order.customerNote && <p className="text-sm text-gray-800">{order.customerNote}</p>}
                                             {order.paymentMode && (
-                                                <p className="mt-2 text-xs font-bold text-primary">Preffered Payment: {order.paymentMode === 'COD_50' ? 'COD (50% Down Payment)' : 'Full Online Payment'}</p>
+                                                <p className="mt-2 text-xs font-bold text-primary">
+                                                    Preffered Payment: {PAYMENT_MODE_LABELS[order.paymentMode] || order.paymentMode}
+                                                </p>
                                             )}
                                         </div>
                                     )}
@@ -542,9 +554,9 @@ const CustomOrderPage: React.FC = () => {
                                     className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
                                 >
                                     <option value="">Select an option</option>
-                                    <option value="Full Payment Online">Full Payment Online</option>
-                                    <option value="50% Downpayment (COD)">50% Downpayment (COD)</option>
-                                    <option value="100% COD">100% COD</option>
+                                    <option value="ONLINE">Full Payment Online</option>
+                                    <option value="COD_50">50% Downpayment (COD)</option>
+                                    <option value="COD_100">100% COD (Full)</option>
                                 </select>
                             </div>
                             <div className="space-y-4 mb-6">

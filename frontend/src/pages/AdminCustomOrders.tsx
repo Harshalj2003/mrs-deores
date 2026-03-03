@@ -21,6 +21,16 @@ const STATUS_COLORS: Record<CustomOrderStatus, string> = {
     REJECTED: 'bg-red-100 text-red-700',
 };
 
+const PAYMENT_MODE_LABELS: Record<string, string> = {
+    'ONLINE': 'Full Payment Online',
+    'COD_50': '50% Downpayment (COD)',
+    'COD_100': '100% COD (Full)',
+    // Backwards compatibility for raw strings
+    'Full Payment Online': 'Full Payment Online',
+    '50% Downpayment (COD)': '50% Downpayment (COD)',
+    '100% COD': '100% COD (Full)'
+};
+
 const AdminCustomOrders: React.FC = () => {
     const [orders, setOrders] = useState<CustomOrderResponse[]>([]);
     const [loading, setLoading] = useState(true);
@@ -221,7 +231,7 @@ const AdminCustomOrders: React.FC = () => {
                                                                     {order.customerNote && <p className="text-sm text-blue-800 mb-2">{order.customerNote}</p>}
                                                                     {order.paymentMode && (
                                                                         <div className="pt-2 border-t border-blue-200 text-xs text-blue-900">
-                                                                            <span className="font-bold">Payment Pref:</span> {order.paymentMode}
+                                                                            <span className="font-bold">Payment Pref:</span> {PAYMENT_MODE_LABELS[order.paymentMode] || order.paymentMode}
                                                                         </div>
                                                                     )}
                                                                 </div>
