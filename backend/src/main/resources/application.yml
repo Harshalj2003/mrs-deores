@@ -34,13 +34,14 @@ spring:
           ssl:
             enable: ${MAIL_SSL_ENABLED:false}
             protocols: TLSv1.2
+            trust: smtp-relay.brevo.com
           socketFactory:
             port: ${MAIL_PORT:587}
             class: ${MAIL_SOCKET_FACTORY:javax.net.SocketFactory}
             fallback: false
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
 
 server:
   port: ${PORT:8080}
