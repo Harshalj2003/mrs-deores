@@ -27,6 +27,12 @@ public class EmailVerificationOTP {
     @Column(name = "attempts_count")
     private Integer attemptsCount = 0;
 
+    @Column(name = "resend_count")
+    private Integer resendCount = 1;
+
+    @Column(name = "last_resend_at")
+    private LocalDateTime lastResendAt = LocalDateTime.now();
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 

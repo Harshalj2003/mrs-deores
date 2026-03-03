@@ -9,7 +9,7 @@ import { CreditCard, CheckCircle, ChevronRight, Lock, MapPin, CreditCard as Card
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from "clsx";
 import EmailVerificationModal from '../components/EmailVerificationModal';
-import { ShieldCheck, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 
 interface AppliedCoupon {
     code: string;

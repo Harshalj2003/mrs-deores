@@ -537,21 +537,16 @@ public class AuthController {
             return ResponseEntity.badRequest().body(new MessageResponse("Email is required."));
         }
 
-        // Rate limit for OTP resend (using generic rate limit cache)
-        String limitKey = "OTP:" + email + ":" + getClientIp(request);
-        var lastRequest = rateLimitCache.get(limitKey);
-        if (lastRequest != null && lastRequest.isAfter(java.time.LocalDateTime.now().minusMinutes(2))) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body(new MessageResponse("Please wait 2 minutes before requesting another OTP."));
-        }
-
         return userRepository.findByEmailIgnoreCase(email)
                 .map(user -> {
                     try {
                         emailVerificationService.sendVerificationOTP(user.getEmail(), user.getUsername());
-                        rateLimitCache.put(limitKey, java.time.LocalDateTime.now());
                         return ResponseEntity.ok(new MessageResponse("A new OTP has been sent to your email."));
-                    } catch (Exception e) {
+                    } catch (RuntimeException e) {
+                        if (e.getMessage().contains("Too many OTP requests")) {
+                            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                                    .body(new MessageResponse(e.getMessage()));
+                        }
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                                 .body(new MessageResponse("Failed to send OTP. Please try again later."));
                     }

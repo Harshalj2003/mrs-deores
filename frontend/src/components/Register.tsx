@@ -83,7 +83,7 @@ const Register: React.FC = () => {
             username: formData.username.trim(),
             email: formData.email.trim(),
         }).then(
-            (response) => {
+            () => {
                 setRegisteredEmail(formData.email.trim());
                 setLoading(false);
                 setShowVerification(true);
