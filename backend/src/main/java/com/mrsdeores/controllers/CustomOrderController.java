@@ -141,8 +141,9 @@ public class CustomOrderController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Long>> getPendingCount() {
         long count = customOrderService
-                .getAllRequests().stream().filter(co -> "REQUESTED".equals(co.getStatus())
-                        || "NEGOTIATING".equals(co.getStatus()) || "ACCEPTED_BY_CUSTOMER".equals(co.getStatus()))
+                .getAllRequests().stream()
+                .filter(co -> "REQUESTED".equals(co.getStatus()) || "NEGOTIATING".equals(co.getStatus())
+                        || "ACCEPTED_BY_CUSTOMER".equals(co.getStatus()) || "PAYMENT_PENDING".equals(co.getStatus()))
                 .count();
         return ResponseEntity.ok(Map.of("count", count));
     }

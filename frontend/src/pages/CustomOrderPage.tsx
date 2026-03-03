@@ -432,6 +432,16 @@ const CustomOrderPage: React.FC = () => {
                                                     </button>
                                                 </div>
                                             )}
+                                            {order.status === 'APPROVED' && (
+                                                <div className="flex gap-2 shrink-0 mt-3 md:mt-1">
+                                                    <button
+                                                        onClick={() => setAcceptModal({ id: order.id, note: '', paymentMode: '' })}
+                                                        className="px-4 py-2 bg-green-500 text-white rounded-xl text-xs font-bold hover:bg-green-600 transition-colors shadow-lg shadow-green-500/20"
+                                                    >
+                                                        Proceed to Payment
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {order.adminNote && (
@@ -440,12 +450,12 @@ const CustomOrderPage: React.FC = () => {
                                             <p className="text-sm text-yellow-800">{order.adminNote}</p>
                                         </div>
                                     )}
-                                    {order.customerNote && ['NEGOTIATING', 'ACCEPTED_BY_CUSTOMER'].includes(order.status) && (
+                                    {(order.customerNote || order.paymentMode) && ['NEGOTIATING', 'ACCEPTED_BY_CUSTOMER', 'PAYMENT_PENDING', 'APPROVED'].includes(order.status) && (
                                         <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                                             <p className="text-[10px] font-bold uppercase tracking-widest text-gray-600 mb-1">Your Reply</p>
-                                            <p className="text-sm text-gray-800">{order.customerNote}</p>
+                                            {order.customerNote && <p className="text-sm text-gray-800">{order.customerNote}</p>}
                                             {order.paymentMode && (
-                                                <p className="mt-2 text-xs font-bold text-primary">Preffered Payment: {order.paymentMode}</p>
+                                                <p className="mt-2 text-xs font-bold text-primary">Preffered Payment: {order.paymentMode === 'COD_50' ? 'COD (50% Down Payment)' : 'Full Online Payment'}</p>
                                             )}
                                         </div>
                                     )}

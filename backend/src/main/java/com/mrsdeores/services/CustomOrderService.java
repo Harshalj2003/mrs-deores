@@ -176,7 +176,13 @@ public class CustomOrderService {
             throw new RuntimeException("Not authorized");
         }
 
-        co.setStatus("ACCEPTED_BY_CUSTOMER");
+        boolean wasApproved = "APPROVED".equals(co.getStatus());
+        if (wasApproved) {
+            co.setStatus("PAYMENT_PENDING");
+        } else {
+            co.setStatus("ACCEPTED_BY_CUSTOMER");
+        }
+
         co.setPaymentMode(paymentMode);
         if (customerNote != null && !customerNote.trim().isEmpty()) {
             co.setCustomerNote(customerNote);
@@ -186,9 +192,16 @@ public class CustomOrderService {
         // Notify Admins
         List<User> admins = userRepository.findByRoleName(ERole.ROLE_ADMIN);
         for (User admin : admins) {
-            createNotification("Custom Request Accepted!",
-                    user.getUsername() + " accepted the quote for " + saved.getItemName() + " (" + paymentMode + ")",
-                    "SUCCESS", admin);
+            if (wasApproved) {
+                createNotification("Payment Preference Selected",
+                        user.getUsername() + " selected payment mode (" + paymentMode + ") for " + saved.getItemName(),
+                        "INFO", admin);
+            } else {
+                createNotification("Custom Request Accepted!",
+                        user.getUsername() + " accepted the quote for " + saved.getItemName() + " (" + paymentMode
+                                + ")",
+                        "SUCCESS", admin);
+            }
         }
 
         return saved;

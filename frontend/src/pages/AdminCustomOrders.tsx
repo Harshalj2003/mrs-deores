@@ -215,7 +215,7 @@ const AdminCustomOrders: React.FC = () => {
                                                                     <p className="text-sm text-yellow-800">{order.adminNote}</p>
                                                                 </div>
                                                             )}
-                                                            {['NEGOTIATING', 'ACCEPTED_BY_CUSTOMER'].includes(order.status) && (order.customerNote || order.paymentMode) && (
+                                                            {(order.customerNote || order.paymentMode) && (
                                                                 <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
                                                                     <p className="text-[10px] font-bold text-blue-600 uppercase mb-1">Customer Note / Negotiation</p>
                                                                     {order.customerNote && <p className="text-sm text-blue-800 mb-2">{order.customerNote}</p>}
@@ -287,7 +287,7 @@ const AdminCustomOrders: React.FC = () => {
                                                 Finalize Approval
                                             </button>
                                         )}
-                                        {['PAID', 'PROCESSING', 'SHIPPED'].includes(order.status) && (
+                                        {['PAYMENT_PENDING', 'PAID', 'PROCESSING', 'SHIPPED'].includes(order.status) && (
                                             <button
                                                 onClick={() => openModal(order, 'status')}
                                                 className="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold hover:bg-accent transition-colors"
@@ -352,6 +352,7 @@ const AdminCustomOrders: React.FC = () => {
                                             className="w-full bg-gray-50 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
                                         >
                                             <option value="">Select status</option>
+                                            <option value="PAID">Paid</option>
                                             <option value="PROCESSING">Processing</option>
                                             <option value="SHIPPED">Shipped</option>
                                             <option value="DELIVERED">Delivered</option>
