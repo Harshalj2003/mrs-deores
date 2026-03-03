@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { Mail, ArrowRight, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
+import AuthService from '../services/auth.service';
 
 const ForgotPassword: React.FC = () => {
-    const [email, setEmail] = useState('');
+    const currentUser = AuthService.getCurrentUser();
+    const [email, setEmail] = useState(currentUser?.email || '');
     const [loading, setLoading] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState('');
@@ -38,15 +40,15 @@ const ForgotPassword: React.FC = () => {
                     className="bg-white dark:bg-neutral-800 rounded-3xl shadow-xl border border-gray-100 dark:border-neutral-700 overflow-hidden"
                 >
                     {/* Header */}
-                    <div className="p-8 pb-0 text-center">
-                        <div className="h-16 w-16 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                            <Mail className="h-8 w-8 text-primary dark:text-primary-light" />
+                    <div className="p-7 pb-0 text-center">
+                        <div className="h-14 w-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-4 scale-95">
+                            <Mail className="h-7 w-7 text-primary dark:text-primary-light" />
                         </div>
-                        <h1 className="text-2xl font-black text-gray-900 dark:text-white font-serif">Forgot Password?</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">No worries! Enter your email and we'll send you a reset link.</p>
+                        <h1 className="text-xl font-black text-gray-900 dark:text-white font-serif tracking-tight">Forgot Password?</h1>
+                        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-2 leading-relaxed px-4">Enter your email and we'll send a secure reset link.</p>
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-7">
                         <AnimatePresence mode="wait">
                             {!sent ? (
                                 <motion.form
@@ -91,26 +93,26 @@ const ForgotPassword: React.FC = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="text-center space-y-4"
                                 >
-                                    <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto">
-                                        <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+                                    <div className="h-14 w-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto scale-90">
+                                        <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div>
                                         <p className="font-bold text-gray-900 dark:text-white">Check your inbox!</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                            If <span className="font-bold text-primary dark:text-primary-light">{email}</span> is registered, you'll receive a reset link within a few minutes.
+                                        <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                                            If <span className="font-bold text-primary dark:text-primary-light">{email}</span> is registered, you'll receive a link shortly.
                                         </p>
                                     </div>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500">Didn't get it? Check spam, or try again in 5 minutes.</p>
+                                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">Didn't get it? Check spam, or try later.</p>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
                         <div className="mt-6 text-center">
                             <Link
-                                to="/login"
+                                to={currentUser ? "/" : "/login"}
                                 className="inline-flex items-center gap-2 text-xs font-black text-primary dark:text-primary-light uppercase tracking-widest hover:text-accent dark:hover:text-accent-light transition-colors"
                             >
-                                <ArrowLeft className="h-3 w-3" /> Back to Login
+                                <ArrowLeft className="h-3 w-3" /> {currentUser ? "Back to Home" : "Back to Login"}
                             </Link>
                         </div>
                     </div>

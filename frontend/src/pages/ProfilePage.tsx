@@ -1,10 +1,11 @@
 ﻿import React, { useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
-import { User as UserIcon, MapPin, Settings as SettingsIcon, Shield, LogOut } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { User as UserIcon, MapPin, Settings as SettingsIcon, Shield, LogOut, Lock, ArrowRight, Mail } from 'lucide-react';
 import type { User } from '../types/auth.types';
 import AuthService from '../services/auth.service';
 import AddressBook from '../components/AddressBook';
 import { motion, AnimatePresence } from 'framer-motion';
+// import api from '../services/api'; // removed unused import
 
 const ProfilePage: React.FC = () => {
     const user: User | null = AuthService.getCurrentUser();
@@ -41,8 +42,8 @@ const ProfilePage: React.FC = () => {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold transition-colors text-left ${activeTab === tab.id
-                                                ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                                                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-700/50'
+                                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-neutral-700/50'
                                             }`}
                                     >
                                         <tab.icon className="h-5 w-5 flex-shrink-0" />
@@ -88,11 +89,46 @@ const ProfilePage: React.FC = () => {
                                 )}
 
                                 {activeTab === 'security' && (
-                                    <div className="bg-white dark:bg-neutral-800 rounded-[2rem] border border-gray-100 dark:border-neutral-700 p-8 shadow-sm flex flex-col items-center justify-center text-center h-[50vh]">
-                                        <Shield className="h-16 w-16 text-gray-300 dark:text-neutral-700 mb-4" />
-                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif mb-2">Password Configuration</h3>
-                                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">Update your password or configure two-factor authentication.</p>
-                                        <Link to="/forgot-password" className="text-primary hover:text-accent font-bold underline underline-offset-4">Reset Password Now</Link>
+                                    <div className="bg-white dark:bg-neutral-800 rounded-[2rem] border border-gray-100 dark:border-neutral-700 p-8 shadow-sm">
+                                        <div className="max-w-md mx-auto py-10">
+                                            <div className="text-center mb-8">
+                                                <div className="h-20 w-20 bg-primary/10 text-primary rounded-[2rem] flex items-center justify-center mx-auto mb-6 transform rotate-3 shadow-lg shadow-primary/5">
+                                                    <Lock className="h-10 w-10" />
+                                                </div>
+                                                <h3 className="text-3xl font-black text-gray-900 dark:text-white font-serif tracking-tight">Account Protection</h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 leading-relaxed">
+                                                    For your privacy and security, password changes require a secure link sent to your registered email address.
+                                                </p>
+                                            </div>
+
+                                            <div className="bg-neutral-light dark:bg-neutral-900/50 rounded-3xl p-6 mb-8 border border-gray-100 dark:border-neutral-700/50">
+                                                <div className="flex items-start gap-4">
+                                                    <div className="h-10 w-10 rounded-xl bg-white dark:bg-neutral-800 shadow-sm flex items-center justify-center flex-shrink-0">
+                                                        <Mail className="h-5 w-5 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 mb-1">Registered Email</p>
+                                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{user.email}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => {
+                                                    // Navigate to forgot-password without logging out immediately
+                                                    // We use window.location.href to ensure a clean refresh of the auth context
+                                                    window.location.href = '/forgot-password';
+                                                }}
+                                                id="reset-btn"
+                                                className="group flex w-full items-center justify-center gap-3 rounded-2xl bg-primary py-5 text-sm font-black text-white hover:bg-accent transition-all shadow-xl shadow-primary/20 hover:shadow-accent/40 hover:-translate-y-0.5 active:translate-y-0"
+                                            >
+                                                SECURE PASSWORD RESET <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                            </button>
+
+                                            <p className="text-center text-[10px] text-gray-400 dark:text-gray-500 mt-8 font-medium leading-loose uppercase tracking-[0.2em]">
+                                                Redirecting to Login after successful request
+                                            </p>
+                                        </div>
                                     </div>
                                 )}
                             </motion.div>

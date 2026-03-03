@@ -77,63 +77,66 @@ const App: React.FC = () => {
     duration: 0.4
   } as const;
 
-  // Dynamic Layout Selection
-  const getLayout = (pathname: string) => {
-    if (pathname.startsWith('/admin')) {
-      return AdminLayout;
-    }
-    if (['/login', '/register'].includes(pathname)) return AuthLayout;
-    if (pathname === '/checkout') return CheckoutLayout;
-    return MainLayout;
-  };
-
-  const Layout = getLayout(location.pathname);
-
   return (
     <>
       <ScrollToTop />
-      <Layout currentUser={currentUser} logOut={logOut}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            initial="initial"
-            animate="in"
-            exit="out"
-            variants={pageVariants}
-            transition={pageTransition}
-          >
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<Home />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/category/:categoryId" element={<ProductList />} />
-              <Route path="/product/:id" element={<ProductDetail currentUser={currentUser} />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/checkout" element={<CheckoutPage />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/custom-order" element={<CustomOrderPage />} />
-
-              {/* Admin Routes — Protected */}
-              <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-              <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
-              <Route path="/admin/categories" element={<ProtectedAdminRoute><AdminCategories /></ProtectedAdminRoute>} />
-              <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
-              <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
-              <Route path="/admin/notifications" element={<ProtectedAdminRoute><AdminNotificationsPage /></ProtectedAdminRoute>} />
-              <Route path="/admin/team" element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
-              <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/privacy" element={<Policies />} />
-              <Route path="/terms" element={<Policies />} />
-              <Route path="/shipping" element={<Policies />} />
-            </Routes>
-          </motion.div>
-        </AnimatePresence>
-      </Layout>
+      {location.pathname.startsWith('/admin') ? (
+        <AdminLayout currentUser={currentUser}>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+            <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
+            <Route path="/admin/categories" element={<ProtectedAdminRoute><AdminCategories /></ProtectedAdminRoute>} />
+            <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
+            <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
+            <Route path="/admin/notifications" element={<ProtectedAdminRoute><AdminNotificationsPage /></ProtectedAdminRoute>} />
+            <Route path="/admin/team" element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
+            <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
+          </Routes>
+        </AdminLayout>
+      ) : ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname) ? (
+        <AuthLayout>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+          </Routes>
+        </AuthLayout>
+      ) : location.pathname === '/checkout' ? (
+        <CheckoutLayout>
+          <Routes location={location} key={location.pathname}>
+            <Route path="/checkout" element={<CheckoutPage />} />
+          </Routes>
+        </CheckoutLayout>
+      ) : (
+        <MainLayout currentUser={currentUser} logOut={logOut}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial="initial"
+              animate="in"
+              exit="out"
+              variants={pageVariants}
+              transition={pageTransition}
+            >
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<Home />} />
+                <Route path="/home" element={<Home />} />
+                <Route path="/category/:categoryId" element={<ProductList />} />
+                <Route path="/product/:id" element={<ProductDetail currentUser={currentUser} />} />
+                <Route path="/wishlist" element={<Wishlist />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/custom-order" element={<CustomOrderPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/privacy" element={<Policies />} />
+                <Route path="/terms" element={<Policies />} />
+                <Route path="/shipping" element={<Policies />} />
+              </Routes>
+            </motion.div>
+          </AnimatePresence>
+        </MainLayout>
+      )}
     </>
   );
 };

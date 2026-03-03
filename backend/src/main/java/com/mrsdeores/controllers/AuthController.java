@@ -39,8 +39,12 @@ import com.mrsdeores.repository.AdminInvitationRepository;
 import com.mrsdeores.security.jwt.JwtUtils;
 import com.mrsdeores.security.services.UserDetailsImpl;
 import com.mrsdeores.services.AdminAuthService;
+import jakarta.mail.internet.MimeMessage;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import com.mrsdeores.models.AdminInvitation;
+import java.util.concurrent.ConcurrentHashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -79,8 +83,10 @@ public class AuthController {
     @Autowired
     private JavaMailSender mailSender;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.from}")
     private String senderEmail;
+
+    private static final ConcurrentHashMap<String, java.time.LocalDateTime> rateLimitCache = new ConcurrentHashMap<>();
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -293,44 +299,150 @@ public class AuthController {
      */
     @PostMapping("/forgot-password")
     @org.springframework.transaction.annotation.Transactional
-    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> body) {
+    public ResponseEntity<?> forgotPassword(@RequestBody java.util.Map<String, String> body,
+            HttpServletRequest request) {
         String email = body.getOrDefault("email", "").trim();
-        logger.info("Password reset requested for email: {}", email);
-        try {
-            userRepository.findByEmail(email).ifPresentOrElse(user -> {
-                logger.info("User found for email: {}. Proceeding to send email.", email);
-                // Remove old tokens for this user
-                passwordResetTokenRepository.deleteByUser(user);
-                // Generate new token
-                String token = java.util.UUID.randomUUID().toString();
-                PasswordResetToken resetToken = new PasswordResetToken(token, user);
-                passwordResetTokenRepository.save(resetToken);
-                // Send email
-                String resetLink = frontendUrl + "/reset-password?token=" + token;
-                logger.info("Sending reset email from: {} to: {}", senderEmail, user.getEmail());
+        String clientIp = getClientIp(request);
+        String limitKey = clientIp + ":" + email;
 
-                SimpleMailMessage message = new SimpleMailMessage();
-                message.setFrom(senderEmail);
-                message.setTo(user.getEmail());
-                message.setSubject("Reset your Mrs. Deore's password");
-                message.setText(
-                        "Hello " + user.getUsername() + ",\n\n" +
-                                "You requested to reset your password. Click the link below (valid for 15 minutes):\n\n"
-                                +
-                                resetLink + "\n\n" +
-                                "If you did not request this, please ignore this email.\n\n" +
-                                "— Mrs. Deore's Premix Team");
-
-                mailSender.send(message);
-                logger.info("Successfully sent reset email to: {}", user.getEmail());
-            }, () -> {
-                logger.warn("Password reset attempted for non-existent email: {}", email);
-            });
-        } catch (Exception e) {
-            // Log but don't expose error to client
-            logger.error("Forgot password error for email {}: ", email, e);
+        // Rate limit: 5 minutes between requests
+        var lastRequest = rateLimitCache.get(limitKey);
+        if (lastRequest != null && lastRequest.isAfter(java.time.LocalDateTime.now().minusMinutes(5))) {
+            long remainingSecs = java.time.Duration.between(java.time.LocalDateTime.now().minusMinutes(5), lastRequest)
+                    .toSeconds();
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new MessageResponse("Please wait " + (remainingSecs / 60 + 1)
+                            + " minutes before requesting another reset link."));
         }
+
+        rateLimitCache.put(limitKey, java.time.LocalDateTime.now());
+        logger.info("Password reset requested for email: {}", email);
+
+        try {
+            // Priority 1: Check Admins
+            var adminOpt = adminInvitationRepository.findByEmailIgnoreCase(email);
+            if (adminOpt.isPresent()) {
+                AdminInvitation admin = adminOpt.get();
+                logger.info("Admin found for password reset: {}", email);
+
+                // Clear old tokens for this admin
+                passwordResetTokenRepository.deleteByAdminInvitation(admin);
+                passwordResetTokenRepository.flush();
+
+                String token = java.util.UUID.randomUUID().toString();
+                passwordResetTokenRepository.save(new PasswordResetToken(token, admin));
+
+                sendHtmlResetEmail(admin.getEmail(), admin.getUsername(), token, true);
+            } else {
+                // Priority 2: Check standard users
+                var userOpt = userRepository.findByEmailIgnoreCase(email);
+                if (userOpt.isPresent()) {
+                    User user = userOpt.get();
+                    logger.info("User found for password reset: {}", email);
+
+                    passwordResetTokenRepository.deleteByUser(user);
+                    passwordResetTokenRepository.flush();
+
+                    String token = java.util.UUID.randomUUID().toString();
+                    passwordResetTokenRepository.save(new PasswordResetToken(token, user));
+
+                    sendHtmlResetEmail(user.getEmail(), user.getUsername(), token, false);
+                } else {
+                    logger.warn("Password reset attempted for non-existent email: {}", email);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Forgot password processing failed for {}: {}", email, e.getMessage(), e);
+        }
+
         return ResponseEntity.ok(new MessageResponse("If this email is registered, a reset link has been sent."));
+    }
+
+    private void sendHtmlResetEmail(String toEmail, String username, String token, boolean isAdmin) {
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(senderEmail);
+            helper.setTo(toEmail);
+
+            String subject = isAdmin ? "[Admin] Reset your Mrs. Deore's password" : "Reset your Mrs. Deore's password";
+            helper.setSubject(subject);
+
+            String buttonLabel = isAdmin ? "Secure Admin Reset" : "Secure Reset";
+
+            String htmlContent = String.format(
+                    "<!DOCTYPE html>" +
+                            "<html><head><style>" +
+                            "body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb; }"
+                            +
+                            ".wrapper { background-color: #f9fafb; padding: 40px 20px; }" +
+                            ".container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; }"
+                            +
+                            ".header { background: linear-gradient(135deg, #f97316 0%%, #ea580c 100%%); padding: 40px 20px; text-align: center; color: #ffffff; }"
+                            +
+                            ".header h1 { margin: 0; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }"
+                            +
+                            ".body { padding: 40px; }" +
+                            ".welcome { font-size: 18px; font-weight: 700; color: #111827; margin-top: 0; }" +
+                            ".button-container { text-align: center; margin: 35px 0; }" +
+                            ".button { display: inline-block; padding: 16px 32px; background: linear-gradient(135deg, #f97316 0%%, #ea580c 100%%); "
+                            +
+                            "color: #ffffff !important; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.3); transition: all 0.2s; }"
+                            +
+                            ".fallback { font-size: 13px; color: #6b7280; background-color: #f8fafc; padding: 15px; border-radius: 12px; border: 1px dashed #e2e8f0; word-break: break-all; }"
+                            +
+                            ".admin-alert { border-left: 4px solid #ef4444; background-color: #fef2f2; padding: 15px; border-radius: 8px; margin: 25px 0; }"
+                            +
+                            ".about-section { background-color: #fffaf0; padding: 25px; margin: 20px -40px -40px -40px; border-top: 1px solid #ffedd5; }"
+                            +
+                            ".about-title { font-weight: 800; color: #9a3412; font-size: 13px; text-transform: uppercase; margin-bottom: 8px; display: block; }"
+                            +
+                            ".about-text { font-size: 13px; color: #7c2d12; margin: 0; line-height: 1.5; }" +
+                            ".footer { padding: 40px 20px; text-align: center; font-size: 12px; color: #94a3b8; }" +
+                            "</style></head>" +
+                            "<body><div class='wrapper'><div class='container'>" +
+                            "<div class='header'><h1>Mrs. Deore's</h1></div>" +
+                            "<div class='body'>" +
+                            "<p class='welcome'>Hello %s,</p>" +
+                            "<p>We received a secure request to reset your password. To proceed, please click the button below. This link remains active for <strong>15 minutes</strong> for your safety.</p>"
+                            +
+                            "<div class='button-container'><a href='%s' class='button'>%s</a></div>" +
+                            "%s" + // adminNote slot
+                            "<p style='margin-bottom: 10px;'>If you're having trouble with the button, copy and paste this link into your browser:</p>"
+                            +
+                            "<div class='fallback'>%s</div>" +
+                            "<p style='margin-top: 25px; font-size: 14px; color: #64748b;'>If you did not request this, you can safely disregard this message. Your password will remain unchanged.</p>"
+                            +
+                            "<div class='about-section'>" +
+                            "<span class='about-title'>About Mrs. Deore's</span>" +
+                            "<p class='about-text'>From humble beginnings to your kitchen, Mrs. Deore's is dedicated to simplifying quality baking. We provide premium, authentic premixes that bring professional results to every home baker, anywhere in India.</p>"
+                            +
+                            "</div>" +
+                            "</div></div>" +
+                            "<div class='footer'>" +
+                            "&copy; 2026 Mrs. Deore's Premix Team<br/>Empowering bakers. Ensuring quality. <br/> " +
+                            "Nashik, Maharashtra, India" +
+                            "</div></div></body></html>",
+                    username, resetLink, buttonLabel, (isAdmin
+                            ? "<div class='admin-alert'><p style='color: #ef4444; font-size: 14px; margin: 0;'><strong>Security Isolation:</strong> This is an Administrative reset link. It works strictly for your authorized admin credentials.</p></div>"
+                            : ""),
+                    resetLink);
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            logger.info("HTML reset email dispatched to {} (isAdmin={})", toEmail, isAdmin);
+        } catch (Exception e) {
+            logger.error("Failed to send HTML reset email to {}: {}", toEmail, e.getMessage());
+            // Fallback to simple mail if HTML fails
+            SimpleMailMessage simpleMessage = new SimpleMailMessage();
+            simpleMessage.setFrom(senderEmail);
+            simpleMessage.setTo(toEmail);
+            simpleMessage.setSubject(
+                    isAdmin ? "[Admin] Reset your Mrs. Deore's password" : "Reset your Mrs. Deore's password");
+            simpleMessage.setText("Hello " + username + ",\n\nReset link: " + resetLink);
+            mailSender.send(simpleMessage);
+        }
     }
 
     /**
@@ -352,9 +464,22 @@ public class AuthController {
                     .body(new MessageResponse("This reset link is invalid or has expired. Please request a new one."));
         }
 
-        User user = resetToken.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        if (resetToken.getAdminInvitation() != null) {
+            AdminInvitation admin = resetToken.getAdminInvitation();
+            admin.setPassword(passwordEncoder.encode(newPassword));
+            adminInvitationRepository.save(admin);
+            logger.info("Admin password reset successfully for: {}", admin.getEmail());
+        } else if (resetToken.getUser() != null) {
+            User user = resetToken.getUser();
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            logger.info("User password reset successfully for: {}", user.getEmail());
+        } else {
+            logger.error("Token {} has no associated identity!", token);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new MessageResponse("An internal error occurred. Please contact support."));
+        }
+
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
 

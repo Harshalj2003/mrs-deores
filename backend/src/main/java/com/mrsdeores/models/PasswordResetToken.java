@@ -20,8 +20,12 @@ public class PasswordResetToken {
     private String token;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_invitation_id", nullable = true)
+    private AdminInvitation adminInvitation;
 
     @Column(name = "expiry_date", nullable = false)
     private LocalDateTime expiryDate;
@@ -32,6 +36,14 @@ public class PasswordResetToken {
     public PasswordResetToken(String token, User user) {
         this.token = token;
         this.user = user;
+        this.adminInvitation = null;
+        this.expiryDate = LocalDateTime.now().plusMinutes(15);
+    }
+
+    public PasswordResetToken(String token, AdminInvitation adminInvitation) {
+        this.token = token;
+        this.user = null;
+        this.adminInvitation = adminInvitation;
         this.expiryDate = LocalDateTime.now().plusMinutes(15);
     }
 
