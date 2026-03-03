@@ -4,6 +4,7 @@ export interface User {
     email: string;
     roles: string[];
     token: string;
+    isEmailVerified?: boolean;
 }
 
 export interface LoginRequest {

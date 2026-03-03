@@ -5,6 +5,7 @@ import AuthService from "../services/auth.service";
 import AuthTabs from "./AuthTabs";
 import { motion, AnimatePresence } from "framer-motion";
 import { Phone, Mail, Lock, Smartphone, ArrowRight, RefreshCw, User, KeyRound, ShieldAlert, Eye, EyeOff } from "lucide-react";
+import EmailVerificationModal from "./EmailVerificationModal";
 
 const Login: React.FC = () => {
     const [loginMode, setLoginMode] = useState<'email' | 'otp'>('email');
@@ -33,6 +34,8 @@ const Login: React.FC = () => {
     const [touchedPass, setTouchedPass] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showVerification, setShowVerification] = useState(false);
+    const [userToVerify, setUserToVerify] = useState<{ email: string } | null>(null);
 
 
     const navigate = useNavigate();
@@ -48,7 +51,13 @@ const Login: React.FC = () => {
                 password,
                 isAdmin: activeTab === 'admin'
             }).then(
-                () => {
+                (data) => {
+                    if (activeTab === 'user' && !data.isEmailVerified) {
+                        setUserToVerify({ email: data.email });
+                        setShowVerification(true);
+                        setLoading(false);
+                        return;
+                    }
                     navigate(activeTab === 'admin' ? "/admin" : "/");
                     window.location.reload();
                 },
@@ -427,6 +436,18 @@ const Login: React.FC = () => {
                         Join Tradition
                     </Link>
                 </p>
+            )}
+
+            {userToVerify && (
+                <EmailVerificationModal
+                    isOpen={showVerification}
+                    onClose={() => setShowVerification(false)}
+                    email={userToVerify.email}
+                    onSuccess={() => {
+                        navigate("/");
+                        window.location.reload();
+                    }}
+                />
             )}
         </div>
     );

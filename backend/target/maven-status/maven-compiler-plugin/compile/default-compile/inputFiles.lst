@@ -33,6 +33,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Category.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Coupon.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\CustomOrder.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\EmailVerificationOTP.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\ERole.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\Notification.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\models\NotificationRead.java
@@ -63,6 +64,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CategoryRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CouponRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\CustomOrderRepository.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\EmailVerificationOTPRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\NotificationReadRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\NotificationRepository.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\repository\OrderRepository.java
@@ -88,6 +90,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CloudinaryService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CouponService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\CustomOrderService.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\EmailVerificationService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\OrderService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\ProductService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\RazorpayService.java

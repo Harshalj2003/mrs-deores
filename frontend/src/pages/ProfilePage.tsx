@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { User as UserIcon, MapPin, Settings as SettingsIcon, Shield, LogOut, Lock, ArrowRight, Mail } from 'lucide-react';
+import { User as UserIcon, MapPin, Settings as SettingsIcon, Shield, LogOut, Lock, ArrowRight, Mail, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
 import type { User } from '../types/auth.types';
 import AuthService from '../services/auth.service';
 import AddressBook from '../components/AddressBook';
@@ -27,8 +27,28 @@ const ProfilePage: React.FC = () => {
                                     {user.username.charAt(0).toUpperCase()}
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-gray-900 dark:text-white font-serif leading-none">{user.username}</h2>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{user.email}</p>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className="text-xl font-black text-gray-900 dark:text-white font-serif leading-none">{user.username}</h2>
+                                        {user.roles.includes('ROLE_ADMIN') && (
+                                            <span className="bg-accent/10 text-accent text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex items-center gap-1 border border-accent/20">
+                                                <Crown className="h-2 w-2" /> Admin
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1.5">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                                        {!user.roles.includes('ROLE_ADMIN') && (
+                                            user.isEmailVerified ? (
+                                                <span className="text-[10px] font-bold text-green-500 flex items-center gap-0.5">
+                                                    <CheckCircle2 className="h-3 w-3" /> Verified
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] font-bold text-amber-500 flex items-center gap-0.5 animate-pulse">
+                                                    <AlertCircle className="h-3 w-3" /> Action Required
+                                                </span>
+                                            )
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 

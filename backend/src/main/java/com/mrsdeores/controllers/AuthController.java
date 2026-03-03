@@ -77,6 +77,9 @@ public class AuthController {
     @Autowired
     PasswordResetTokenRepository passwordResetTokenRepository;
 
+    @Autowired
+    private com.mrsdeores.services.EmailVerificationService emailVerificationService;
+
     @org.springframework.beans.factory.annotation.Value("${app.frontend.url}")
     private String frontendUrl;
 
@@ -133,6 +136,16 @@ public class AuthController {
                 userRepository.findById(userDetails.getId()).ifPresent(user -> {
                     user.setLastLoginAt(java.time.LocalDateTime.now());
                     userRepository.save(user);
+
+                    // If not verified, trigger OTP resend
+                    if (!userDetails.isVerified()) {
+                        try {
+                            emailVerificationService.sendVerificationOTP(user.getEmail(), user.getUsername());
+                        } catch (Exception e) {
+                            logger.warn("Verification OTP resend failed during login for {}: {}", user.getEmail(),
+                                    e.getMessage());
+                        }
+                    }
                 });
             }
 
@@ -140,7 +153,8 @@ public class AuthController {
                     userDetails.getId(),
                     userDetails.getUsername(),
                     userDetails.getEmail(),
-                    roles));
+                    roles,
+                    userDetails.isVerified()));
         } finally {
             AuthContext.clear(); // CRITICAL: Clear thread-local after auth
         }
@@ -174,7 +188,15 @@ public class AuthController {
         user.setRoles(roles);
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        // Send OTP for email verification
+        try {
+            emailVerificationService.sendVerificationOTP(user.getEmail(), user.getUsername());
+        } catch (Exception e) {
+            logger.warn("User registered but OTP email failed for {}: {}", user.getEmail(), e.getMessage());
+        }
+
+        return ResponseEntity
+                .ok(new MessageResponse("User registered successfully! Please verify your email with the OTP sent."));
     }
 
     /**
@@ -489,6 +511,55 @@ public class AuthController {
     /**
      * Extract client IP, handling proxies.
      */
+    @PostMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestBody java.util.Map<String, String> body) {
+        String email = body.getOrDefault("email", "").trim();
+        String otp = body.getOrDefault("otp", "").trim();
+
+        if (email.isEmpty() || otp.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email and OTP are required."));
+        }
+
+        boolean verified = emailVerificationService.verifyOTP(email, otp);
+        if (verified) {
+            return ResponseEntity
+                    .ok(new MessageResponse("Email verified successfully! Welcome to Mrs. Deore's Kitchen."));
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new MessageResponse("Invalid or expired OTP. Please try again."));
+        }
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<?> resendOtp(@RequestBody java.util.Map<String, String> body, HttpServletRequest request) {
+        String email = body.getOrDefault("email", "").trim();
+        if (email.isEmpty()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Email is required."));
+        }
+
+        // Rate limit for OTP resend (using generic rate limit cache)
+        String limitKey = "OTP:" + email + ":" + getClientIp(request);
+        var lastRequest = rateLimitCache.get(limitKey);
+        if (lastRequest != null && lastRequest.isAfter(java.time.LocalDateTime.now().minusMinutes(2))) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(new MessageResponse("Please wait 2 minutes before requesting another OTP."));
+        }
+
+        return userRepository.findByEmailIgnoreCase(email)
+                .map(user -> {
+                    try {
+                        emailVerificationService.sendVerificationOTP(user.getEmail(), user.getUsername());
+                        rateLimitCache.put(limitKey, java.time.LocalDateTime.now());
+                        return ResponseEntity.ok(new MessageResponse("A new OTP has been sent to your email."));
+                    } catch (Exception e) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                .body(new MessageResponse("Failed to send OTP. Please try again later."));
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(new MessageResponse("Email not found.")));
+    }
+
     private String getClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {

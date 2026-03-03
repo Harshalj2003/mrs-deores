@@ -26,12 +26,15 @@ public class UserDetailsImpl implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserDetailsImpl(Long id, String username, String email, String password,
+    private boolean isEmailVerified;
+
+    public UserDetailsImpl(Long id, String username, String email, String password, boolean isEmailVerified,
             Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
+        this.isEmailVerified = isEmailVerified;
         this.authorities = authorities;
     }
 
@@ -45,6 +48,7 @@ public class UserDetailsImpl implements UserDetails {
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),
+                user.getIsEmailVerified() != null && user.getIsEmailVerified(),
                 authorities);
     }
 
@@ -59,6 +63,10 @@ public class UserDetailsImpl implements UserDetails {
 
     public String getEmail() {
         return email;
+    }
+
+    public boolean isVerified() {
+        return isEmailVerified;
     }
 
     @Override

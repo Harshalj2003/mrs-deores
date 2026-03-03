@@ -38,12 +38,30 @@ const getCurrentUser = () => {
     return null;
 };
 
+const verifyEmail = (email: string, otp: string) => {
+    return api.post("auth/verify-email", { email, otp }).then((response) => {
+        // Update stored user if successfully verified
+        const user = getCurrentUser();
+        if (user && user.email === email) {
+            user.isEmailVerified = true;
+            localStorage.setItem("user", JSON.stringify(user));
+        }
+        return response.data;
+    });
+};
+
+const resendOtp = (email: string) => {
+    return api.post("auth/resend-otp", { email });
+};
+
 const AuthService = {
     login,
     logout,
     register,
     adminRegister,
     getCurrentUser,
+    verifyEmail,
+    resendOtp,
 };
 
 export default AuthService;

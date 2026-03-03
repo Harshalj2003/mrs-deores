@@ -184,4 +184,33 @@
 **Verification**:
 - [ ] Test admin broadcasting and rolling back a notification.
 - [ ] Test custom order notifications updating in real-time.
-- [ ] Verify phone numbers appear in Active Users dashboard.
+
+---
+
+### Phase 12: Email OTP Verification & Secure Registration
+**Status**: ⬜ Not Started
+**Objective**: Implement 4-digit email OTP verification for new users to prevent fake accounts and ensure data integrity.
+**Depends on**: Phase 11
+
+**Tasks**:
+- [ ] **Infrastructure**:
+    - [ ] Add `is_email_verified` column to `users` table via Flyway.
+    - [ ] Implement OTP generation (4-digit) and caching with expiry.
+- [ ] **Backend Features**:
+    - [ ] `POST /api/auth/register`: Update to store user as unverified and send OTP.
+    - [ ] `POST /api/auth/verify-email`: Implement OTP verification endpoint.
+    - [ ] `POST /api/auth/resend-otp`: Implement with rate limiting.
+    - [ ] Update `/signin` logic to check verification status.
+- [ ] **Frontend Features**:
+    - [ ] "JOIN TRADITION" blinking animation on registration prompt.
+    - [ ] OTP Verification Modal with "Welcome to Mrs Deore's Kitchen" premium animation.
+    - [ ] Profile tags for "Verified", "Not Verified", and "Admin".
+    - [ ] Checkout verification gate popup.
+- [ ] **Security**:
+    - [ ] Implement rate limiting for OTP attempts and resends.
+
+**Verification**:
+- [ ] New user cannot checkout without email verification.
+- [ ] OTP is sent and verified successfully.
+- [ ] Premium animation plays on successful verification.
+- [ ] Profile tags display correctly.

@@ -8,6 +8,8 @@ import AuthService from '../services/auth.service';
 import { CreditCard, CheckCircle, ChevronRight, Lock, MapPin, CreditCard as CardIcon, Tag, X, Send, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from "clsx";
+import EmailVerificationModal from '../components/EmailVerificationModal';
+import { ShieldCheck, AlertCircle } from 'lucide-react';
 
 interface AppliedCoupon {
     code: string;
@@ -29,6 +31,7 @@ const CheckoutPage: React.FC = () => {
     const [upiId, setUpiId] = useState('');
     const [isVerifyingUpi, setIsVerifyingUpi] = useState(false);
     const [, setPaymentStatus] = useState<'IDLE' | 'SUCCESS' | 'FAILED'>('IDLE');
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
     const navigate = useNavigate();
 
     const getTotalPrice = () => {
@@ -71,16 +74,52 @@ const CheckoutPage: React.FC = () => {
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-neutral-light flex flex-col items-center justify-center p-8">
+            <div className="min-h-screen bg-neutral-light dark:bg-neutral-900 flex flex-col items-center justify-center p-8">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-white p-12 rounded-[3rem] shadow-xl text-center max-w-md"
+                    className="bg-white dark:bg-neutral-800 p-12 rounded-[3rem] shadow-xl text-center max-w-md border border-gray-100 dark:border-neutral-700"
                 >
                     <Lock className="h-16 w-16 text-primary mx-auto mb-6" />
-                    <h2 className="text-3xl font-black font-serif text-gray-900 mb-4">Secured Experience</h2>
-                    <p className="text-gray-500 mb-8 font-medium">Please sign in to your MRS.DEORE account to complete your traditional selection.</p>
-                    <button onClick={() => navigate('/login')} className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-accent transition-colors">Sign In</button>
+                    <h2 className="text-3xl font-black font-serif text-gray-900 dark:text-white mb-4">Secured Experience</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium">Please sign in to your MRS.DEORE account to complete your traditional selection.</p>
+                    <button onClick={() => navigate('/login')} className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-accent transition-colors shadow-lg shadow-primary/20">Sign In</button>
+                </motion.div>
+            </div>
+        );
+    }
+
+    if (!user.roles.includes('ROLE_ADMIN') && !user.isEmailVerified) {
+        return (
+            <div className="min-h-screen bg-neutral-light dark:bg-neutral-900 flex flex-col items-center justify-center p-8">
+                <Navbar currentUser={user} logOut={logOut} />
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white dark:bg-neutral-800 p-12 rounded-[3rem] shadow-xl text-center max-w-md border border-gray-100 dark:border-neutral-700"
+                >
+                    <div className="h-20 w-20 bg-amber-50 dark:bg-amber-900/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <AlertCircle className="h-10 w-10" />
+                    </div>
+                    <h2 className="text-3xl font-black font-serif text-gray-900 dark:text-white mb-4">Verification Required</h2>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium italic">
+                        "Your safety is our tradition." <br />
+                        Please verify your email address to ensure secure order processing.
+                    </p>
+                    <button
+                        onClick={() => setShowVerificationModal(true)}
+                        className="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-xl shadow-primary/20 mb-4"
+                    >
+                        Verify Now
+                    </button>
+                    <EmailVerificationModal
+                        isOpen={showVerificationModal}
+                        onClose={() => setShowVerificationModal(false)}
+                        email={user.email}
+                        onSuccess={() => {
+                            window.location.reload();
+                        }}
+                    />
                 </motion.div>
             </div>
         );

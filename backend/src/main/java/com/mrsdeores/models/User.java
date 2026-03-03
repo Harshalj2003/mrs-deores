@@ -42,6 +42,9 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
+    @Column(name = "is_email_verified")
+    private Boolean isEmailVerified = false;
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

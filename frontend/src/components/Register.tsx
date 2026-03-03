@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import AuthService from "../services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Mail, Lock, Phone, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
+import EmailVerificationModal from "./EmailVerificationModal";
 
 /* ───────────── Validation helpers ───────────── */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -46,6 +47,8 @@ const Register: React.FC = () => {
     const [successful, setSuccessful] = useState(false);
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [showVerification, setShowVerification] = useState(false);
+    const [registeredEmail, setRegisteredEmail] = useState("");
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -81,9 +84,9 @@ const Register: React.FC = () => {
             email: formData.email.trim(),
         }).then(
             (response) => {
-                setMessage(response.data.message || "Registration successful! Please verify your email/phone.");
-                setSuccessful(true);
+                setRegisteredEmail(formData.email.trim());
                 setLoading(false);
+                setShowVerification(true);
             },
             (error) => {
                 const resMessage = (error.response?.data?.message) || error.message || error.toString();
@@ -103,7 +106,13 @@ const Register: React.FC = () => {
                 <link rel="canonical" href="https://mrsdeore-premix.onrender.com/register" />
             </Helmet>
             <div className="text-center">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic">Join Our Tradition</h2>
+                <motion.h2
+                    animate={{ opacity: [1, 0.5, 1] }}
+                    transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic tracking-tight"
+                >
+                    Join Our Tradition
+                </motion.h2>
                 <p className="text-sm text-gray-500 mt-1">Create an account to start your journey</p>
             </div>
 
@@ -256,6 +265,18 @@ const Register: React.FC = () => {
                     </Link>
                 </motion.div>
             )}
+
+            <EmailVerificationModal
+                isOpen={showVerification}
+                onClose={() => {
+                    setShowVerification(false);
+                    setSuccessful(true);
+                }}
+                email={registeredEmail}
+                onSuccess={() => {
+                    setSuccessful(true);
+                }}
+            />
         </div>
     );
 };

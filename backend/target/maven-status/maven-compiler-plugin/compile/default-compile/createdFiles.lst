@@ -1,5 +1,6 @@
 com\mrsdeores\models\Product.class
 com\mrsdeores\security\jwt\JwtUtils.class
+com\mrsdeores\services\EmailVerificationService.class
 com\mrsdeores\services\CloudinaryService.class
 com\mrsdeores\controllers\CustomOrderController.class
 com\mrsdeores\models\Cart.class
@@ -54,12 +55,14 @@ com\mrsdeores\models\AdminInvitation.class
 com\mrsdeores\repository\ProductRepository.class
 com\mrsdeores\repository\WishlistRepository.class
 com\mrsdeores\controllers\HealthController.class
+com\mrsdeores\repository\EmailVerificationOTPRepository.class
 com\mrsdeores\services\WishlistService.class
 com\mrsdeores\controllers\CouponController.class
 com\mrsdeores\models\Role.class
 com\mrsdeores\repository\OrderRepository.class
 com\mrsdeores\services\CustomOrderService.class
 com\mrsdeores\security\AuthContext.class
+com\mrsdeores\models\EmailVerificationOTP.class
 com\mrsdeores\payload\request\ReviewRequest.class
 com\mrsdeores\repository\PasswordResetTokenRepository.class
 com\mrsdeores\config\KeepAliveScheduler.class
