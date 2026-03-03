@@ -20,7 +20,7 @@ spring:
       max-request-size: 6MB
   mail:
     host: ${MAIL_HOST}
-    port: 587
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
     from: ${MAIL_FROM}
@@ -29,7 +29,14 @@ spring:
         smtp:
           auth: true
           starttls:
-            enable: true
+            enable: ${MAIL_STARTTLS_ENABLED:true}
+            required: false 
+          ssl:
+            enable: ${MAIL_SSL_ENABLED:false}
+            protocols: TLSv1.2
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 server:
   port: ${PORT:8080}

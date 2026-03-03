@@ -78,21 +78,25 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Allow root and health endpoints
-                        .requestMatchers("/", "/health").permitAll()
+                        .requestMatchers("/", "/health", "/api/health").permitAll()
 
                         // Allow Spring Boot Error dispatching
                         .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
-                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/error", "/api/error").permitAll()
+
+                        // Explicit Public Auth Endpoints (Verify & Resend)
+                        .requestMatchers("/api/auth/verify-email", "/api/auth/resend-otp").permitAll()
+                        .requestMatchers("/api/auth/signin", "/api/auth/signup", "/api/auth/forgot-password",
+                                "/api/auth/reset-password")
+                        .permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
 
                         // Allow static resources & uploads first (most specific)
-                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/uploads/**", "/uploads/**").permitAll()
 
                         // Allow Options requests for CORS
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Public API Endpoints
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/products", "/api/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
