@@ -87,13 +87,17 @@ public class AuthController {
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
+            // Silent trimming — never reject users for trailing/leading spaces
+            String trimmedUsername = loginRequest.getUsername() != null ? loginRequest.getUsername().trim() : "";
+            String trimmedPassword = loginRequest.getPassword() != null ? loginRequest.getPassword().trim() : "";
+
             // Set AuthContext based on the request (isAdmin flag)
             AuthContext.setAdminAttempt(loginRequest.isAdmin());
 
             // SECURITY FIX: Prevent Admins from logging in via Normal User portal
             if (!loginRequest.isAdmin()) {
                 boolean isAdminIdentity = adminInvitationRepository
-                        .findByUsernameOrEmail(loginRequest.getUsername(), loginRequest.getUsername())
+                        .findByUsernameOrEmail(trimmedUsername, trimmedUsername)
                         .isPresent();
                 if (isAdminIdentity) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -101,9 +105,9 @@ public class AuthController {
                 }
             }
 
-            // Proceed with standard authentication
+            // Proceed with standard authentication (using trimmed values)
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(trimmedUsername, trimmedPassword));
 
             // Check if admin session is expired ONLY after successful authentication
             // This prevents username enumeration and incorrect error messages

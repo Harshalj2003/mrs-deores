@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Helmet } from 'react-helmet-async';
 import AuthService from "../services/auth.service";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Mail, Lock, Phone, ShieldCheck, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Phone, ShieldCheck, ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
 import EmailVerificationModal from "./EmailVerificationModal";
 
 /* ───────────── Validation helpers ───────────── */
@@ -50,6 +50,14 @@ const Register: React.FC = () => {
     const [showVerification, setShowVerification] = useState(false);
     const [verificationSuccess, setVerificationSuccess] = useState(false);
     const [registeredEmail, setRegisteredEmail] = useState("");
+    const navigate = useNavigate();
+
+    // Auto-scroll focused input into view on mobile keyboards
+    const scrollIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+        setTimeout(() => {
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -127,11 +135,9 @@ const Register: React.FC = () => {
                                 placeholder="Full Name"
                                 value={formData.username}
                                 onChange={handleChange}
+                                onFocus={scrollIntoView}
                                 onBlur={() => blur('username')}
                                 required />
-                            <Hint show={!!(touched.username && formData.username !== formData.username.trim())}>
-                                ✓ Extra spaces will be trimmed automatically.
-                            </Hint>
                         </div>
 
                         {/* Email */}
@@ -141,6 +147,7 @@ const Register: React.FC = () => {
                                 placeholder="Email Address (e.g. name@domain.com)"
                                 value={formData.email}
                                 onChange={handleChange}
+                                onFocus={scrollIntoView}
                                 onBlur={() => blur('email')}
                                 required />
                             <Hint show={!!emailInvalid} error>
@@ -155,6 +162,7 @@ const Register: React.FC = () => {
                                 placeholder="Mobile Number (+91 XXXXXXXXXX)"
                                 value={formData.phone}
                                 onChange={handleChange}
+                                onFocus={scrollIntoView}
                                 onBlur={() => blur('phone')}
                                 required />
                             <Hint show={!!phoneInvalid} error>
@@ -170,6 +178,7 @@ const Register: React.FC = () => {
                                     placeholder="Password (min. 6 characters)"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    onFocus={scrollIntoView}
                                     onBlur={() => blur('password')}
                                     required />
                                 <button type="button" tabIndex={-1} onClick={() => setShowPassword(v => !v)}
@@ -204,6 +213,7 @@ const Register: React.FC = () => {
                                 placeholder="Confirm Password"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
+                                onFocus={scrollIntoView}
                                 onBlur={() => blur('confirmPassword')}
                                 required />
                             <Hint show={!!confirmMismatch} error>Passwords don't match.</Hint>
@@ -244,49 +254,116 @@ const Register: React.FC = () => {
                         </motion.div>
                     )}
 
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                        Already part of the family?{' '}
-                        <Link to="/login" className="relative font-black text-primary dark:text-primary-light uppercase tracking-widest group">
-                            <span className="relative z-10">Sign In</span>
+                    <div className="text-center">
+                        <Link to="/login" className="inline-block font-black uppercase tracking-widest text-sm">
                             <motion.span
-                                className="absolute -inset-x-2 -inset-y-1 bg-primary/10 rounded-lg -z-0"
-                                animate={{ opacity: [0.4, 0.8, 0.4] }}
-                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                            />
+                                className="text-primary dark:text-primary-light"
+                                animate={{
+                                    textShadow: [
+                                        '0 0 4px rgba(194,65,12,0.3), 0 0 12px rgba(194,65,12,0.15)',
+                                        '0 0 12px rgba(194,65,12,0.6), 0 0 30px rgba(194,65,12,0.3)',
+                                        '0 0 4px rgba(194,65,12,0.3), 0 0 12px rgba(194,65,12,0.15)',
+                                    ]
+                                }}
+                                transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                            >
+                                Sign In
+                            </motion.span>
                         </Link>
-                    </p>
+                    </div>
                 </form>
             ) : (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="text-center py-8 space-y-6"
+                    className="text-center py-8 space-y-6 relative overflow-hidden"
                 >
-                    <div className={`h-20 w-20 ${verificationSuccess ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                        <ShieldCheck className="h-10 w-10" />
-                    </div>
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white font-serif tracking-tight">
-                        {verificationSuccess ? "Account Verified!" : "Registration Complete!"}
-                    </h3>
+                    {/* Floating particles VFX */}
+                    {verificationSuccess && Array.from({ length: 12 }).map((_, i) => (
+                        <motion.div
+                            key={i}
+                            className="absolute w-2 h-2 rounded-full"
+                            style={{
+                                background: i % 3 === 0 ? '#C2410C' : i % 3 === 1 ? '#EAB308' : '#22C55E',
+                                left: `${10 + Math.random() * 80}%`,
+                                top: `${Math.random() * 100}%`,
+                            }}
+                            initial={{ opacity: 0, scale: 0, y: 20 }}
+                            animate={{
+                                opacity: [0, 1, 0],
+                                scale: [0, 1.5, 0],
+                                y: [20, -60 - Math.random() * 80],
+                                x: (Math.random() - 0.5) * 60,
+                            }}
+                            transition={{
+                                duration: 2 + Math.random() * 1.5,
+                                delay: i * 0.15,
+                                repeat: Infinity,
+                                repeatDelay: 1,
+                            }}
+                        />
+                    ))}
+
+                    <motion.div
+                        className={`h-20 w-20 ${verificationSuccess ? 'bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400'} rounded-full flex items-center justify-center mx-auto mb-4`}
+                        animate={verificationSuccess ? { scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] } : {}}
+                        transition={{ duration: 0.6, type: 'spring' }}
+                    >
+                        {verificationSuccess ? <Sparkles className="h-10 w-10" /> : <ShieldCheck className="h-10 w-10" />}
+                    </motion.div>
+                    <motion.h3
+                        className="text-xl font-black text-gray-900 dark:text-white font-serif tracking-tight"
+                        style={verificationSuccess ? {
+                            textShadow: '0 0 20px rgba(34,197,94,0.4), 0 0 40px rgba(34,197,94,0.15)'
+                        } : {}}
+                    >
+                        {verificationSuccess ? "🎉 You're All Set!" : "Registration Complete!"}
+                    </motion.h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 px-8">
                         {verificationSuccess
-                            ? `Welcome! Your account for ${formData.email} is now fully verified.`
+                            ? `Welcome to Mrs. Deore's Premix! Your account is verified and ready.`
                             : `Almost there! Your account for ${formData.email} is created, but needs email verification.`}
                     </p>
                     <div className="flex flex-col gap-3 px-8">
                         {!verificationSuccess && (
                             <button
                                 onClick={() => setShowVerification(true)}
-                                className="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm hover:bg-accent transition-all shadow-lg shadow-primary/20 transition-all duration-300"
+                                className="inline-flex items-center justify-center gap-2 bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm hover:bg-accent transition-all shadow-lg shadow-primary/20 duration-300"
                             >
                                 VERIFY NOW <ArrowRight className="h-4 w-4" />
                             </button>
                         )}
-                        <Link to="/login"
-                            className={`inline-flex items-center justify-center gap-2 ${verificationSuccess ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white mb-2'} px-8 py-4 rounded-2xl font-black text-sm hover:opacity-90 transition-all`}
-                        >
-                            GO TO LOGIN <ArrowRight className="h-4 w-4" />
-                        </Link>
+                        {verificationSuccess ? (
+                            <motion.button
+                                onClick={() => {
+                                    // Auto-login the user after successful verification
+                                    AuthService.login({
+                                        username: formData.username.trim(),
+                                        password: formData.password,
+                                        isAdmin: false
+                                    }).then(
+                                        () => {
+                                            navigate('/');
+                                            window.location.reload();
+                                        },
+                                        () => {
+                                            navigate('/login');
+                                        }
+                                    );
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                className="inline-flex items-center justify-center gap-2 bg-primary text-white shadow-lg shadow-primary/20 px-8 py-4 rounded-2xl font-black text-sm hover:bg-accent transition-all duration-300"
+                            >
+                                ENTER WEBSITE <ArrowRight className="h-4 w-4" />
+                            </motion.button>
+                        ) : (
+                            <Link to="/login"
+                                className="inline-flex items-center justify-center gap-2 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white mb-2 px-8 py-4 rounded-2xl font-black text-sm hover:opacity-90 transition-all"
+                            >
+                                GO TO LOGIN <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        )}
                     </div>
                 </motion.div>
             )}

@@ -32,7 +32,6 @@ const Login: React.FC = () => {
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const [touchedUser, setTouchedUser] = useState(false);
     const [touchedPass, setTouchedPass] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showAdminPassword, setShowAdminPassword] = useState(false);
@@ -53,22 +52,33 @@ const Login: React.FC = () => {
         }
     }, []);
 
+    // Auto-scroll focused input into view on mobile keyboards
+    const scrollIntoView = (e: React.FocusEvent<HTMLInputElement>) => {
+        setTimeout(() => {
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+    };
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         setMessage("");
         setLoading(true);
 
+        // Silent trimming — no warning message, just trim before sending
+        const trimmedUsername = username.trim();
+        const trimmedPassword = password.trim();
+
         if (loginMode === 'email' || activeTab === 'admin') {
             // Handle Remember Me
             if (rememberMe) {
-                localStorage.setItem("rememberedUser", JSON.stringify({ username: username.trim() }));
+                localStorage.setItem("rememberedUser", JSON.stringify({ username: trimmedUsername }));
             } else {
                 localStorage.removeItem("rememberedUser");
             }
 
             AuthService.login({
-                username,
-                password,
+                username: trimmedUsername,
+                password: trimmedPassword,
                 isAdmin: activeTab === 'admin'
             }).then(
                 (data) => {
@@ -165,6 +175,11 @@ const Login: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3 }}
                     className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic"
+                    style={{
+                        textShadow: activeTab !== 'admin' || adminMode !== 'register'
+                            ? '0 0 20px rgba(194, 65, 12, 0.4), 0 0 40px rgba(194, 65, 12, 0.15)'
+                            : 'none'
+                    }}
                 >
                     {activeTab === 'admin' && adminMode === 'register'
                         ? 'Admin Enrollment'
@@ -240,18 +255,9 @@ const Login: React.FC = () => {
                                         placeholder={activeTab === 'admin' ? "Email, Phone or Username" : "Username or Email"}
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        onBlur={() => setTouchedUser(true)}
+                                        onFocus={scrollIntoView}
                                         required
                                     />
-                                    {touchedUser && username !== username.trim() && (
-                                        <motion.p
-                                            initial={{ opacity: 0, y: -5 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="text-[11px] text-amber-600 mt-1 px-1 font-medium"
-                                        >
-                                            ✓ Extra spaces detected — they'll be trimmed automatically for you.
-                                        </motion.p>
-                                    )}
                                 </motion.div>
                                 <motion.div className="relative group" whileTap={{ scale: 0.995 }}>
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors duration-300" />
@@ -261,6 +267,7 @@ const Login: React.FC = () => {
                                         placeholder="Password (min. 6 characters)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        onFocus={scrollIntoView}
                                         onBlur={() => setTouchedPass(true)}
                                         required
                                     />
@@ -525,17 +532,23 @@ const Login: React.FC = () => {
             </AnimatePresence>
 
             {activeTab === 'user' && (
-                <p className="text-center text-sm text-gray-500 dark:text-gray-400">
-                    Don't have an account?{' '}
-                    <Link to="/register" className="relative font-black text-primary dark:text-primary-light uppercase tracking-widest group">
-                        <span className="relative z-10">Join Tradition</span>
+                <div className="text-center">
+                    <Link to="/register" className="inline-block font-black uppercase tracking-widest text-sm">
                         <motion.span
-                            className="absolute -inset-x-2 -inset-y-1 bg-primary/10 rounded-lg -z-0"
-                            animate={{ opacity: [0.4, 0.8, 0.4] }}
-                            transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                        />
+                            className="text-primary dark:text-primary-light"
+                            animate={{
+                                textShadow: [
+                                    '0 0 4px rgba(194,65,12,0.3), 0 0 12px rgba(194,65,12,0.15)',
+                                    '0 0 12px rgba(194,65,12,0.6), 0 0 30px rgba(194,65,12,0.3)',
+                                    '0 0 4px rgba(194,65,12,0.3), 0 0 12px rgba(194,65,12,0.15)',
+                                ]
+                            }}
+                            transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+                        >
+                            Join Tradition
+                        </motion.span>
                     </Link>
-                </p>
+                </div>
             )}
 
             {userToVerify && (
