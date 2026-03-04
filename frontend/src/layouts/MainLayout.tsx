@@ -159,7 +159,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, currentUser, logOut }
 
             <Navbar currentUser={currentUser} logOut={logOut} />
 
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 pt-0 pb-8">
                 {children}
             </main>
 

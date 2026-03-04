@@ -58,7 +58,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
                             to={item.path}
                             onClick={() => onClose?.()}
                             className={clsx(
-                                'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group font-medium text-sm relative',
+                                'flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group font-medium text-sm relative min-h-[48px]',
                                 isActive
                                     ? 'bg-primary text-white shadow-lg shadow-primary/30'
                                     : 'hover:bg-primary/10 hover:text-primary'
@@ -86,7 +86,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
                 {/* Theme Toggle */}
                 <button
                     onClick={toggleTheme}
-                    className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:bg-neutral-500/10"
+                    className="flex w-full items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-neutral-500/10 min-h-[48px]"
                     style={{ color: 'var(--admin-nav-text)' }}
                 >
                     {theme === 'dark' ? (
@@ -103,7 +103,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen = false, onClose }) 
                 </button>
 
                 {/* Exit */}
-                <Link to="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all hover:bg-red-500/10 hover:text-red-500" style={{ color: 'var(--admin-nav-text)' }}>
+                <Link to="/" className="flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all hover:bg-red-500/10 hover:text-red-500 min-h-[48px]" style={{ color: 'var(--admin-nav-text)' }}>
                     <LogOut className="h-5 w-5" style={{ opacity: 0.6 }} />
                     <span>Exit Admin</span>
                 </Link>

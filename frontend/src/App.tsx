@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
+import { pageTransitions, pageEase } from "./utils/scrollAnimations";
 import "./index.css";
 
 import AuthService from "./services/auth.service";
@@ -75,17 +76,9 @@ const App: React.FC = () => {
     setCurrentUser(undefined);
   };
 
-  const pageVariants = {
-    initial: { opacity: 0, y: 10 },
-    in: { opacity: 1, y: 0 },
-    out: { opacity: 0, y: -10 }
-  };
+  const pageVariants = pageTransitions.slideUp;
 
-  const pageTransition = {
-    type: "tween",
-    ease: "anticipate",
-    duration: 0.4
-  } as const;
+  const pageTransitionConfig = pageEase;
 
   return (
     <>
@@ -131,7 +124,7 @@ const App: React.FC = () => {
               animate="in"
               exit="out"
               variants={pageVariants}
-              transition={pageTransition}
+              transition={pageTransitionConfig}
             >
               <Suspense fallback={<PageLoader />}>
                 <Routes location={location} key={location.pathname}>

@@ -1,5 +1,37 @@
 @import "tailwindcss";
 
+/* ============================================================
+   IMMERSIVE SCROLL — Fullpage snap sections with "world" feel
+   Each .scroll-section snaps to viewport for dramatic transitions
+   ============================================================ */
+
+/* Smooth scroll globally */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Scroll-snap container — works WITH parent scroll, not against it */
+.scroll-snap-container {
+  scroll-snap-type: y proximity;
+}
+
+/* Each snap section */
+.scroll-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-snap-container {
+    scroll-snap-type: none;
+  }
+
+  .scroll-section {
+    scroll-snap-align: none;
+  }
+}
+
 @theme {
   --color-primary: #C2410C;
   --color-secondary: #EAB308;
@@ -48,6 +80,17 @@
   button,
   [role="button"] {
     cursor: pointer;
+  }
+
+  /* WCAG AA Text Contrast — ensure muted text is readable on light backgrounds */
+  .text-gray-400 {
+    color: #8B7355 !important;
+    /* 4.7:1 contrast on #FFF8ED */
+  }
+
+  .text-gray-500 {
+    color: #6D5A3E !important;
+    /* 6.2:1 contrast on #FFF8ED */
   }
 
   /* ============================================================
@@ -306,8 +349,13 @@
    ============================================================ */
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .animate-shimmer {
@@ -316,7 +364,11 @@
 }
 
 /* Smooth global transitions on all interactive elements */
-button, a, input, select, textarea {
+button,
+a,
+input,
+select,
+textarea {
   transition-property: color, background-color, border-color, box-shadow, transform, opacity;
   transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);

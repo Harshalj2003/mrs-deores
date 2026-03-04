@@ -18,19 +18,20 @@ const CartDrawer: React.FC = () => {
                 <div className="fixed inset-0 z-[200] overflow-hidden">
                     {/* Backdrop */}
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+                        initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                        animate={{ opacity: 1, backdropFilter: 'blur(8px)' }}
+                        exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                        transition={{ duration: 0.3 }}
+                        className="absolute inset-0 bg-black/40"
                         onClick={closeCart}
                     ></motion.div>
 
                     <div className="fixed inset-y-0 right-0 max-w-full flex">
                         <motion.div
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                            initial={{ x: '100%', scale: 0.95 }}
+                            animate={{ x: 0, scale: 1 }}
+                            exit={{ x: '100%', scale: 0.95 }}
+                            transition={{ type: "spring", damping: 28, stiffness: 250, mass: 0.8 }}
                             className="w-screen max-w-md"
                         >
                             <div className="h-full flex flex-col bg-white shadow-2xl overflow-hidden rounded-l-[3rem]">
@@ -41,10 +42,10 @@ const CartDrawer: React.FC = () => {
                                             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">{items.length} Unique Items</p>
                                         </div>
                                         <motion.button
-                                            whileHover={{ rotate: 90 }}
+                                            whileHover={{ rotate: 90, scale: 1.1 }}
                                             whileTap={{ scale: 0.8 }}
                                             onClick={closeCart}
-                                            className="p-3 bg-neutral-light rounded-2xl text-gray-400 hover:text-primary transition-colors"
+                                            className="p-3 bg-neutral-light rounded-2xl text-gray-400 hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
                                         >
                                             <X className="h-6 w-6" />
                                         </motion.button>
@@ -75,11 +76,11 @@ const CartDrawer: React.FC = () => {
                                                                 <motion.li
                                                                     layout
                                                                     key={item.product.id}
-                                                                    initial={{ x: 50, opacity: 0 }}
-                                                                    animate={{ x: 0, opacity: 1 }}
-                                                                    exit={{ x: 100, opacity: 0 }}
-                                                                    transition={{ delay: index * 0.05 }}
-                                                                    className="flex items-center gap-6 group"
+                                                                    initial={{ x: 50, opacity: 0, scale: 0.95 }}
+                                                                    animate={{ x: 0, opacity: 1, scale: 1 }}
+                                                                    exit={{ x: 60, opacity: 0, scale: 0.9 }}
+                                                                    transition={{ delay: index * 0.06, type: 'spring', stiffness: 200, damping: 20 }}
+                                                                    className="flex items-center gap-4 sm:gap-6 group"
                                                                 >
                                                                     <div className="h-24 w-20 bg-neutral-light rounded-2xl overflow-hidden flex-shrink-0 group-hover:shadow-lg transition-shadow duration-500">
                                                                         <img
@@ -106,15 +107,15 @@ const CartDrawer: React.FC = () => {
                                                                             <div className="flex items-center bg-neutral-light p-1 rounded-xl">
                                                                                 <motion.button
                                                                                     whileTap={{ scale: 0.7 }}
-                                                                                    className="p-1.5 hover:bg-white rounded-lg shadow-sm transition-all"
+                                                                                    className="p-2 sm:p-1.5 hover:bg-white rounded-lg shadow-sm transition-all min-h-[40px] min-w-[40px] flex items-center justify-center"
                                                                                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                                                                                 >
                                                                                     <Minus className="h-3 w-3" />
                                                                                 </motion.button>
-                                                                                <span className="px-4 font-black text-xs">{item.quantity}</span>
+                                                                                <span className="px-3 sm:px-4 font-black text-xs">{item.quantity}</span>
                                                                                 <motion.button
                                                                                     whileTap={{ scale: 0.7 }}
-                                                                                    className="p-1.5 hover:bg-white rounded-lg shadow-sm transition-all"
+                                                                                    className="p-2 sm:p-1.5 hover:bg-white rounded-lg shadow-sm transition-all min-h-[40px] min-w-[40px] flex items-center justify-center"
                                                                                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                                                                 >
                                                                                     <Plus className="h-3 w-3" />
@@ -155,12 +156,14 @@ const CartDrawer: React.FC = () => {
                                         </div>
                                         <Link
                                             to="/checkout"
-                                            className="group relative flex justify-center items-center py-5 bg-primary text-white text-xs font-black uppercase tracking-[0.3em] rounded-3xl shadow-xl shadow-primary/20 hover:bg-accent transition-all duration-300"
+                                            className="group relative flex justify-center items-center py-5 bg-primary text-white text-xs font-black uppercase tracking-[0.3em] rounded-3xl shadow-xl shadow-primary/20 hover:bg-accent transition-all duration-300 overflow-hidden min-h-[56px]"
                                             onClick={closeCart}
                                         >
-                                            Proceed to Checkout
+                                            <span className="relative z-10">Proceed to Checkout</span>
                                             <motion.div
-                                                className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500 overflow-hidden rounded-3xl"
+                                                animate={{ x: ['-100%', '200%'] }}
+                                                transition={{ duration: 2.5, repeat: Infinity, ease: "linear", repeatDelay: 1.5 }}
+                                                className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/15 to-transparent skew-x-[-20deg]"
                                             />
                                         </Link>
                                     </motion.div>
