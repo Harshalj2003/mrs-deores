@@ -20,9 +20,6 @@ public class AdminAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminAuthService.class);
 
-    private static final int MAX_ATTEMPTS = 3;
-    private static final int RATE_LIMIT_MINUTES = 15;
-
     @Autowired
     private AdminInvitationRepository invitationRepository;
 
@@ -31,6 +28,9 @@ public class AdminAuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RateLimitConfigService rateLimitConfig;
 
     @Value("${app.admin.secret-key:}")
     private String adminSecretKey;
@@ -42,7 +42,8 @@ public class AdminAuthService {
      * Register a new admin account using invitation token.
      * 
      * Security rules:
-     * 1. Rate limit: max 3 attempts per IP in 15 minutes
+     * 1. Rate limit: configurable attempts per configurable window (default
+     * 3/15min)
      * 2. All failures return the same generic message
      * 3. Role is assigned server-side, never from request
      * 4. Invitation is marked as used after success
@@ -50,11 +51,14 @@ public class AdminAuthService {
      */
     @Transactional
     public void registerAdmin(AdminRegisterRequest request, String ipAddress) {
-        // 1. Rate limiting check
-        long recentAttempts = attemptRepository.countByIpAddressAndAttemptedAtAfter(
-                ipAddress, LocalDateTime.now().minusMinutes(RATE_LIMIT_MINUTES));
+        // 1. Rate limiting check (reads from admin-configurable settings)
+        int maxAttempts = rateLimitConfig.getAdminRegMaxAttempts();
+        int windowMinutes = rateLimitConfig.getAdminRegWindowMinutes();
 
-        if (recentAttempts >= MAX_ATTEMPTS) {
+        long recentAttempts = attemptRepository.countByIpAddressAndAttemptedAtAfter(
+                ipAddress, LocalDateTime.now().minusMinutes(windowMinutes));
+
+        if (recentAttempts >= maxAttempts) {
             logger.warn("SECURITY: Rate limit exceeded for admin registration from IP: {}", ipAddress);
             throw new AdminRegistrationException("Too many attempts. Please try again later.");
         }

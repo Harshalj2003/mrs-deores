@@ -25,6 +25,9 @@ public class EmailVerificationService {
     @Autowired
     private EmailService emailService;
 
+    @Autowired
+    private RateLimitConfigService rateLimitConfig;
+
     /**
      * Generates a 4-digit OTP and sends it to the user's email.
      * Enforces rate limit: 3 resends per 15 minutes.
@@ -38,12 +41,14 @@ public class EmailVerificationService {
 
         if (otpOpt.isPresent()) {
             otpEntity = otpOpt.get();
-            LocalDateTime windowStart = LocalDateTime.now().minusMinutes(15);
+            int windowMinutes = rateLimitConfig.getOtpWindowMinutes();
+            int maxResends = rateLimitConfig.getOtpMaxResends();
+            LocalDateTime windowStart = LocalDateTime.now().minusMinutes(windowMinutes);
 
             if (otpEntity.getLastResendAt().isAfter(windowStart)) {
-                if (otpEntity.getResendCount() >= 3) {
+                if (otpEntity.getResendCount() >= maxResends) {
                     logger.warn("OTP resend rate limit exceeded for {}", email);
-                    throw new RuntimeException("Too many OTP requests. Please wait 15 minutes.");
+                    throw new RuntimeException("Too many OTP requests. Please wait " + windowMinutes + " minutes.");
                 }
                 otpEntity.setResendCount(otpEntity.getResendCount() + 1);
             } else {
@@ -51,11 +56,11 @@ public class EmailVerificationService {
                 otpEntity.setResendCount(1);
             }
             otpEntity.setOtpCode(otp);
-            otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(15));
+            otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(windowMinutes));
             otpEntity.setLastResendAt(LocalDateTime.now());
             otpEntity.setAttemptsCount(0); // Reset verification attempts on new OTP
         } else {
-            otpEntity = new EmailVerificationOTP(email, otp, 15);
+            otpEntity = new EmailVerificationOTP(email, otp, rateLimitConfig.getOtpWindowMinutes());
         }
 
         otpRepository.save(otpEntity);
@@ -85,8 +90,8 @@ public class EmailVerificationService {
         // Check code
         if (!otpEntity.getOtpCode().equals(code)) {
             otpEntity.setAttemptsCount(otpEntity.getAttemptsCount() + 1);
-            if (otpEntity.getAttemptsCount() >= 5) {
-                otpRepository.delete(otpEntity); // Lockout after 5 failed attempts
+            if (otpEntity.getAttemptsCount() >= rateLimitConfig.getOtpMaxVerifyAttempts()) {
+                otpRepository.delete(otpEntity); // Lockout after max failed attempts
             } else {
                 otpRepository.save(otpEntity);
             }

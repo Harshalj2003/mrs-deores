@@ -79,6 +79,9 @@ public class AuthController {
     @Autowired
     private com.mrsdeores.services.EmailService emailService;
 
+    @Autowired
+    private com.mrsdeores.services.RateLimitConfigService rateLimitConfig;
+
     private static final ConcurrentHashMap<String, java.time.LocalDateTime> rateLimitCache = new ConcurrentHashMap<>();
 
     @PostMapping("/signin")
@@ -168,6 +171,11 @@ public class AuthController {
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
                 passwordEncoder.encode(signUpRequest.getPassword()));
+
+        // Save phone number if provided
+        if (signUpRequest.getPhone() != null && !signUpRequest.getPhone().trim().isEmpty()) {
+            user.setPhone(signUpRequest.getPhone().trim());
+        }
 
         // SECURITY: Always assign ROLE_USER — role is NEVER accepted from request body
         Set<Role> roles = new HashSet<>();
@@ -317,10 +325,12 @@ public class AuthController {
         String clientIp = getClientIp(request);
         String limitKey = clientIp + ":" + email;
 
-        // Rate limit: 5 minutes between requests
+        // Rate limit: configurable cooldown between requests
+        int cooldownMinutes = rateLimitConfig.getForgotPasswordCooldownMinutes();
         var lastRequest = rateLimitCache.get(limitKey);
-        if (lastRequest != null && lastRequest.isAfter(java.time.LocalDateTime.now().minusMinutes(5))) {
-            long remainingSecs = java.time.Duration.between(java.time.LocalDateTime.now().minusMinutes(5), lastRequest)
+        if (lastRequest != null && lastRequest.isAfter(java.time.LocalDateTime.now().minusMinutes(cooldownMinutes))) {
+            long remainingSecs = java.time.Duration
+                    .between(java.time.LocalDateTime.now().minusMinutes(cooldownMinutes), lastRequest)
                     .toSeconds();
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
                     .body(new MessageResponse("Please wait " + (remainingSecs / 60 + 1)

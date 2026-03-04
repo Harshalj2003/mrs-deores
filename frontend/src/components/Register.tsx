@@ -97,7 +97,7 @@ const Register: React.FC = () => {
         );
     };
 
-    const inputClass = "block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 outline-none transition-all";
+    const inputClass = "block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-3 sm:py-4 pl-11 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary text-sm leading-6 outline-none transition-all duration-300 focus:shadow-lg focus:shadow-primary/10";
 
     return (
         <div className="space-y-6">
@@ -110,7 +110,7 @@ const Register: React.FC = () => {
                 <motion.h2
                     animate={{ opacity: [1, 0.5, 1] }}
                     transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                    className="text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic tracking-tight"
+                    className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white font-serif lowercase italic tracking-tight"
                 >
                     Join Our Tradition
                 </motion.h2>
@@ -118,7 +118,7 @@ const Register: React.FC = () => {
             </div>
 
             {!successful ? (
-                <form className="space-y-4" onSubmit={handleRegister}>
+                <form className="space-y-3 sm:space-y-4" onSubmit={handleRegister}>
                     <div className="space-y-3">
                         {/* Username */}
                         <div className="relative group">
@@ -165,7 +165,7 @@ const Register: React.FC = () => {
                         {/* Password */}
                         <div>
                             <div className="relative group">
-                                <Lock className="absolute left-4 top-[18px] h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <Lock className="absolute left-4 top-[14px] sm:top-[18px] h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
                                 <input name="password" type={showPassword ? 'text' : 'password'} className={`${inputClass} pr-12`}
                                     placeholder="Password (min. 6 characters)"
                                     value={formData.password}
@@ -221,15 +221,18 @@ const Register: React.FC = () => {
                         </p>
                     </div>
 
-                    <button
+                    <motion.button
                         type="submit"
-                        className="group relative flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 px-3 text-sm font-black text-white hover:bg-accent transition-all duration-300 shadow-xl shadow-primary/20 disabled:opacity-70"
+                        whileHover={{ scale: 1.01, boxShadow: '0 8px 30px rgba(194, 65, 12, 0.35)' }}
+                        whileTap={{ scale: 0.98 }}
+                        className="group relative flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 sm:py-4 px-3 text-sm font-black text-white hover:bg-accent transition-all duration-300 shadow-xl shadow-primary/20 disabled:opacity-70 overflow-hidden"
                         disabled={loading || !!passShort || !!emailInvalid}
                     >
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
                         {loading ? "CREATING ACCOUNT..." : (
-                            <>START JOURNEY <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" /></>
+                            <>START JOURNEY <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" /></>
                         )}
-                    </button>
+                    </motion.button>
 
                     {message && !successful && (
                         <motion.div
@@ -243,7 +246,14 @@ const Register: React.FC = () => {
 
                     <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Already part of the family?{' '}
-                        <Link to="/login" className="font-black text-primary dark:text-primary-light hover:underline uppercase tracking-widest">Sign In</Link>
+                        <Link to="/login" className="relative font-black text-primary dark:text-primary-light uppercase tracking-widest group">
+                            <span className="relative z-10">Sign In</span>
+                            <motion.span
+                                className="absolute -inset-x-2 -inset-y-1 bg-primary/10 rounded-lg -z-0"
+                                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                            />
+                        </Link>
                     </p>
                 </form>
             ) : (

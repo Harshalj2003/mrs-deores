@@ -121,12 +121,33 @@ const AdminTeam: React.FC = () => {
         }
     };
 
-    const copyToClipboard = () => {
+    const copyToClipboard = async () => {
         if (!invitationResult) return;
         const enrollmentLink = `${window.location.origin}/login?enroll=true&token=${invitationResult.token}`;
-        navigator.clipboard.writeText(enrollmentLink);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+
+        try {
+            // Modern clipboard API (requires HTTPS)
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(enrollmentLink);
+            } else {
+                // Fallback for HTTP or restricted environments
+                const textarea = document.createElement('textarea');
+                textarea.value = enrollmentLink;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                textarea.style.left = '-9999px';
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+            // If all copy methods fail, prompt user to copy manually
+            window.prompt('Copy this enrollment link:', enrollmentLink);
+        }
     };
 
     const formatDate = (dateStr: string | null) => {

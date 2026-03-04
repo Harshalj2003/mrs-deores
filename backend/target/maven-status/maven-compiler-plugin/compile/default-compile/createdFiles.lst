@@ -46,6 +46,7 @@ com\mrsdeores\repository\CartRepository.class
 com\mrsdeores\controllers\FileUploadController.class
 com\mrsdeores\repository\NotificationRepository.class
 com\mrsdeores\payload\request\LoginRequest.class
+com\mrsdeores\services\RateLimitConfigService.class
 com\mrsdeores\controllers\AuthController$2.class
 com\mrsdeores\controllers\MediaController.class
 com\mrsdeores\models\NotificationRead$NotificationReadId.class

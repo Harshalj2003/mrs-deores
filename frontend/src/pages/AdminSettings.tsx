@@ -4,7 +4,7 @@ import {
     Save, Loader2, AlertCircle, CheckCircle2,
     Megaphone, Store, Truck, Eye, Palette, Phone,
     Facebook, Instagram, Linkedin, Twitter, BookOpen, Plus, Trash2, Image as ImageIcon,
-    MessageSquare
+    MessageSquare, ShieldCheck
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -645,6 +645,99 @@ const AdminSettings: React.FC = () => {
                                     label="Enable Hero Section"
                                 />
                             </Field>
+                        </div>
+                    </SectionCard>
+
+                    {/* 10. Security & Rate Limiting */}
+                    <SectionCard
+                        icon={<ShieldCheck className="h-5 w-5" />}
+                        title="Security & Rate Limiting"
+                        subtitle="Control how many attempts are allowed for sensitive operations"
+                    >
+                        <div className="space-y-8">
+                            {/* Forgot Password */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-amber-500" />
+                                    <p className="text-xs font-black text-gray-600 uppercase tracking-widest">Forgot Password</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <Field label="Cooldown (minutes)" hint="Wait time between password reset requests per user">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_forgot_password_minutes', '5')}
+                                            onChange={v => set('rate_limit_forgot_password_minutes', v)}
+                                            placeholder="5"
+                                        />
+                                    </Field>
+                                </div>
+                            </div>
+
+                            {/* Email OTP */}
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-blue-500" />
+                                    <p className="text-xs font-black text-gray-600 uppercase tracking-widest">Email OTP Verification</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <Field label="Max Resend Attempts" hint="How many times a user can resend OTP within the window">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_otp_max_resends', '3')}
+                                            onChange={v => set('rate_limit_otp_max_resends', v)}
+                                            placeholder="3"
+                                        />
+                                    </Field>
+                                    <Field label="Window Duration (min)" hint="Time window for counting resend attempts">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_otp_window_minutes', '15')}
+                                            onChange={v => set('rate_limit_otp_window_minutes', v)}
+                                            placeholder="15"
+                                        />
+                                    </Field>
+                                    <Field label="Max Verify Attempts" hint="Wrong OTP entries before lockout">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_otp_max_verify_attempts', '5')}
+                                            onChange={v => set('rate_limit_otp_max_verify_attempts', v)}
+                                            placeholder="5"
+                                        />
+                                    </Field>
+                                </div>
+                            </div>
+
+                            {/* Admin Registration */}
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    <p className="text-xs font-black text-gray-600 uppercase tracking-widest">Admin Registration</p>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <Field label="Max Attempts per IP" hint="Registration attempts allowed from a single IP">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_admin_reg_max_attempts', '3')}
+                                            onChange={v => set('rate_limit_admin_reg_max_attempts', v)}
+                                            placeholder="3"
+                                        />
+                                    </Field>
+                                    <Field label="Window Duration (min)" hint="Time window for counting attempts">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_admin_reg_window_minutes', '15')}
+                                            onChange={v => set('rate_limit_admin_reg_window_minutes', v)}
+                                            placeholder="15"
+                                        />
+                                    </Field>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                                <p className="text-xs text-amber-800 font-medium">
+                                    ⚠️ <strong>Caution:</strong> Setting values too high may weaken protection against brute-force attacks. Setting values too low may lock out legitimate users.
+                                </p>
+                            </div>
                         </div>
                     </SectionCard>
 

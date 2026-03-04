@@ -65,6 +65,12 @@ instance.interceptors.response.use(
                 return Promise.reject(error);
             }
 
+            // GUEST users (not logged in): Never redirect to login.
+            // They may trigger 401s from background /cart, /wishlist sync — that's normal.
+            if (!userStr) {
+                return Promise.reject(error);
+            }
+
             console.warn("Unauthorized request (non-auth). Token expired or invalid. Logging out...");
             localStorage.removeItem("user");
 

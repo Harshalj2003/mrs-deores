@@ -20,6 +20,9 @@ public class SignupRequest {
     // ROLE_USER
     // This prevents any user from self-assigning ROLE_ADMIN via request body.
 
+    @Size(max = 20)
+    private String phone;
+
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;

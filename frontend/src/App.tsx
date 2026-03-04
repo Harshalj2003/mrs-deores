@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import "./index.css";
@@ -12,11 +12,19 @@ import Home from "./components/Home";
 import ProductList from "./components/ProductList";
 import ProductDetail from "./pages/ProductDetail_utf8";
 import Wishlist from "./components/Wishlist";
-import CheckoutPage from "./pages/CheckoutPage";
-import Orders from "./pages/Orders";
-import AdminDashboard from "./pages/AdminDashboard";
-import AdminProducts from "./pages/AdminProducts";
-import AdminOrders from "./pages/AdminOrders";
+// Lazy-loaded heavy pages for performance
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminProducts = lazy(() => import('./pages/AdminProducts'));
+const AdminOrders = lazy(() => import('./pages/AdminOrders'));
+const AdminCustomOrders = lazy(() => import('./pages/AdminCustomOrders'));
+const AdminCategories = lazy(() => import('./pages/AdminCategories'));
+const AdminSettings = lazy(() => import('./pages/AdminSettings'));
+const AdminNotificationsPage = lazy(() => import('./pages/AdminNotificationsPage'));
+const AdminTeam = lazy(() => import('./pages/AdminTeam'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const Orders = lazy(() => import('./pages/Orders'));
+const CustomOrderPage = lazy(() => import('./pages/CustomOrderPage'));
+const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 import useCartStore from "./store/useCartStore";
 import api from "./services/api";
 
@@ -24,20 +32,22 @@ import AdminLayout from "./layouts/AdminLayout";
 import MainLayout from "./layouts/MainLayout";
 import AuthLayout from "./layouts/AuthLayout";
 import CheckoutLayout from "./layouts/CheckoutLayout";
-import CustomOrderPage from "./pages/CustomOrderPage";
-import AdminCustomOrders from "./pages/AdminCustomOrders";
+
 import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 import ScrollToTop from "./components/ScrollToTop";
-import AdminCategories from "./pages/AdminCategories";
-import AdminSettings from "./pages/AdminSettings";
-import AboutPage from "./pages/AboutPage";
+
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import ProfilePage from "./pages/ProfilePage";
+import AboutPage from "./pages/AboutPage";
 import Policies from "./pages/Policies";
-import AdminNotificationsPage from "./pages/AdminNotificationsPage";
-import AdminTeam from "./pages/AdminTeam";
 import useHeartbeat from "./hooks/useHeartbeat";
+
+// Minimal loading spinner for Suspense fallback
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-neutral-light dark:bg-neutral-900">
+    <div className="h-10 w-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
+);
 
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | undefined>(undefined);
@@ -82,16 +92,18 @@ const App: React.FC = () => {
       <ScrollToTop />
       {location.pathname.startsWith('/admin') ? (
         <AdminLayout currentUser={currentUser}>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-            <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
-            <Route path="/admin/categories" element={<ProtectedAdminRoute><AdminCategories /></ProtectedAdminRoute>} />
-            <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
-            <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
-            <Route path="/admin/notifications" element={<ProtectedAdminRoute><AdminNotificationsPage /></ProtectedAdminRoute>} />
-            <Route path="/admin/team" element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
-            <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+              <Route path="/admin/products" element={<ProtectedAdminRoute><AdminProducts /></ProtectedAdminRoute>} />
+              <Route path="/admin/categories" element={<ProtectedAdminRoute><AdminCategories /></ProtectedAdminRoute>} />
+              <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrders /></ProtectedAdminRoute>} />
+              <Route path="/admin/custom-orders" element={<ProtectedAdminRoute><AdminCustomOrders /></ProtectedAdminRoute>} />
+              <Route path="/admin/notifications" element={<ProtectedAdminRoute><AdminNotificationsPage /></ProtectedAdminRoute>} />
+              <Route path="/admin/team" element={<ProtectedAdminRoute><AdminTeam /></ProtectedAdminRoute>} />
+              <Route path="/admin/settings" element={<ProtectedAdminRoute><AdminSettings /></ProtectedAdminRoute>} />
+            </Routes>
+          </Suspense>
         </AdminLayout>
       ) : ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname) ? (
         <AuthLayout>
@@ -104,9 +116,11 @@ const App: React.FC = () => {
         </AuthLayout>
       ) : location.pathname === '/checkout' ? (
         <CheckoutLayout>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/checkout" element={<CheckoutPage />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/checkout" element={<CheckoutPage />} />
+            </Routes>
+          </Suspense>
         </CheckoutLayout>
       ) : (
         <MainLayout currentUser={currentUser} logOut={logOut}>
@@ -119,20 +133,22 @@ const App: React.FC = () => {
               variants={pageVariants}
               transition={pageTransition}
             >
-              <Routes location={location} key={location.pathname}>
-                <Route path="/" element={<Home />} />
-                <Route path="/home" element={<Home />} />
-                <Route path="/category/:categoryId" element={<ProductList />} />
-                <Route path="/product/:id" element={<ProductDetail currentUser={currentUser} />} />
-                <Route path="/wishlist" element={<Wishlist />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/orders" element={<Orders />} />
-                <Route path="/custom-order" element={<CustomOrderPage />} />
-                <Route path="/about" element={<AboutPage />} />
-                <Route path="/privacy" element={<Policies />} />
-                <Route path="/terms" element={<Policies />} />
-                <Route path="/shipping" element={<Policies />} />
-              </Routes>
+              <Suspense fallback={<PageLoader />}>
+                <Routes location={location} key={location.pathname}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/home" element={<Home />} />
+                  <Route path="/category/:categoryId" element={<ProductList />} />
+                  <Route path="/product/:id" element={<ProductDetail currentUser={currentUser} />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/orders" element={<Orders />} />
+                  <Route path="/custom-order" element={<CustomOrderPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/privacy" element={<Policies />} />
+                  <Route path="/terms" element={<Policies />} />
+                  <Route path="/shipping" element={<Policies />} />
+                </Routes>
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </MainLayout>
