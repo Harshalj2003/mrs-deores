@@ -438,41 +438,92 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                 </div>
             </div>
 
-            {/* Logout confirmation dialog */}
+            {/* Logout confirmation dialog — creative branded design */}
             <AnimatePresence>
                 {showLogoutConfirm && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                        style={{ backgroundColor: 'rgba(30, 18, 8, 0.6)', backdropFilter: 'blur(8px)' }}
                         onClick={() => setShowLogoutConfirm(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                            initial={{ scale: 0.85, y: 30, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.85, y: 30, opacity: 0 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center border border-gray-100 dark:border-neutral-700"
+                            className="w-[280px] rounded-3xl overflow-hidden"
+                            style={{
+                                backgroundColor: isDark ? '#1E1208' : '#FFFDF8',
+                                boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+                                border: isDark ? '1px solid rgba(194, 65, 12, 0.2)' : '1px solid rgba(194, 65, 12, 0.1)'
+                            }}
                         >
-                            <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
-                                <LogOut className="h-6 w-6 text-red-500" />
+                            {/* Warm gradient header */}
+                            <div className="relative h-16 overflow-hidden" style={{ background: 'linear-gradient(135deg, #C2410C, #D97706, #B45309)' }}>
+                                {/* Floating product icons */}
+                                <div className="absolute inset-0 flex items-center justify-center gap-5">
+                                    <motion.span
+                                        animate={{ y: [0, -6, 0] }}
+                                        transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+                                        className="text-2xl opacity-90"
+                                    >🫙</motion.span>
+                                    <motion.span
+                                        animate={{ y: [0, -8, 0] }}
+                                        transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }}
+                                        className="text-2xl opacity-90"
+                                    >🌿</motion.span>
+                                    <motion.span
+                                        animate={{ y: [0, -5, 0] }}
+                                        transition={{ duration: 1.8, repeat: Infinity, delay: 0.6 }}
+                                        className="text-2xl opacity-90"
+                                    >🥣</motion.span>
+                                </div>
+                                {/* Subtle pattern overlay */}
+                                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
                             </div>
-                            <h3 className="text-lg font-black text-gray-900 dark:text-white">Log Out?</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Are you sure you want to log out of your account?</p>
-                            <div className="flex gap-3 mt-5">
-                                <button
-                                    onClick={() => setShowLogoutConfirm(false)}
-                                    className="flex-1 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-xl hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={confirmLogOut}
-                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
-                                >
-                                    Log Out
-                                </button>
+
+                            {/* Content */}
+                            <div className="px-5 pt-4 pb-5 text-center">
+                                <h3 className="text-base font-black font-serif" style={{ color: isDark ? '#F0DEC8' : '#3E2723' }}>
+                                    Leaving the kitchen?
+                                </h3>
+                                <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: isDark ? '#7D5F45' : '#8D6E63' }}>
+                                    Your saved recipes & favourites will be here when you return.
+                                </p>
+
+                                {/* Buttons */}
+                                <div className="flex gap-2.5 mt-4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={confirmLogOut}
+                                        className="flex-1 py-2 text-xs font-bold rounded-xl transition-colors"
+                                        style={{
+                                            color: isDark ? '#A08060' : '#8D6E63',
+                                            backgroundColor: isDark ? 'rgba(74, 45, 20, 0.4)' : 'rgba(141, 110, 99, 0.1)',
+                                            border: isDark ? '1px solid rgba(74, 45, 20, 0.6)' : '1px solid rgba(141, 110, 99, 0.2)'
+                                        }}
+                                    >
+                                        Log Out
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.03 }}
+                                        whileTap={{ scale: 0.97 }}
+                                        onClick={() => setShowLogoutConfirm(false)}
+                                        className="flex-1 py-2 text-xs font-black text-white rounded-xl shadow-lg transition-colors"
+                                        style={{
+                                            background: 'linear-gradient(135deg, #C2410C, #B45309)',
+                                            boxShadow: '0 4px 14px rgba(194, 65, 12, 0.3)'
+                                        }}
+                                    >
+                                        Stay & Explore ✨
+                                    </motion.button>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
