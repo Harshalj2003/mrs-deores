@@ -43,10 +43,21 @@ import AboutPage from "./pages/AboutPage";
 import Policies from "./pages/Policies";
 import useHeartbeat from "./hooks/useHeartbeat";
 
-// Minimal loading spinner for Suspense fallback
+// Branded page loader — product icons with gentle bob animation
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-neutral-light dark:bg-neutral-900">
-    <div className="h-10 w-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+  <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-light dark:bg-neutral-900 gap-4">
+    <div className="flex gap-3">
+      {['🫙', '📦', '🌿', '🥣', '🍯'].map((icon, i) => (
+        <span
+          key={i}
+          className="text-2xl animate-bounce"
+          style={{ animationDelay: `${i * 0.12}s`, animationDuration: '1s' }}
+        >
+          {icon}
+        </span>
+      ))}
+    </div>
+    <span className="text-xs font-black text-primary/50 uppercase tracking-[0.2em]">MRS. DEORE</span>
   </div>
 );
 

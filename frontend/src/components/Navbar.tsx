@@ -47,6 +47,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     const profileRef = useRef<HTMLDivElement>(null);
     const wishlistItems = useWishlistStore((state) => state.items);
     const wishlistCount = wishlistItems.length;
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     // Branding settings
     const [logoSize, setLogoSize] = useState<'sm' | 'md' | 'lg'>('md');
@@ -103,6 +104,11 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     }, []);
 
     const handleLogOut = () => {
+        setShowLogoutConfirm(true);
+    };
+
+    const confirmLogOut = () => {
+        setShowLogoutConfirm(false);
         setProfileOpen(false);
         logOut();
         navigate("/");
@@ -423,7 +429,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                             </Link>
                             <Link
                                 to="/register"
-                                className="px-4 py-2 text-xs font-black text-white bg-primary hover:bg-accent rounded-xl shadow-sm shadow-primary/20 transition-all"
+                                className="px-4 py-2 text-xs font-black text-white bg-primary hover:bg-accent rounded-xl shadow-sm shadow-primary/20 transition-all animate-pulse"
                             >
                                 {t('signUp')}
                             </Link>
@@ -431,6 +437,47 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
                     )}
                 </div>
             </div>
+
+            {/* Logout confirmation dialog */}
+            <AnimatePresence>
+                {showLogoutConfirm && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                        onClick={() => setShowLogoutConfirm(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl p-6 max-w-xs w-full text-center border border-gray-100 dark:border-neutral-700"
+                        >
+                            <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                                <LogOut className="h-6 w-6 text-red-500" />
+                            </div>
+                            <h3 className="text-lg font-black text-gray-900 dark:text-white">Log Out?</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Are you sure you want to log out of your account?</p>
+                            <div className="flex gap-3 mt-5">
+                                <button
+                                    onClick={() => setShowLogoutConfirm(false)}
+                                    className="flex-1 py-2.5 text-sm font-bold text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-neutral-700 rounded-xl hover:bg-gray-200 dark:hover:bg-neutral-600 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmLogOut}
+                                    className="flex-1 py-2.5 text-sm font-bold text-white bg-red-500 rounded-xl hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
+                                >
+                                    Log Out
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </nav>
     );
 };

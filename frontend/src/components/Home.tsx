@@ -120,6 +120,7 @@ const Home: React.FC = () => {
             {heroEnabled && (
                 <ScrollSection
                     bg="linear-gradient(145deg, #FFF8E7 0%, #FFECD2 40%, #FFF0D6 100%)"
+                    darkBg="linear-gradient(145deg, #1A0F07 0%, #271608 40%, #1E1208 100%)"
                     pattern="dots"
                     patternColor="rgba(212, 175, 55, 0.06)"
                     revealStyle="zoom"
@@ -141,7 +142,7 @@ const Home: React.FC = () => {
                                     initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
                                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                     transition={{ delay: 0.3, duration: 0.6 }}
-                                    className="mb-6"
+                                    className="mb-6 relative z-[50]"
                                 >
                                     <SearchBar mode="expanded" />
                                 </motion.div>
@@ -150,7 +151,7 @@ const Home: React.FC = () => {
                                     initial={{ opacity: 0, y: 40, filter: 'blur(6px)' }}
                                     animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                                     transition={{ delay: 0.45, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                                    className="text-4xl tracking-tight font-black text-[#5D4037] sm:text-5xl md:text-6xl font-serif leading-tight"
+                                    className="relative z-0 text-4xl tracking-tight font-black text-[#5D4037] sm:text-5xl md:text-6xl font-serif leading-tight"
                                 >
                                     <span className="block xl:inline">Authentic Homemade</span>{' '}
                                     <span className="block text-secondary xl:inline">Tradition in every bite</span>
@@ -219,6 +220,7 @@ const Home: React.FC = () => {
             <ScrollSection
                 id="shop"
                 bg="linear-gradient(180deg, #FFFFFF 0%, #FFF9F0 50%, #FFFFFF 100%)"
+                darkBg="linear-gradient(180deg, #1A0F07 0%, #271608 50%, #1A0F07 100%)"
                 pattern="radial"
                 patternColor="rgba(194, 65, 12, 0.03)"
                 revealStyle="curtain"
@@ -233,6 +235,7 @@ const Home: React.FC = () => {
                 ════════════════════════════════════════════════════ */}
             <ScrollSection
                 bg="linear-gradient(180deg, #F9F0E3 0%, #F5E6D0 50%, #F0DCC0 100%)"
+                darkBg="linear-gradient(180deg, #150C04 0%, #1E1208 50%, #150C04 100%)"
                 pattern="waves"
                 patternColor="rgba(139, 90, 43, 0.03)"
                 revealStyle="blur"
@@ -249,6 +252,7 @@ const Home: React.FC = () => {
                 ════════════════════════════════════════════════════ */}
             <ScrollSection
                 bg="linear-gradient(135deg, #7F1D1D 0%, #991B1B 30%, #C2410C 70%, #B45309 100%)"
+                darkBg="linear-gradient(135deg, #4A0E0E 0%, #5C1010 30%, #7B2D08 70%, #6B3707 100%)"
                 pattern="dots"
                 patternColor="rgba(255, 255, 255, 0.04)"
                 revealStyle="split"

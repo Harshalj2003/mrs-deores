@@ -1,10 +1,12 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 
 interface ScrollSectionProps {
     children: React.ReactNode;
     /** Background color or gradient for this section's "world" */
     bg?: string;
+    /** Dark mode background gradient */
+    darkBg?: string;
     /** Optional decorative pattern overlay */
     pattern?: 'dots' | 'radial' | 'waves' | 'none';
     /** Accent color for the pattern */
@@ -27,6 +29,7 @@ interface ScrollSectionProps {
 const ScrollSection: React.FC<ScrollSectionProps> = ({
     children,
     bg = 'transparent',
+    darkBg,
     pattern = 'none',
     patternColor = 'rgba(194, 65, 12, 0.04)',
     fullHeight = false,
@@ -35,29 +38,41 @@ const ScrollSection: React.FC<ScrollSectionProps> = ({
     revealStyle = 'rise'
 }) => {
     const ref = useRef<HTMLDivElement>(null);
-    // Trigger animation when just 15% of section is visible — fires fast, no empty wait
     const isInView = useInView(ref, { once: false, amount: 0.15 });
+
+    // Track dark mode state
+    const [isDark, setIsDark] = useState(false);
+    useEffect(() => {
+        const root = document.documentElement;
+        const check = () => setIsDark(root.classList.contains('dark'));
+        check();
+        const observer = new MutationObserver(check);
+        observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+        return () => observer.disconnect();
+    }, []);
+
+    const activeBg = isDark && darkBg ? darkBg : bg;
 
     // Different dramatic animation styles per section
     const revealVariants = {
         rise: {
-            hidden: { opacity: 0, y: 80, scale: 0.96 },
+            hidden: { opacity: 0, y: 40, scale: 0.98 },
             visible: { opacity: 1, y: 0, scale: 1 }
         },
         zoom: {
-            hidden: { opacity: 0, scale: 0.85, filter: 'blur(8px)' },
+            hidden: { opacity: 0, scale: 0.92, filter: 'blur(4px)' },
             visible: { opacity: 1, scale: 1, filter: 'blur(0px)' }
         },
         curtain: {
-            hidden: { opacity: 0, clipPath: 'inset(100% 0% 0% 0%)' },
+            hidden: { opacity: 0, clipPath: 'inset(50% 0% 50% 0%)' },
             visible: { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' }
         },
         blur: {
-            hidden: { opacity: 0, filter: 'blur(20px)', y: 40 },
+            hidden: { opacity: 0, filter: 'blur(12px)', y: 20 },
             visible: { opacity: 1, filter: 'blur(0px)', y: 0 }
         },
         split: {
-            hidden: { opacity: 0, scale: 0.9, rotateX: 8 },
+            hidden: { opacity: 0, scale: 0.95, rotateX: 4 },
             visible: { opacity: 1, scale: 1, rotateX: 0 }
         }
     };
@@ -91,7 +106,7 @@ const ScrollSection: React.FC<ScrollSectionProps> = ({
             ref={ref}
             id={id}
             className={`scroll-section relative overflow-hidden ${fullHeight ? 'min-h-[100dvh] flex flex-col justify-center' : ''} ${className}`}
-            style={{ background: bg }}
+            style={{ background: activeBg }}
         >
             {/* Pattern overlay */}
             {pattern !== 'none' && (
@@ -119,10 +134,10 @@ const ScrollSection: React.FC<ScrollSectionProps> = ({
                 animate={isInView ? 'visible' : 'hidden'}
                 variants={variants}
                 transition={{
-                    duration: 0.8,
+                    duration: 0.5,
                     ease: [0.22, 1, 0.36, 1],
-                    filter: { duration: 0.6 },
-                    scale: { duration: 0.7 }
+                    filter: { duration: 0.4 },
+                    scale: { duration: 0.45 }
                 }}
                 className="relative z-10 w-full"
             >

@@ -203,22 +203,44 @@ const EmailVerificationModal: React.FC<EmailVerificationModalProps> = ({ isOpen,
                                     <p className="text-xl font-black text-primary font-serif uppercase tracking-tighter">Mrs. Deore's Kitchen</p>
                                 </motion.div>
 
-                                <div className="mt-10 flex flex-col gap-1 items-center">
-                                    {[1, 2, 3].map((i) => (
+                                {/* Branded product carousel loading — like Ajio but with our products */}
+                                <div className="mt-8 flex flex-col items-center gap-3">
+                                    <div className="overflow-hidden w-44 relative">
                                         <motion.div
-                                            key={i}
-                                            animate={{
-                                                scale: [1, 1.2, 1],
-                                                opacity: [0.3, 1, 0.3]
-                                            }}
-                                            transition={{
-                                                repeat: Infinity,
-                                                duration: 1.5,
-                                                delay: i * 0.2
-                                            }}
-                                            className="w-1 h-1 rounded-full bg-primary"
+                                            animate={{ x: ['0%', '-50%'] }}
+                                            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                                            className="flex gap-4 w-max"
+                                        >
+                                            {/* Product icons — doubled for seamless infinite loop */}
+                                            {['🫙', '📦', '🌿', '🥣', '🍯', '🫙', '📦', '🌿', '🥣', '🍯'].map((icon, i) => (
+                                                <motion.span
+                                                    key={i}
+                                                    animate={{ y: [0, -4, 0] }}
+                                                    transition={{
+                                                        duration: 1.2,
+                                                        repeat: Infinity,
+                                                        delay: i * 0.15,
+                                                        ease: 'easeInOut'
+                                                    }}
+                                                    className="text-2xl flex-shrink-0"
+                                                >
+                                                    {icon}
+                                                </motion.span>
+                                            ))}
+                                        </motion.div>
+                                    </div>
+                                    {/* Progress bar */}
+                                    <div className="w-28 h-1 rounded-full bg-gray-200 dark:bg-neutral-700 overflow-hidden">
+                                        <motion.div
+                                            initial={{ width: '0%' }}
+                                            animate={{ width: '100%' }}
+                                            transition={{ duration: 2.8, ease: 'easeInOut' }}
+                                            className="h-full rounded-full bg-gradient-to-r from-primary to-secondary"
                                         />
-                                    ))}
+                                    </div>
+                                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium uppercase tracking-widest">
+                                        Setting up your kitchen...
+                                    </p>
                                 </div>
                             </motion.div>
                         )}

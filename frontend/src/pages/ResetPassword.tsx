@@ -49,7 +49,7 @@ const ResetPassword: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-background dark:bg-neutral-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-sm">
                 {!token ? (
                     <div className="text-center">
                         <AlertTriangle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
@@ -64,15 +64,15 @@ const ResetPassword: React.FC = () => {
                         className="bg-white dark:bg-neutral-800 rounded-3xl shadow-xl border border-gray-100 dark:border-neutral-700 overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="p-7 pb-0 text-center">
-                            <div className="h-14 w-14 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-4 scale-95 border border-primary/10">
-                                <Lock className="h-7 w-7 text-primary dark:text-primary-light" />
+                        <div className="p-5 pb-0 text-center">
+                            <div className="h-12 w-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-3 border border-primary/10">
+                                <Lock className="h-6 w-6 text-primary dark:text-primary-light" />
                             </div>
-                            <h1 className="text-xl font-black text-gray-900 dark:text-white font-serif tracking-tight">Set New Password</h1>
-                            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-2 px-6 leading-relaxed">Choose a balanced, secure password for your account.</p>
+                            <h1 className="text-lg font-black text-gray-900 dark:text-white font-serif tracking-tight">Set New Password</h1>
+                            <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1.5 px-4 leading-relaxed">Choose a balanced, secure password for your account.</p>
                         </div>
 
-                        <div className="p-7">
+                        <div className="p-5">
                             <AnimatePresence mode="wait">
                                 {!success ? (
                                     <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleSubmit} className="space-y-4">

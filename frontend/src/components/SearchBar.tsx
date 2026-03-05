@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, X, ArrowRight, Package2, LayoutGrid, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SearchResult {
     type: 'product' | 'category';
@@ -36,6 +37,8 @@ const SearchBar: React.FC<SearchBarProps> = ({ mode }) => {
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const navigate = useNavigate();
     const location = useLocation();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     // Ctrl+K / Cmd+K to focus
     useEffect(() => {
@@ -125,9 +128,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ mode }) => {
     // ──────────────────────────────────────────────
     if (mode === 'expanded') {
         return (
-            <div ref={containerRef} className="relative w-full max-w-xl mx-auto">
-                <div className={`flex items-center gap-3 bg-white rounded-2xl shadow-xl shadow-primary/10 border-2 transition-all duration-300 ${open ? 'border-primary' : 'border-transparent'}`}>
-                    <Search className="ml-5 h-5 w-5 text-primary flex-shrink-0" />
+            <div ref={containerRef} className="relative w-full max-w-xl mr-auto z-[50]">
+                <div
+                    className={`relative flex items-center gap-3 backdrop-blur-2xl rounded-2xl border-2 transition-all duration-300 overflow-hidden ${open ? 'border-primary' : isDark ? 'border-primary/30' : 'border-primary/15'}`}
+                    style={{
+                        backgroundColor: isDark ? 'rgba(30, 18, 8, 0.92)' : 'rgba(255, 253, 248, 0.92)',
+                        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(194, 65, 12, 0.08)'
+                    }}
+                >
+                    {/* Glass shine sweep */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-2xl">
+                        <div className="absolute inset-0 -translate-x-full animate-[searchShine_3s_ease-in-out_infinite]" style={{ background: isDark ? 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%)' : 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)' }} />
+                    </div>
+                    <Search className="ml-5 h-5 w-5 text-primary flex-shrink-0 relative z-[1]" />
                     <input
                         ref={inputRef}
                         type="text"
@@ -135,12 +148,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ mode }) => {
                         onChange={handleChange}
                         onKeyDown={handleKey}
                         onFocus={() => query.length >= 2 && setOpen(true)}
-                        placeholder="Search masalas, premixes, snacks... (Ctrl+K)"
-                        className="flex-1 py-4 pr-4 text-gray-900 placeholder:text-gray-400 bg-transparent outline-none text-sm font-medium"
+                        placeholder="Search premixes, products... (Ctrl+K)"
+                        data-search-hero="true"
+                        autoComplete="off"
+                        className="flex-1 py-4 pr-4 outline-none text-sm font-medium relative z-[1]"
+                        style={{
+                            backgroundColor: 'transparent',
+                            color: isDark ? '#F0DEC8' : '#5D4037',
+                            caretColor: isDark ? '#F0DEC8' : '#5D4037'
+                        }}
                     />
-                    {loading && <Loader2 className="mr-3 h-4 w-4 animate-spin text-primary/50" />}
+                    {loading && <Loader2 className="mr-3 h-4 w-4 animate-spin text-primary/50 relative z-[1]" />}
                     {query && !loading && (
-                        <button onClick={clearSearch} className="mr-4 text-gray-400 hover:text-gray-600 transition-colors">
+                        <button onClick={clearSearch} className="mr-4 text-gray-400 hover:text-gray-600 transition-colors relative z-[1]">
                             <X className="h-4 w-4" />
                         </button>
                     )}
@@ -153,6 +173,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ mode }) => {
                     results={results}
                     onSelect={handleSelect}
                     query={query}
+                    isDark={isDark}
                 />
             </div>
         );
@@ -213,6 +234,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ mode }) => {
                 onSelect={handleSelect}
                 query={query}
                 compact
+                isDark={isDark}
             />
         </div>
     );
@@ -228,9 +250,10 @@ interface DropdownProps {
     onSelect: (r: SearchResult) => void;
     query: string;
     compact?: boolean;
+    isDark: boolean;
 }
 
-const SearchDropdown: React.FC<DropdownProps> = ({ open, categories, products, results, selectedIdx, onSelect, query, compact }) => (
+const SearchDropdown: React.FC<DropdownProps> = ({ open, categories, products, results, selectedIdx, onSelect, query, compact, isDark }) => (
     <AnimatePresence>
         {open && (
             <motion.div
@@ -238,72 +261,84 @@ const SearchDropdown: React.FC<DropdownProps> = ({ open, categories, products, r
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.97 }}
                 transition={{ type: 'spring', stiffness: 350, damping: 28 }}
-                className={`absolute ${compact ? 'right-0' : 'left-0 right-0'} top-full mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[200] overflow-hidden`}
-                style={{ minWidth: compact ? 320 : undefined }}
+                className={`absolute ${compact ? 'right-0' : 'left-0 right-0'} top-full mt-2 rounded-2xl z-[200] overflow-hidden`}
+                style={{
+                    minWidth: compact ? 320 : undefined,
+                    backgroundColor: isDark ? '#271608' : '#FFF9F0',
+                    border: isDark ? '1px solid rgba(194, 65, 12, 0.2)' : '1px solid rgba(194, 65, 12, 0.1)',
+                    boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.5)' : '0 8px 32px rgba(194, 65, 12, 0.12)'
+                }}
             >
                 {results.length === 0 ? (
                     <div className="px-5 py-8 text-center">
                         <span className="text-3xl mb-3 block">🔍</span>
-                        <p className="text-sm font-bold text-gray-500">No results for "{query}"</p>
-                        <p className="text-xs text-gray-400 mt-1">Try a different keyword or browse categories</p>
+                        <p className="text-sm font-bold" style={{ color: isDark ? '#CEB48E' : '#6B3A1F' }}>No results for "{query}"</p>
+                        <p className="text-xs mt-1" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>Try a different keyword or browse categories</p>
                     </div>
                 ) : (
-                    <div className="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                    <div className="max-h-80 overflow-y-auto">
                         {/* Categories */}
                         {categories.length > 0 && (
                             <div>
-                                <p className="px-4 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                <p className="px-4 py-2 text-[9px] font-black uppercase tracking-widest" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>
                                     <LayoutGrid className="inline h-3 w-3 mr-1" />Categories
                                 </p>
                                 {categories.map((r, i) => (
-                                    <ResultRow key={`cat-${r.id}`} r={r} idx={i} selectedIdx={selectedIdx} onSelect={onSelect} results={results} />
+                                    <ResultRow key={`cat-${r.id}`} r={r} idx={i} selectedIdx={selectedIdx} onSelect={onSelect} isDark={isDark} />
                                 ))}
                             </div>
                         )}
                         {/* Products */}
                         {products.length > 0 && (
                             <div>
-                                <p className="px-4 py-2 text-[9px] font-black text-gray-400 uppercase tracking-widest">
+                                <p className="px-4 py-2 text-[9px] font-black uppercase tracking-widest" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>
                                     <Package2 className="inline h-3 w-3 mr-1" />Products
                                 </p>
                                 {products.map((r, i) => (
-                                    <ResultRow key={`prod-${r.id}`} r={r} idx={categories.length + i} selectedIdx={selectedIdx} onSelect={onSelect} results={results} />
+                                    <ResultRow key={`prod-${r.id}`} r={r} idx={categories.length + i} selectedIdx={selectedIdx} onSelect={onSelect} isDark={isDark} />
                                 ))}
                             </div>
                         )}
                     </div>
                 )}
-                <div className="px-4 py-2 bg-gray-50 flex justify-between items-center">
-                    <span className="text-[9px] text-gray-400 font-medium">↑↓ navigate · Enter to open</span>
-                    <span className="text-[9px] text-gray-400 font-medium">Esc to close</span>
+                <div className="px-4 py-2 flex justify-between items-center" style={{ backgroundColor: isDark ? 'rgba(26, 15, 7, 0.6)' : 'rgba(255, 240, 214, 0.6)' }}>
+                    <span className="text-[9px] font-medium" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>↑↓ navigate · Enter to open</span>
+                    <span className="text-[9px] font-medium" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>Esc to close</span>
                 </div>
             </motion.div>
         )}
     </AnimatePresence>
 );
 
-const ResultRow: React.FC<{ r: SearchResult; idx: number; selectedIdx: number; onSelect: (r: SearchResult) => void; results: SearchResult[] }> = ({ r, idx, selectedIdx, onSelect }) => (
+const ResultRow: React.FC<{ r: SearchResult; idx: number; selectedIdx: number; onSelect: (r: SearchResult) => void; isDark: boolean }> = ({ r, idx, selectedIdx, onSelect, isDark }) => (
     <button
         onClick={() => onSelect(r)}
-        className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${idx === selectedIdx ? 'bg-primary/5' : 'hover:bg-gray-50'}`}
+        className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-all duration-150"
+        style={{
+            backgroundColor: idx === selectedIdx
+                ? (isDark ? 'rgba(194, 65, 12, 0.12)' : 'rgba(194, 65, 12, 0.06)')
+                : 'transparent'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isDark ? 'rgba(194, 65, 12, 0.1)' : 'rgba(194, 65, 12, 0.05)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = idx === selectedIdx ? (isDark ? 'rgba(194, 65, 12, 0.12)' : 'rgba(194, 65, 12, 0.06)') : 'transparent'}
     >
         {r.imageUrl ? (
-            <img src={r.imageUrl} alt={r.name} className="h-10 w-10 rounded-xl object-cover flex-shrink-0 bg-gray-100" />
+            <img src={r.imageUrl} alt={r.name} className="h-10 w-10 rounded-xl object-cover flex-shrink-0" style={{ border: isDark ? '2px solid rgba(194, 65, 12, 0.15)' : '2px solid rgba(194, 65, 12, 0.08)' }} />
         ) : (
             <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 ${r.type === 'category' ? 'bg-primary/10 text-primary' : 'bg-secondary/10 text-secondary'}`}>
                 {r.type === 'category' ? <LayoutGrid className="h-4 w-4" /> : <Package2 className="h-4 w-4" />}
             </div>
         )}
         <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-gray-900 truncate">{r.name}</p>
+            <p className="text-sm font-bold truncate" style={{ color: isDark ? '#F0DEC8' : '#3E2723' }}>{r.name}</p>
             {r.type === 'product' && r.price && (
-                <p className="text-xs text-primary font-black">₹{r.price.toLocaleString('en-IN')}</p>
+                <p className="text-xs font-black text-primary">₹{r.price.toLocaleString('en-IN')}</p>
             )}
             {r.type === 'category' && r.description && (
-                <p className="text-xs text-gray-400 truncate">{r.description}</p>
+                <p className="text-xs truncate" style={{ color: isDark ? '#7D5F45' : '#A08060' }}>{r.description}</p>
             )}
         </div>
-        <ArrowRight className="h-3.5 w-3.5 text-gray-300 flex-shrink-0" />
+        <ArrowRight className="h-3.5 w-3.5 flex-shrink-0" style={{ color: isDark ? '#4A2D14' : '#D2B48C' }} />
     </button>
 );
 
