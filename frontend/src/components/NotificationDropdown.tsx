@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, CheckCircle2, AlertTriangle, AlertCircle, Info, Image as ImageIcon, Video, Link as LinkIcon, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
 import { clsx } from 'clsx';
 import { API_BASE } from '../config';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface NotificationItem {
     id: number;
@@ -20,6 +21,8 @@ interface NotificationItem {
 }
 
 export default function NotificationDropdown() {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [open, setOpen] = useState(false);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
@@ -27,8 +30,17 @@ export default function NotificationDropdown() {
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const res = await api.get('/notifications');
+            setNotifications(res.data.notifications || []);
+        } catch {
+            // User might not be logged in or error
+        }
+    }, []);
+
     useEffect(() => {
-        fetchNotifications();
+        fetchNotifications(); // eslint-disable-line react-hooks/set-state-in-effect
 
         const handleClickOutside = (e: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -37,23 +49,14 @@ export default function NotificationDropdown() {
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    }, [fetchNotifications]);
 
     // Optionally poll or refresh when opening
     useEffect(() => {
         if (open) {
-            fetchNotifications();
+            fetchNotifications(); // eslint-disable-line react-hooks/set-state-in-effect
         }
-    }, [open]);
-
-    const fetchNotifications = async () => {
-        try {
-            const res = await api.get('/notifications');
-            setNotifications(res.data.notifications || []);
-        } catch (err) {
-            // User might not be logged in or error
-        }
-    };
+    }, [open, fetchNotifications]);
 
     const markAsRead = async (id: number) => {
         // Optimistic update
@@ -137,10 +140,17 @@ export default function NotificationDropdown() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="fixed inset-x-4 top-[4.5rem] sm:absolute sm:inset-x-auto sm:-right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-none bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col origin-top sm:origin-top-right"
+                        className="fixed inset-x-4 top-[4.5rem] sm:absolute sm:inset-x-auto sm:-right-0 sm:top-full sm:mt-3 w-auto sm:w-96 max-w-none rounded-3xl shadow-xl overflow-hidden z-[100] flex flex-col origin-top sm:origin-top-right"
+                        style={{
+                            backgroundColor: isDark ? '#18181b' : '#ffffff',
+                            border: isDark ? '1px solid #27272a' : '1px solid #e4e4e7'
+                        }}
                     >
-                        <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900">
-                            <h3 className="font-bold text-sm">Notifications</h3>
+                        <div className="p-4 flex items-center justify-between" style={{
+                            borderBottom: isDark ? '1px solid #27272a' : '1px solid #e4e4e7',
+                            backgroundColor: isDark ? '#18181b' : '#fafafa'
+                        }}>
+                            <h3 className="font-bold text-sm" style={{ color: isDark ? '#fafafa' : '#18181b' }}>Notifications</h3>
                             {unreadCount > 0 && (
                                 <span className="text-xs text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full">
                                     {unreadCount} new
@@ -150,20 +160,23 @@ export default function NotificationDropdown() {
 
                         <div className="overflow-y-auto max-h-[400px]">
                             {notifications.length === 0 ? (
-                                <div className="p-8 text-center text-zinc-400 flex flex-col items-center">
+                                <div className="p-8 text-center flex flex-col items-center" style={{ color: isDark ? '#71717a' : '#a1a1aa' }}>
                                     <Bell className="w-10 h-10 mb-2 opacity-20" />
                                     <p className="text-sm">You have no notifications.</p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                <div style={{ borderColor: isDark ? '#27272a' : '#f4f4f5' }} className="divide-y divide-inherit">
                                     {notifications.map(notif => (
                                         <div
                                             key={notif.id}
                                             onClick={() => handleNotificationClick(notif)}
                                             className={clsx(
-                                                "p-4 flex gap-3 cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800 max-w-full group relative",
-                                                !notif.isRead ? "bg-primary/5 dark:bg-primary/10" : ""
+                                                "p-4 flex gap-3 cursor-pointer transition-colors max-w-full group relative",
+                                                !notif.isRead ? "bg-primary/5" : ""
                                             )}
+                                            style={{ ['--tw-bg-opacity' as string]: 1 }}
+                                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = isDark ? '#27272a' : '#fafafa')}
+                                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = !notif.isRead ? (isDark ? 'rgba(var(--color-primary-rgb,194,65,12),0.1)' : 'rgba(var(--color-primary-rgb,194,65,12),0.05)') : 'transparent')}
                                         >
                                             <div className="flex-shrink-0 mt-1">
                                                 {getTypeIcon(notif.type)}
@@ -172,22 +185,22 @@ export default function NotificationDropdown() {
                                                 <div className="flex justify-between items-start gap-2 mb-1">
                                                     <h4 className={clsx(
                                                         "text-sm tracking-tight truncate",
-                                                        !notif.isRead ? "font-bold text-zinc-900 dark:text-gray-100" : "font-semibold text-zinc-700 dark:text-gray-400"
-                                                    )}>
+                                                        !notif.isRead ? "font-bold" : "font-semibold"
+                                                    )} style={{ color: !notif.isRead ? (isDark ? '#f4f4f5' : '#18181b') : (isDark ? '#a1a1aa' : '#3f3f46') }}>
                                                         {notif.title}
                                                     </h4>
-                                                    <span className="text-[10px] text-zinc-400 whitespace-nowrap flex-shrink-0">
+                                                    <span className="text-[10px] whitespace-nowrap flex-shrink-0" style={{ color: isDark ? '#71717a' : '#a1a1aa' }}>
                                                         {new Date(notif.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                                     </span>
                                                 </div>
                                                 <p className={clsx(
                                                     "text-xs leading-relaxed line-clamp-2",
-                                                    !notif.isRead ? "text-zinc-700 dark:text-zinc-300 font-medium" : "text-zinc-500 dark:text-zinc-500"
-                                                )}>
+                                                    !notif.isRead ? "font-medium" : ""
+                                                )} style={{ color: !notif.isRead ? (isDark ? '#d4d4d8' : '#3f3f46') : (isDark ? '#71717a' : '#71717a') }}>
                                                     {notif.message}
                                                 </p>
                                                 {notif.attachmentType && notif.attachmentType !== 'NONE' && (
-                                                    <div className="flex items-center gap-1.5 mt-2.5 text-primary/80 dark:text-primary/70 font-bold text-[10px] uppercase tracking-wider bg-primary/5 dark:bg-primary/10 w-fit px-2 py-1 rounded-md">
+                                                    <div className="flex items-center gap-1.5 mt-2.5 text-primary/80 font-bold text-[10px] uppercase tracking-wider bg-primary/5 w-fit px-2 py-1 rounded-md">
                                                         {notif.attachmentType === 'IMAGE' && <><ImageIcon className="w-3 h-3" /> Photo Attached</>}
                                                         {notif.attachmentType === 'VIDEO' && <><Video className="w-3 h-3" /> Video Attached</>}
                                                         {notif.attachmentType === 'LINK' && <><LinkIcon className="w-3 h-3" /> Link Attached</>}
@@ -201,7 +214,8 @@ export default function NotificationDropdown() {
                                             )}
                                             <button
                                                 onClick={(e) => handleDelete(e, notif.id)}
-                                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 bg-zinc-100 dark:bg-zinc-800 sm:bg-transparent hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all absolute right-2 top-2 sm:relative sm:right-auto sm:top-auto self-center"
+                                                className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-1.5 hover:text-red-500 sm:bg-transparent hover:bg-red-50 rounded-lg transition-all absolute right-2 top-2 sm:relative sm:right-auto sm:top-auto self-center"
+                                                style={{ color: isDark ? '#71717a' : '#a1a1aa', backgroundColor: isDark ? '#27272a' : '#f4f4f5' }}
                                                 title="Delete notification"
                                             >
                                                 <X className="w-4 h-4" />
@@ -212,7 +226,10 @@ export default function NotificationDropdown() {
                             )}
                         </div>
 
-                        <div className="p-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-center">
+                        <div className="p-3 text-center" style={{
+                            borderTop: isDark ? '1px solid #27272a' : '1px solid #e4e4e7',
+                            backgroundColor: isDark ? '#18181b' : '#fafafa'
+                        }}>
                             <button
                                 onClick={() => setOpen(false)}
                                 className="text-xs font-bold text-primary hover:underline"

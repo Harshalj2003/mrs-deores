@@ -284,6 +284,17 @@ public class AuthController {
     @PostMapping("/admin/invite")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> inviteAdmin(@RequestBody java.util.Map<String, String> body) {
+        // Guard: If a default admin exists, only they can invite
+        var defaultAdmin = userRepository.findByIsDefaultAdminTrue();
+        if (defaultAdmin.isPresent()) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            UserDetailsImpl callerDetails = (UserDetailsImpl) auth.getPrincipal();
+            if (!defaultAdmin.get().getId().equals(callerDetails.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new MessageResponse("Only the Default Admin can create invitations."));
+            }
+        }
+
         String email = body.getOrDefault("email", "").trim();
         String phone = body.getOrDefault("phone", "").trim();
 

@@ -10,14 +10,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const ProfilePage: React.FC = () => {
     const user: User | null = AuthService.getCurrentUser();
-    const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'security'>('addresses');
+    const [activeTab, setActiveTab] = useState<'profile' | 'addresses' | 'security'>('profile');
 
     if (!user) {
         return <Navigate to="/login" replace />;
     }
 
     return (
-        <div className="bg-neutral-light dark:bg-neutral-900 min-h-screen pt-24 pb-20">
+        <div className="bg-[#FFF8E7] dark:bg-neutral-900 min-h-screen pt-24 pb-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar */}

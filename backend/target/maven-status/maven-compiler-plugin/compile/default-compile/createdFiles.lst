@@ -9,6 +9,7 @@ com\mrsdeores\models\ERole.class
 com\mrsdeores\repository\ReviewRepository.class
 com\mrsdeores\controllers\AdminStatsController.class
 com\mrsdeores\controllers\OrderController.class
+com\mrsdeores\controllers\ProfileController.class
 com\mrsdeores\controllers\TestController.class
 com\mrsdeores\models\WishlistItem.class
 com\mrsdeores\models\AdminNotificationRead.class
