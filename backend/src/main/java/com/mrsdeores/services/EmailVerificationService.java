@@ -34,6 +34,22 @@ public class EmailVerificationService {
      */
     @Transactional
     public void sendVerificationOTP(String email, String username) {
+        String otp = generateOtpOnly(email);
+
+        // Send OTP asynchronously
+        emailService.sendOtpEmail(email, username, otp);
+        logger.info("Verification OTP persistence complete for {}", email);
+    }
+
+    /**
+     * Generates a 4-digit OTP and stores it in DB (with rate limiting),
+     * but does NOT send any email. Use this when a custom email template
+     * will be sent separately (e.g. Default Admin OTP).
+     *
+     * @return the generated OTP code
+     */
+    @Transactional
+    public String generateOtpOnly(String email) {
         String otp = String.format("%04d", new Random().nextInt(10000));
 
         var otpOpt = otpRepository.findByEmail(email);
@@ -64,10 +80,49 @@ public class EmailVerificationService {
         }
 
         otpRepository.save(otpEntity);
+        logger.info("OTP generated and persisted for {} (no email sent)", email);
+        return otp;
+    }
 
-        // Send OTP asynchronously
-        emailService.sendOtpEmail(email, username, otp);
-        logger.info("Verification OTP persistence complete for {}", email);
+    /**
+     * Overloaded generateOtpOnly with custom rate limit parameters.
+     * Used for Default Admin OTP which has its own configurable limits.
+     *
+     * @param maxResends    Max resend attempts allowed within the window
+     * @param windowMinutes Duration of the rate limit window in minutes
+     * @return the generated OTP code
+     */
+    @Transactional
+    public String generateOtpOnly(String email, int maxResends, int windowMinutes) {
+        String otp = String.format("%04d", new Random().nextInt(10000));
+
+        var otpOpt = otpRepository.findByEmail(email);
+        EmailVerificationOTP otpEntity;
+
+        if (otpOpt.isPresent()) {
+            otpEntity = otpOpt.get();
+            LocalDateTime windowStart = LocalDateTime.now().minusMinutes(windowMinutes);
+
+            if (otpEntity.getLastResendAt().isAfter(windowStart)) {
+                if (otpEntity.getResendCount() >= maxResends) {
+                    logger.warn("OTP resend rate limit exceeded for {} (custom limits)", email);
+                    throw new RuntimeException("Too many OTP requests. Please wait " + windowMinutes + " minutes.");
+                }
+                otpEntity.setResendCount(otpEntity.getResendCount() + 1);
+            } else {
+                otpEntity.setResendCount(1);
+            }
+            otpEntity.setOtpCode(otp);
+            otpEntity.setExpiryTime(LocalDateTime.now().plusMinutes(windowMinutes));
+            otpEntity.setLastResendAt(LocalDateTime.now());
+            otpEntity.setAttemptsCount(0);
+        } else {
+            otpEntity = new EmailVerificationOTP(email, otp, windowMinutes);
+        }
+
+        otpRepository.save(otpEntity);
+        logger.info("OTP generated and persisted for {} with custom limits (no email sent)", email);
+        return otp;
     }
 
     /**
@@ -105,6 +160,38 @@ public class EmailVerificationService {
         });
 
         // Cleanup OTP
+        otpRepository.delete(otpEntity);
+        return true;
+    }
+
+    /**
+     * Overloaded verifyOTP with a custom max-verify-attempts limit.
+     * Used for Default Admin OTP which has its own configurable lockout threshold.
+     */
+    @Transactional
+    public boolean verifyOTP(String email, String code, int maxVerifyAttempts) {
+        var otpOpt = otpRepository.findByEmail(email);
+        if (otpOpt.isEmpty())
+            return false;
+
+        EmailVerificationOTP otpEntity = otpOpt.get();
+
+        if (otpEntity.getExpiryTime().isBefore(LocalDateTime.now())) {
+            otpRepository.delete(otpEntity);
+            return false;
+        }
+
+        if (!otpEntity.getOtpCode().equals(code)) {
+            otpEntity.setAttemptsCount(otpEntity.getAttemptsCount() + 1);
+            if (otpEntity.getAttemptsCount() >= maxVerifyAttempts) {
+                otpRepository.delete(otpEntity);
+            } else {
+                otpRepository.save(otpEntity);
+            }
+            return false;
+        }
+
+        // For default admin, we don't flip user email verification status
         otpRepository.delete(otpEntity);
         return true;
     }

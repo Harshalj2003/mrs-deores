@@ -733,6 +733,43 @@ const AdminSettings: React.FC = () => {
                                 </div>
                             </div>
 
+                            {/* Default Admin OTP (Claim / Resign) */}
+                            <div className="space-y-4 pt-4 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-purple-500" />
+                                    <p className="text-xs font-black text-gray-600 uppercase tracking-widest">Default Admin OTP (Claim / Resign)</p>
+                                </div>
+                                <p className="text-[11px] text-gray-400 -mt-2">
+                                    Controls OTP rate limits specifically for claiming or resigning the Default Admin position. These are separate from user registration OTP limits.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                    <Field label="Max Resend Attempts" hint="How many times an admin can resend within the window">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_default_admin_otp_max_resends', '3')}
+                                            onChange={v => set('rate_limit_default_admin_otp_max_resends', v)}
+                                            placeholder="3"
+                                        />
+                                    </Field>
+                                    <Field label="Window Duration (min)" hint="Time window for counting resend attempts">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_default_admin_otp_window_minutes', '15')}
+                                            onChange={v => set('rate_limit_default_admin_otp_window_minutes', v)}
+                                            placeholder="15"
+                                        />
+                                    </Field>
+                                    <Field label="Max Verify Attempts" hint="Wrong OTP entries before lockout">
+                                        <Input
+                                            type="number"
+                                            value={get('rate_limit_default_admin_otp_max_verify_attempts', '5')}
+                                            onChange={v => set('rate_limit_default_admin_otp_max_verify_attempts', v)}
+                                            placeholder="5"
+                                        />
+                                    </Field>
+                                </div>
+                            </div>
+
                             <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
                                 <p className="text-xs text-amber-800 font-medium">
                                     ⚠️ <strong>Caution:</strong> Setting values too high may weaken protection against brute-force attacks. Setting values too low may lock out legitimate users.

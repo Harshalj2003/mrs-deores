@@ -144,12 +144,24 @@ const Login: React.FC = () => {
         }, 1000);
     };
 
-    const handleCopyToken = () => {
+    const handleCopyToken = async () => {
         if (!inviteToken) return;
-        navigator.clipboard.writeText(inviteToken).then(() => {
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(inviteToken);
+            } else {
+                const textarea = document.createElement('textarea');
+                textarea.value = inviteToken;
+                textarea.style.position = 'fixed'; textarea.style.opacity = '0'; textarea.style.left = '-9999px';
+                document.body.appendChild(textarea); textarea.select(); document.execCommand('copy');
+                document.body.removeChild(textarea);
+            }
             setTokenCopied(true);
             setTimeout(() => setTokenCopied(false), 2000);
-        });
+        } catch (err) {
+            console.error('Failed to copy token:', err);
+            window.prompt('Copy this token:', inviteToken);
+        }
     };
 
     const inputClass = "block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-3 sm:py-4 pl-11 pr-4 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary text-sm leading-6 outline-none transition-all duration-300 focus:shadow-lg focus:shadow-primary/10";

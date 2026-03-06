@@ -177,7 +177,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                 </h1>
                             </div>
                             <button
-                                onClick={() => {
+                                onClick={async () => {
                                     if (navigator.share) {
                                         navigator.share({
                                             title: product.name,
@@ -185,7 +185,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                                             url: window.location.href,
                                         }).catch(console.error);
                                     } else {
-                                        navigator.clipboard.writeText(window.location.href);
+                                        const url = window.location.href;
+                                        try {
+                                            if (navigator.clipboard && window.isSecureContext) {
+                                                await navigator.clipboard.writeText(url);
+                                            } else {
+                                                const ta = document.createElement('textarea');
+                                                ta.value = url;
+                                                ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.left = '-9999px';
+                                                document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+                                                document.body.removeChild(ta);
+                                            }
+                                        } catch { /* ignore */ }
                                         alert('Link copied to clipboard!');
                                     }
                                 }}

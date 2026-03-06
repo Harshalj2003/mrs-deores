@@ -247,36 +247,60 @@ const AdminTeam: React.FC = () => {
     // ─── SEALED STATE ──────────────────────────────────────────────
     if (isSealed) {
         return (
-            <div className="max-w-3xl mx-auto p-6 lg:p-10">
+            <div className="max-w-3xl mx-auto p-4 sm:p-6 lg:p-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-3xl border border-amber-200 dark:border-amber-800/30 bg-amber-50/80 dark:bg-amber-900/10 p-10 text-center space-y-6"
+                    className="rounded-3xl p-6 sm:p-10 text-center space-y-6 overflow-hidden"
+                    style={{
+                        backgroundColor: isDark ? '#1E1208' : '#FFFDF8',
+                        border: isDark ? '1px solid rgba(194, 65, 12, 0.15)' : '1px solid rgba(194, 65, 12, 0.1)',
+                        boxShadow: isDark ? '0 8px 32px rgba(0,0,0,0.3)' : '0 8px 32px rgba(194, 65, 12, 0.06)'
+                    }}
                 >
-                    <div className="h-20 w-20 mx-auto rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
-                        <Lock className="h-10 w-10 text-amber-600 dark:text-amber-400" />
-                    </div>
+                    {/* Lock Icon with pulse */}
+                    <motion.div
+                        animate={{ scale: [1, 1.05, 1] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                        className="h-20 w-20 mx-auto rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: isDark ? 'rgba(194, 65, 12, 0.1)' : 'rgba(194, 65, 12, 0.06)' }}
+                    >
+                        <Lock className="h-10 w-10" style={{ color: isDark ? '#D97706' : '#C2410C' }} />
+                    </motion.div>
+
+                    {/* Title & Description */}
                     <div>
-                        <h2 className="text-2xl font-black font-serif text-amber-900 dark:text-amber-300">
+                        <h2 className="text-xl sm:text-2xl font-black font-serif" style={{ color: isDark ? '#F0DEC8' : '#3E2723' }}>
                             Invite Team is Sealed
                         </h2>
-                        <p className="text-sm text-amber-700 dark:text-amber-400/80 mt-2 max-w-md mx-auto leading-relaxed">
-                            Only the <strong>Default Admin</strong> can access the Invite Team area. This restriction ensures administrative integrity and chain-of-trust security.
+                        <p className="text-sm mt-2.5 max-w-md mx-auto leading-relaxed" style={{ color: isDark ? '#A08060' : '#6D4C41' }}>
+                            Only the <strong style={{ color: isDark ? '#D97706' : '#C2410C' }}>Default Admin</strong> can access the Invite Team area. This restriction ensures administrative integrity and chain-of-trust security.
                         </p>
                     </div>
-                    <div className="rounded-2xl bg-white dark:bg-neutral-800 border border-amber-200 dark:border-amber-800/30 p-5 max-w-sm mx-auto">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">Current Default Admin</p>
+
+                    {/* Default Admin Info Card */}
+                    <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        className="rounded-2xl p-5 max-w-sm mx-auto cursor-default"
+                        style={{
+                            backgroundColor: isDark ? 'rgba(74, 45, 20, 0.2)' : '#FFF7ED',
+                            border: isDark ? '1px solid rgba(194, 65, 12, 0.15)' : '1px solid rgba(194, 65, 12, 0.08)'
+                        }}
+                    >
+                        <p className="text-[10px] font-black uppercase tracking-widest mb-2.5" style={{ color: isDark ? '#D97706' : '#9A3412' }}>Current Default Admin</p>
                         <div className="flex items-center gap-3 justify-center">
-                            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-amber-500 flex items-center justify-center text-white text-sm font-black">
+                            <div className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-black flex-shrink-0" style={{ background: 'linear-gradient(135deg, #C2410C, #B45309)' }}>
                                 {daStatus?.defaultAdminUsername?.charAt(0).toUpperCase() || '?'}
                             </div>
                             <div className="text-left">
-                                <p className="font-bold text-gray-900 dark:text-white text-sm">@{daStatus?.defaultAdminUsername}</p>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400">{daStatus?.defaultAdminEmail}</p>
+                                <p className="font-bold text-sm" style={{ color: isDark ? '#F0DEC8' : '#1C1917' }}>@{daStatus?.defaultAdminUsername}</p>
+                                <p className="text-[11px]" style={{ color: isDark ? '#A08060' : '#78350F' }}>{daStatus?.defaultAdminEmail}</p>
                             </div>
                         </div>
-                    </div>
-                    <p className="text-[11px] text-amber-600/60 dark:text-amber-500/40 italic">
+                    </motion.div>
+
+                    {/* Footer note */}
+                    <p className="text-[11px] italic" style={{ color: isDark ? 'rgba(160, 128, 96, 0.5)' : 'rgba(109, 76, 65, 0.5)' }}>
                         Contact the Default Admin to manage invitations or to transfer default privileges.
                     </p>
                 </motion.div>

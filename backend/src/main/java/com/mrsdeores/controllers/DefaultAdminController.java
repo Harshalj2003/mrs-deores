@@ -7,6 +7,7 @@ import com.mrsdeores.repository.UserRepository;
 import com.mrsdeores.security.services.UserDetailsImpl;
 import com.mrsdeores.services.EmailVerificationService;
 import com.mrsdeores.services.EmailService;
+import com.mrsdeores.services.RateLimitConfigService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,9 @@ public class DefaultAdminController {
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private RateLimitConfigService rateLimitConfig;
 
     // ─── GET /status — Check if default admin exists ───────────────────
     @GetMapping("/status")
@@ -66,12 +70,13 @@ public class DefaultAdminController {
                     "A default admin already exists: @" + existing.get().getUsername() + ". They must resign first."));
         }
 
-        // Generate and send OTP using the existing service
-        emailVerificationService.sendVerificationOTP(caller.getEmail(), caller.getUsername());
-        // Then send the custom default-admin HTML email with the same OTP
-        // The OTP is already stored in DB by the service, we just also send a branded
-        // email
-        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "claim");
+        // Generate OTP only (no email sent yet) — uses admin-specific rate limits
+        String otp = emailVerificationService.generateOtpOnly(
+                caller.getEmail(),
+                rateLimitConfig.getDefaultAdminOtpMaxResends(),
+                rateLimitConfig.getDefaultAdminOtpWindowMinutes());
+        // Send ONLY the branded default-admin email
+        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "claim", otp);
 
         return ResponseEntity.ok(Map.of("message", "OTP sent to " + caller.getEmail()));
     }
@@ -95,7 +100,9 @@ public class DefaultAdminController {
                     .body(Map.of("message", "Another admin already holds the default position."));
         }
 
-        boolean valid = emailVerificationService.verifyOTP(caller.getEmail(), otp);
+        boolean valid = emailVerificationService.verifyOTP(
+                caller.getEmail(), otp,
+                rateLimitConfig.getDefaultAdminOtpMaxVerifyAttempts());
         if (!valid) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid or expired OTP."));
         }
@@ -116,8 +123,12 @@ public class DefaultAdminController {
             return forbidden("You are not the default admin.");
         }
 
-        emailVerificationService.sendVerificationOTP(caller.getEmail(), caller.getUsername());
-        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "resign");
+        // Generate OTP only — uses admin-specific rate limits
+        String otp = emailVerificationService.generateOtpOnly(
+                caller.getEmail(),
+                rateLimitConfig.getDefaultAdminOtpMaxResends(),
+                rateLimitConfig.getDefaultAdminOtpWindowMinutes());
+        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "resign", otp);
 
         return ResponseEntity.ok(Map.of("message", "OTP sent to " + caller.getEmail()));
     }
@@ -137,7 +148,9 @@ public class DefaultAdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "OTP is required."));
         }
 
-        boolean valid = emailVerificationService.verifyOTP(caller.getEmail(), otp);
+        boolean valid = emailVerificationService.verifyOTP(
+                caller.getEmail(), otp,
+                rateLimitConfig.getDefaultAdminOtpMaxVerifyAttempts());
         if (!valid) {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid or expired OTP."));
         }

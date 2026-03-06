@@ -47,117 +47,109 @@ const ResetPassword: React.FC = () => {
         }
     };
 
+    if (!token) {
+        return (
+            <div className="text-center space-y-3">
+                <AlertTriangle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto" />
+                <h2 className="text-xl font-black text-gray-900 dark:text-white">Invalid Reset Link</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">This link is missing a reset token.</p>
+                <Link to="/forgot-password" title="Request link" className="mt-2 inline-block text-primary dark:text-primary-light font-bold text-sm hover:underline">Request a new link →</Link>
+            </div>
+        );
+    }
+
     return (
-        <div className="min-h-screen bg-background dark:bg-neutral-900 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm">
-                {!token ? (
-                    <div className="text-center">
-                        <AlertTriangle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-                        <h2 className="text-xl font-black text-gray-900 dark:text-white">Invalid Reset Link</h2>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">This link is missing a reset token.</p>
-                        <Link to="/forgot-password" title="Request link" className="mt-4 inline-block text-primary dark:text-primary-light font-bold text-sm hover:underline">Request a new link →</Link>
-                    </div>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="bg-white dark:bg-neutral-800 rounded-3xl shadow-xl border border-gray-100 dark:border-neutral-700 overflow-hidden"
-                    >
-                        {/* Header */}
-                        <div className="p-5 pb-0 text-center">
-                            <div className="h-12 w-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-3 border border-primary/10">
-                                <Lock className="h-6 w-6 text-primary dark:text-primary-light" />
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="text-center">
+                <div className="h-12 w-12 rounded-2xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center mx-auto mb-3 border border-primary/10">
+                    <Lock className="h-6 w-6 text-primary dark:text-primary-light" />
+                </div>
+                <h1 className="text-lg font-black text-gray-900 dark:text-white font-serif tracking-tight">Set New Password</h1>
+                <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1.5 px-4 leading-relaxed">Choose a balanced, secure password for your account.</p>
+            </div>
+
+            <AnimatePresence mode="wait">
+                {!success ? (
+                    <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleSubmit} className="space-y-4">
+                        {/* New Password */}
+                        <div className="space-y-1">
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                                <input
+                                    type={showNew ? 'text' : 'password'}
+                                    value={newPassword}
+                                    onChange={e => { setNewPassword(e.target.value); setError(''); }}
+                                    placeholder="New password"
+                                    className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary outline-none transition-all text-sm"
+                                    required
+                                />
+                                <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                </button>
                             </div>
-                            <h1 className="text-lg font-black text-gray-900 dark:text-white font-serif tracking-tight">Set New Password</h1>
-                            <p className="text-[12px] text-gray-500 dark:text-gray-400 mt-1.5 px-4 leading-relaxed">Choose a balanced, secure password for your account.</p>
+                            {/* Strength bar */}
+                            {newPassword.length > 0 && (
+                                <div className="space-y-1 px-1">
+                                    <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all duration-300 ${strength.color}`} style={{ width: strength.width }} />
+                                    </div>
+                                    <p className={`text-[10px] font-bold ${strength.color.replace('bg-', 'text-')}`}>{strength.label}</p>
+                                </div>
+                            )}
                         </div>
 
-                        <div className="p-5">
-                            <AnimatePresence mode="wait">
-                                {!success ? (
-                                    <motion.form key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onSubmit={handleSubmit} className="space-y-4">
-                                        {/* New Password */}
-                                        <div className="space-y-1">
-                                            <div className="relative group">
-                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                                <input
-                                                    type={showNew ? 'text' : 'password'}
-                                                    value={newPassword}
-                                                    onChange={e => { setNewPassword(e.target.value); setError(''); }}
-                                                    placeholder="New password"
-                                                    className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary outline-none transition-all text-sm"
-                                                    required
-                                                />
-                                                <button type="button" onClick={() => setShowNew(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </button>
-                                            </div>
-                                            {/* Strength bar */}
-                                            {newPassword.length > 0 && (
-                                                <div className="space-y-1 px-1">
-                                                    <div className="h-1 bg-gray-100 rounded-full overflow-hidden">
-                                                        <div className={`h-full rounded-full transition-all duration-300 ${strength.color}`} style={{ width: strength.width }} />
-                                                    </div>
-                                                    <p className={`text-[10px] font-bold ${strength.color.replace('bg-', 'text-')}`}>{strength.label}</p>
-                                                </div>
-                                            )}
-                                        </div>
+                        {/* Confirm Password */}
+                        <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+                            <input
+                                type={showConfirm ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={e => { setConfirmPassword(e.target.value); setError(''); }}
+                                placeholder="Confirm new password"
+                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary outline-none transition-all text-sm"
+                                required
+                            />
+                            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </button>
+                        </div>
 
-                                        {/* Confirm Password */}
-                                        <div className="relative group">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type={showConfirm ? 'text' : 'password'}
-                                                value={confirmPassword}
-                                                onChange={e => { setConfirmPassword(e.target.value); setError(''); }}
-                                                placeholder="Confirm new password"
-                                                className="block w-full rounded-2xl border-gray-100 dark:border-neutral-700 bg-background dark:bg-neutral-800 py-4 pl-12 pr-12 text-gray-900 dark:text-white ring-1 ring-inset ring-gray-200 dark:ring-neutral-700 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-primary outline-none transition-all text-sm"
-                                                required
-                                            />
-                                            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                                {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                            </button>
-                                        </div>
-
-                                        {error && (
-                                            <div className="flex items-center gap-2 px-1">
-                                                <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
-                                                <p className="text-xs text-red-500 font-medium">{error}</p>
-                                            </div>
-                                        )}
-
-                                        <button
-                                            type="submit"
-                                            disabled={loading}
-                                            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-black text-white hover:bg-accent transition-all shadow-xl shadow-primary/20 disabled:opacity-70"
-                                        >
-                                            {loading
-                                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Resetting...</>
-                                                : <>Reset Password <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" /></>
-                                            }
-                                        </button>
-                                    </motion.form>
-                                ) : (
-                                    <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
-                                        <div className="h-14 w-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto scale-90">
-                                            <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-gray-900 dark:text-white text-lg">Password Reset!</p>
-                                            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">Redirecting to {currentUser ? 'home' : 'login'} shortly...</p>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            <div className="mt-6 text-center">
-                                <Link to={currentUser ? "/" : "/login"} className="inline-flex items-center gap-2 text-xs font-black text-primary dark:text-primary-light uppercase tracking-widest hover:text-accent dark:hover:text-accent-light transition-colors">
-                                    <ArrowLeft className="h-3 w-3" /> {currentUser ? "Back to Home" : "Back to Login"}
-                                </Link>
+                        {error && (
+                            <div className="flex items-center gap-2 px-1">
+                                <AlertTriangle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+                                <p className="text-xs text-red-500 font-medium">{error}</p>
                             </div>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-sm font-black text-white hover:bg-accent transition-all shadow-xl shadow-primary/20 disabled:opacity-70"
+                        >
+                            {loading
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Resetting...</>
+                                : <>Reset Password <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" /></>
+                            }
+                        </button>
+                    </motion.form>
+                ) : (
+                    <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center space-y-4">
+                        <div className="h-14 w-14 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center mx-auto scale-90">
+                            <CheckCircle2 className="h-7 w-7 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                            <p className="font-bold text-gray-900 dark:text-white text-lg">Password Reset!</p>
+                            <p className="text-[13px] text-gray-500 dark:text-gray-400 mt-1">Redirecting to {currentUser ? 'home' : 'login'} shortly...</p>
                         </div>
                     </motion.div>
                 )}
+            </AnimatePresence>
+
+            <div className="mt-4 text-center">
+                <Link to={currentUser ? "/" : "/login"} className="inline-flex items-center gap-2 text-xs font-black text-primary dark:text-primary-light uppercase tracking-widest hover:text-accent dark:hover:text-accent-light transition-colors">
+                    <ArrowLeft className="h-3 w-3" /> {currentUser ? "Back to Home" : "Back to Login"}
+                </Link>
             </div>
         </div>
     );

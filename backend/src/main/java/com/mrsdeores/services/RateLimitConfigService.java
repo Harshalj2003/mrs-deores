@@ -24,6 +24,10 @@ public class RateLimitConfigService {
     private static final int DEFAULT_ADMIN_REG_MAX_ATTEMPTS = 3;
     private static final int DEFAULT_ADMIN_REG_WINDOW_MINUTES = 15;
 
+    private static final int DEFAULT_DEFAULT_ADMIN_OTP_MAX_RESENDS = 3;
+    private static final int DEFAULT_DEFAULT_ADMIN_OTP_WINDOW_MINUTES = 15;
+    private static final int DEFAULT_DEFAULT_ADMIN_OTP_MAX_VERIFY_ATTEMPTS = 5;
+
     // ── Public accessors ──
 
     /** Minutes a user must wait between forgot-password requests */
@@ -54,6 +58,22 @@ public class RateLimitConfigService {
     /** Admin registration rate limit window in minutes */
     public int getAdminRegWindowMinutes() {
         return getInt("rate_limit_admin_reg_window_minutes", DEFAULT_ADMIN_REG_WINDOW_MINUTES);
+    }
+
+    /** Max OTP resend attempts for default admin claim/resign within the window */
+    public int getDefaultAdminOtpMaxResends() {
+        return getInt("rate_limit_default_admin_otp_max_resends", DEFAULT_DEFAULT_ADMIN_OTP_MAX_RESENDS);
+    }
+
+    /** Default admin OTP rate limit window in minutes */
+    public int getDefaultAdminOtpWindowMinutes() {
+        return getInt("rate_limit_default_admin_otp_window_minutes", DEFAULT_DEFAULT_ADMIN_OTP_WINDOW_MINUTES);
+    }
+
+    /** Max wrong OTP verification attempts for default admin before lockout */
+    public int getDefaultAdminOtpMaxVerifyAttempts() {
+        return getInt("rate_limit_default_admin_otp_max_verify_attempts",
+                DEFAULT_DEFAULT_ADMIN_OTP_MAX_VERIFY_ATTEMPTS);
     }
 
     // ── Internal helper ──
