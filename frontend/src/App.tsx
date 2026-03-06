@@ -26,6 +26,7 @@ const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const Orders = lazy(() => import('./pages/Orders'));
 const CustomOrderPage = lazy(() => import('./pages/CustomOrderPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
+const CopyToken = lazy(() => import('./pages/CopyToken'));
 import useCartStore from "./store/useCartStore";
 import api from "./services/api";
 
@@ -109,14 +110,17 @@ const App: React.FC = () => {
             </Routes>
           </Suspense>
         </AdminLayout>
-      ) : ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname) ? (
+      ) : ['/login', '/register', '/forgot-password', '/reset-password', '/copy-token'].includes(location.pathname) ? (
         <AuthLayout>
-          <Routes location={location} key={location.pathname}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes location={location} key={location.pathname}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/copy-token" element={<CopyToken />} />
+            </Routes>
+          </Suspense>
         </AuthLayout>
       ) : location.pathname === '/checkout' ? (
         <CheckoutLayout>

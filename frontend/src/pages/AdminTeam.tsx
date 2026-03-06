@@ -34,6 +34,7 @@ const AdminTeam: React.FC = () => {
     const [error, setError] = useState('');
     const [invitationResult, setInvitationResult] = useState<{ email: string; token: string } | null>(null);
     const [copied, setCopied] = useState(false);
+    const [copiedLink, setCopiedLink] = useState(false);
 
     // Session Expiry State (New Invite)
     const [enableSessionExpiry, setEnableSessionExpiry] = useState(true);
@@ -149,25 +150,36 @@ const AdminTeam: React.FC = () => {
         }
     };
 
-    const copyToClipboard = async () => {
-        if (!invitationResult) return;
-        const enrollmentLink = `${window.location.origin}/login?enroll=true&token=${invitationResult.token}`;
+    const copyTextToClipboard = async (text: string): Promise<boolean> => {
         try {
             if (navigator.clipboard && window.isSecureContext) {
-                await navigator.clipboard.writeText(enrollmentLink);
+                await navigator.clipboard.writeText(text);
             } else {
                 const textarea = document.createElement('textarea');
-                textarea.value = enrollmentLink;
+                textarea.value = text;
                 textarea.style.position = 'fixed'; textarea.style.opacity = '0'; textarea.style.left = '-9999px';
                 document.body.appendChild(textarea); textarea.select(); document.execCommand('copy');
                 document.body.removeChild(textarea);
             }
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            return true;
         } catch (err) {
             console.error('Failed to copy:', err);
-            window.prompt('Copy this enrollment link:', enrollmentLink);
+            window.prompt('Copy this text:', text);
+            return false;
         }
+    };
+
+    const copyToken = async () => {
+        if (!invitationResult) return;
+        const success = await copyTextToClipboard(invitationResult.token);
+        if (success) { setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    };
+
+    const copyEnrollmentLink = async () => {
+        if (!invitationResult) return;
+        const enrollmentLink = `${window.location.origin}/login?enroll=true&token=${invitationResult.token}`;
+        const success = await copyTextToClipboard(enrollmentLink);
+        if (success) { setCopiedLink(true); setTimeout(() => setCopiedLink(false), 2000); }
     };
 
     const formatDate = (dateStr: string | null) => {
@@ -453,14 +465,21 @@ const AdminTeam: React.FC = () => {
                                     <h3 className="font-bold text-green-900 dark:text-green-400 italic font-serif">Success!</h3>
                                     <p className="text-[11px] text-green-700 dark:text-green-500 leading-tight">An invitation for <strong>{invitationResult.email}</strong> is ready.</p>
                                 </div>
+                                <div className="w-full px-3 py-2 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 flex items-center gap-2">
+                                    <span className="text-blue-500 text-sm">📧</span>
+                                    <p className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold leading-tight">Invitation email with token & enrollment link has been sent to <strong>{invitationResult.email}</strong></p>
+                                </div>
                                 <div className="w-full space-y-2 mt-4">
                                     <p className="text-[10px] uppercase font-black tracking-widest text-green-800/60 dark:text-green-500/60">Invite token</p>
                                     <code className="block w-full p-3 rounded-xl bg-white dark:bg-neutral-900 text-[10px] font-mono border border-green-100 dark:border-green-500/20 break-all text-gray-900 dark:text-green-300">{invitationResult.token}</code>
                                 </div>
-                                <button onClick={copyToClipboard} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white dark:bg-neutral-900 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/30 text-[10px] font-black uppercase tracking-widest hover:bg-green-50 dark:hover:bg-green-500/10 transition-all">
-                                    {copied ? <><Check className="h-3.5 w-3.5" /> Copied!</> : <><Copy className="h-3.5 w-3.5" /> Copy Enrollment Link</>}
+                                <button onClick={copyToken} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-green-600 dark:bg-green-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-green-700 dark:hover:bg-green-700 transition-all shadow-sm">
+                                    {copied ? <><Check className="h-3.5 w-3.5" /> Token Copied!</> : <><Copy className="h-3.5 w-3.5" /> Copy Token</>}
                                 </button>
-                                <p className="text-[9px] text-gray-500 italic mt-2">Send this link securely to the new team member.</p>
+                                <button onClick={copyEnrollmentLink} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-white dark:bg-neutral-900 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-500/30 text-[9px] font-bold uppercase tracking-widest hover:bg-green-50 dark:hover:bg-green-500/10 transition-all">
+                                    {copiedLink ? <><Check className="h-3 w-3" /> Link Copied!</> : <><Copy className="h-3 w-3" /> Copy Enrollment Link</>}
+                                </button>
+                                <p className="text-[9px] text-gray-500 italic mt-2">The invitee has also received this token via email. You can share the enrollment link as a backup.</p>
                             </div>
                         </div>
                     ) : (

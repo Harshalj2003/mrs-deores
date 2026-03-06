@@ -316,9 +316,20 @@ public class AuthController {
         try {
             // Re-use the bootstrap creation logic but logged as a regular invitation
             String token = adminAuthService.createBootstrapInvite(email, phone, sessionExpiryDays);
+
+            // Resolve inviter's username for the email personalization
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String inviterName = "Admin";
+            if (auth != null && auth.getPrincipal() instanceof UserDetailsImpl) {
+                inviterName = ((UserDetailsImpl) auth.getPrincipal()).getUsername();
+            }
+
+            // Send branded invitation email to the invited admin (async)
+            emailService.sendAdminInvitationEmail(email, inviterName, token, 24);
+
             return ResponseEntity.ok(new java.util.HashMap<String, String>() {
                 {
-                    put("message", "Invitation created successfully.");
+                    put("message", "Invitation created and email sent to " + email + ".");
                     put("inviteToken", token);
                     put("email", email);
                 }
