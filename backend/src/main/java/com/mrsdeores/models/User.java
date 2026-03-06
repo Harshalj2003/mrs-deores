@@ -46,6 +46,18 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonProperty("isEmailVerified")
     private Boolean isEmailVerified = false;
 
+    @Column(name = "full_name", length = 50)
+    private String fullName;
+
+    @Column(length = 200)
+    private String bio;
+
+    @Column(name = "profile_pic_url")
+    private String profilePicUrl;
+
+    @Column(name = "account_status", length = 20)
+    private String accountStatus = "ACTIVE";
+
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

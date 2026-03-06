@@ -1,9 +1,10 @@
 ﻿import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { User as UserIcon, MapPin, Settings as SettingsIcon, Shield, LogOut, Lock, ArrowRight, Mail, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
+import { User as UserIcon, MapPin, Shield, LogOut, Lock, ArrowRight, Mail, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
 import type { User } from '../types/auth.types';
 import AuthService from '../services/auth.service';
 import AddressBook from '../components/AddressBook';
+import AccountDetails from '../components/AccountDetails';
 import { motion, AnimatePresence } from 'framer-motion';
 // import api from '../services/api'; // removed unused import
 
@@ -100,12 +101,7 @@ const ProfilePage: React.FC = () => {
                                 )}
 
                                 {activeTab === 'profile' && (
-                                    <div className="bg-white dark:bg-neutral-800 rounded-[2rem] border border-gray-100 dark:border-neutral-700 p-8 shadow-sm flex flex-col items-center justify-center text-center h-[50vh]">
-                                        <SettingsIcon className="h-16 w-16 text-gray-300 dark:text-neutral-700 mb-4" />
-                                        <h3 className="text-2xl font-black text-gray-900 dark:text-white font-serif mb-2">Account Overview</h3>
-                                        <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-6">View your lifetime order stats, update your email preferences, and manage personal data.</p>
-                                        <button disabled className="bg-gray-100 dark:bg-neutral-700 text-gray-400 dark:text-gray-500 px-6 py-3 rounded-xl font-bold cursor-not-allowed">Coming Soon</button>
-                                    </div>
+                                    <AccountDetails />
                                 )}
 
                                 {activeTab === 'security' && (

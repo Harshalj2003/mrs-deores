@@ -5,6 +5,13 @@ export interface User {
     roles: string[];
     token: string;
     isEmailVerified?: boolean;
+    phone?: string;
+    fullName?: string;
+    bio?: string;
+    profilePicUrl?: string;
+    createdAt?: string;
+    lastLoginAt?: string;
+    accountStatus?: string;
 }
 
 export interface LoginRequest {
