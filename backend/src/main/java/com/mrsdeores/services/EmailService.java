@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import com.mrsdeores.repository.EmailVerificationOTPRepository;
 
 @Service
 public class EmailService {
@@ -23,6 +24,9 @@ public class EmailService {
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
+
+    @Autowired
+    private EmailVerificationOTPRepository otpRepository;
 
     @Async
     public void sendOtpEmail(String toEmail, String username, String otp) {
@@ -155,6 +159,105 @@ public class EmailService {
             } catch (Exception ex) {
                 logger.error("Double failure in email sending for {}: {}", toEmail, ex.getMessage());
             }
+        }
+    }
+
+    /**
+     * Send a branded OTP email for Default Admin claim/resign actions.
+     * Distinct from user registration OTP — has crown, caution, and notes.
+     */
+    @Async
+    public void sendDefaultAdminOtpEmail(String toEmail, String username, String action) {
+        try {
+            var otpOpt = otpRepository.findByEmail(toEmail);
+            if (otpOpt.isEmpty()) {
+                logger.warn("No OTP found in DB for default admin email to {}", toEmail);
+                return;
+            }
+            String otp = otpOpt.get().getOtpCode();
+
+            boolean isClaim = "claim".equalsIgnoreCase(action);
+            String subject = isClaim
+                    ? "[CRITICAL] Default Admin Claim — Mrs. Deore's"
+                    : "[CRITICAL] Default Admin Resignation — Mrs. Deore's";
+            String actionTitle = isClaim ? "Become Default Admin" : "Resign as Default Admin";
+            String actionDescription = isClaim
+                    ? "You have requested to become the <strong>Default Administrator</strong> of Mrs. Deore's system. This grants you exclusive control over team invitations, admin deletion, and critical system management."
+                    : "You have requested to <strong>resign</strong> from the Default Administrator position. After resignation, the position will be open for another admin to claim.";
+            String cautionText = isClaim
+                    ? "Once claimed, you will be the ONLY admin with invite &amp; delete powers. Other admins will be locked out of the Invite Team area."
+                    : "After resigning, you will lose exclusive administrative powers. Any admin will be able to claim the position.";
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(senderEmail);
+            helper.setTo(toEmail);
+            helper.setSubject(subject);
+
+            String htmlContent = String.format(
+                    "<!DOCTYPE html><html><head><style>" +
+                            "body { font-family: 'Inter', -apple-system, sans-serif; line-height: 1.6; color: #1f2937; margin: 0; padding: 0; background-color: #f9fafb; }"
+                            +
+                            ".wrapper { background-color: #f9fafb; padding: 40px 20px; }" +
+                            ".container { max-width: 560px; margin: 0 auto; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.12); border: 1px solid #f1f5f9; }"
+                            +
+                            ".header { background: linear-gradient(135deg, #C2410C 0%%%%, #D97706 50%%%%, #B45309 100%%%%); padding: 35px 20px; text-align: center; color: #ffffff; }"
+                            +
+                            ".header .crown { font-size: 40px; display: block; margin-bottom: 10px; }" +
+                            ".header h1 { margin: 0; font-size: 18px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; }"
+                            +
+                            ".header p { margin: 5px 0 0; font-size: 12px; opacity: 0.8; }" +
+                            ".body-content { padding: 35px 30px; }" +
+                            ".otp-box { font-size: 36px; font-weight: 900; color: #C2410C; background: linear-gradient(135deg, #FFF7ED, #FFEDD5); padding: 22px; border-radius: 16px; margin: 25px 0; letter-spacing: 14px; text-align: center; border: 2px dashed #FDBA74; }"
+                            +
+                            ".caution { background-color: #FEF2F2; border-left: 4px solid #EF4444; padding: 16px 18px; border-radius: 0 12px 12px 0; margin: 20px 0; }"
+                            +
+                            ".caution-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #DC2626; margin: 0 0 6px; }"
+                            +
+                            ".caution-text { font-size: 13px; color: #7F1D1D; margin: 0; line-height: 1.5; }" +
+                            ".note { background-color: #FFFBEB; border-left: 4px solid #F59E0B; padding: 16px 18px; border-radius: 0 12px 12px 0; margin: 20px 0; }"
+                            +
+                            ".note-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #B45309; margin: 0 0 6px; }"
+                            +
+                            ".note-text { font-size: 13px; color: #78350F; margin: 0; line-height: 1.5; }" +
+                            ".footer { padding: 25px 30px; text-align: center; font-size: 11px; color: #94a3b8; background-color: #FFFAF0; border-top: 1px solid #FFEDD5; }"
+                            +
+                            "</style></head><body><div class='wrapper'><div class='container'>" +
+                            "<div class='header'>" +
+                            "<span class='crown'>\uD83D\uDC51</span>" +
+                            "<h1>%s</h1>" +
+                            "<p>Mrs. Deore's Admin System</p>" +
+                            "</div>" +
+                            "<div class='body-content'>" +
+                            "<p style='font-size:16px;font-weight:700;color:#111827;margin-top:0;'>Hello @%s,</p>" +
+                            "<p style='font-size:14px;color:#4B5563;'>%s</p>" +
+                            "<p style='font-size:13px;color:#6B7280;margin-bottom:5px;'>Use the following 4-digit OTP to confirm. Valid for <strong>15 minutes</strong>.</p>"
+                            +
+                            "<div class='otp-box'>%s</div>" +
+                            "<div class='caution'>" +
+                            "<p class='caution-title'>\u26A0 Caution</p>" +
+                            "<p class='caution-text'>%s</p>" +
+                            "</div>" +
+                            "<div class='note'>" +
+                            "<p class='note-title'>\uD83D\uDCCC Important Note</p>" +
+                            "<p class='note-text'>This OTP is strictly for <strong>Default Admin verification</strong> only. It is NOT related to user registration or password reset. If you did not initiate this action, contact your system owner immediately and do NOT share this code.</p>"
+                            +
+                            "</div>" +
+                            "<p style='font-size:12px;color:#9CA3AF;text-align:center;margin-top:25px;'>If you did not request this, you can safely ignore this email.</p>"
+                            +
+                            "</div>" +
+                            "<div class='footer'>" +
+                            "\u00A9 2026 Mrs. Deore's \u2014 Admin Verification System<br/>" +
+                            "Nashik, Maharashtra, India" +
+                            "</div>" +
+                            "</div></div></body></html>",
+                    actionTitle, username, actionDescription, otp, cautionText);
+
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+            logger.info("Default Admin OTP email sent to {} for action: {}", toEmail, action);
+        } catch (Exception e) {
+            logger.error("Failed to send default admin OTP email to {}: {}", toEmail, e.getMessage());
         }
     }
 }

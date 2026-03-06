@@ -159,7 +159,7 @@ public class NotificationController {
             });
             readRecord.setDeleted(true);
             notificationReadRepository.save(readRecord);
-        } else {
+        } else if (admin != null) {
             AdminNotificationRead.AdminNotificationReadId readIdObj = new AdminNotificationRead.AdminNotificationReadId(
                     admin.getUsername(), id);
             AdminNotificationRead readRecord = adminNotificationReadRepository.findById(readIdObj).orElseGet(() -> {

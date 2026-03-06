@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { UserPlus, Mail, Phone, Copy, Check, ShieldCheck, ArrowRight, Clock, CheckCircle2, XCircle, Users, Settings, X, Trash2, Crown, Lock, ShieldAlert, KeyRound } from 'lucide-react';
+import { UserPlus, Mail, Phone, Copy, Check, ShieldCheck, ArrowRight, Clock, CheckCircle2, XCircle, Users, Settings, X, Trash2, Crown, Lock, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface Invitation {
     id: number;
@@ -21,9 +22,12 @@ interface DefaultAdminStatus {
     isCurrentUserDefault: boolean;
     defaultAdminUsername: string | null;
     defaultAdminEmail: string | null;
+    currentAdminEmail: string | null;
 }
 
 const AdminTeam: React.FC = () => {
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [loading, setLoading] = useState(false);
@@ -80,7 +84,7 @@ const AdminTeam: React.FC = () => {
             const res = await api.get('/admin/default-admin/status');
             setDaStatus(res.data);
         } catch {
-            setDaStatus({ exists: false, isCurrentUserDefault: false, defaultAdminUsername: null, defaultAdminEmail: null });
+            setDaStatus({ exists: false, isCurrentUserDefault: false, defaultAdminUsername: null, defaultAdminEmail: null, currentAdminEmail: null });
         } finally {
             setDaLoading(false);
         }
@@ -284,51 +288,55 @@ const AdminTeam: React.FC = () => {
     return (
         <div className="max-w-6xl mx-auto space-y-10 p-6 lg:p-10">
             <div className="flex flex-col gap-1">
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white font-serif italic lowercase tracking-tight">
+                <h1 className="text-xl sm:text-2xl font-black font-serif italic lowercase tracking-tight" style={{ color: isDark ? '#fff' : '#1a1209' }}>
                     Invite Team Member
                 </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs sm:text-sm" style={{ color: isDark ? '#9CA3AF' : '#6B7280' }}>
                     Create a secure invitation for new administrative staff.
                 </p>
             </div>
 
             {/* ─── Default Admin Banner ──────────────────────────────── */}
-            <div className="rounded-2xl border overflow-hidden">
+            <div className="rounded-2xl overflow-hidden" style={{ border: isDark ? '1px solid rgba(194,65,12,0.2)' : '1px solid rgba(194,65,12,0.15)' }}>
                 {isDefaultAdmin ? (
-                    <div className="bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800/30 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4" style={{ backgroundColor: isDark ? 'rgba(22,101,52,0.08)' : '#F0FDF4', border: 'none' }}>
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-green-100 dark:bg-green-900/20 flex items-center justify-center flex-shrink-0">
-                                <Crown className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isDark ? 'rgba(22,101,52,0.2)' : '#DCFCE7' }}>
+                                <Crown className="h-5 w-5" style={{ color: isDark ? '#4ADE80' : '#16A34A' }} />
                             </div>
                             <div>
-                                <p className="text-sm font-black text-green-800 dark:text-green-300">You are the Default Admin</p>
-                                <p className="text-[11px] text-green-600/70 dark:text-green-500/60">Full control over invitations, team management, and admin deletion.</p>
+                                <p className="text-sm font-black" style={{ color: isDark ? '#86EFAC' : '#166534' }}>You are the Default Admin</p>
+                                <p className="text-[11px]" style={{ color: isDark ? 'rgba(74,222,128,0.6)' : 'rgba(22,101,52,0.7)' }}>Full control over invitations, team management, and admin deletion.</p>
                             </div>
                         </div>
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
                             onClick={() => openOtpModal('resign')}
-                            className="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-red-200 dark:border-red-800/30 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20 transition-colors flex-shrink-0"
+                            className="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-colors flex-shrink-0"
+                            style={{ color: isDark ? '#F87171' : '#DC2626', backgroundColor: isDark ? 'rgba(239,68,68,0.08)' : '#FEF2F2', border: isDark ? '1px solid rgba(239,68,68,0.2)' : '1px solid rgba(239,68,68,0.15)' }}
                         >
                             Resign Position
-                        </button>
+                        </motion.button>
                     </div>
                 ) : (
-                    <div className="bg-primary/5 dark:bg-primary/10 border-primary/10 dark:border-primary/20 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4" style={{ backgroundColor: isDark ? 'rgba(194,65,12,0.06)' : '#FFF7ED' }}>
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                <ShieldAlert className="h-5 w-5 text-primary" />
+                            <div className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: isDark ? 'rgba(194,65,12,0.15)' : 'rgba(194,65,12,0.08)' }}>
+                                <ShieldAlert className="h-5 w-5" style={{ color: isDark ? '#FB923C' : '#C2410C' }} />
                             </div>
                             <div>
-                                <p className="text-sm font-black text-gray-900 dark:text-white">No Default Admin Set</p>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400">Become the Default Admin to gain exclusive invite and team management powers.</p>
+                                <p className="text-sm font-black" style={{ color: isDark ? '#FBBF24' : '#92400E' }}>No Default Admin Set</p>
+                                <p className="text-[11px]" style={{ color: isDark ? '#9CA3AF' : '#78350F' }}>Become the Default Admin to gain exclusive invite and team management powers.</p>
                             </div>
                         </div>
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}
                             onClick={() => openOtpModal('claim')}
-                            className="text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl bg-primary text-white hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 flex items-center gap-2 flex-shrink-0"
+                            className="text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl text-white flex items-center gap-2 flex-shrink-0"
+                            style={{ background: 'linear-gradient(135deg, #C2410C, #B45309)', boxShadow: '0 4px 14px rgba(194, 65, 12, 0.3)' }}
                         >
-                            <KeyRound className="h-3.5 w-3.5" /> Become Default Admin
-                        </button>
+                            <Crown className="h-3.5 w-3.5" /> Become Default Admin
+                        </motion.button>
                     </div>
                 )}
             </div>
@@ -599,64 +607,113 @@ const AdminTeam: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            {/* ─── OTP Modal ──────────────────────────────────────── */}
+            {/* ─── OTP Modal (styled like logout popup) ──────────── */}
             <AnimatePresence>
                 {otpMode && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOtpMode(null)} />
-                        <motion.div initial={{ opacity: 0, scale: 0.9, y: 30 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+                        style={{ backgroundColor: 'rgba(30, 18, 8, 0.6)', backdropFilter: 'blur(8px)' }}
+                        onClick={() => setOtpMode(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.85, y: 30, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.85, y: 30, opacity: 0 }}
                             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                             onClick={e => e.stopPropagation()}
-                            className="relative w-[340px] bg-white dark:bg-neutral-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-neutral-800 shadow-2xl">
-                            {/* Header */}
-                            <div className="h-14 flex items-center justify-center" style={{ background: otpMode === 'claim' ? 'linear-gradient(135deg, #C2410C, #D97706)' : 'linear-gradient(135deg, #DC2626, #B91C1C)' }}>
-                                <motion.div animate={{ y: [0, -3, 0] }} transition={{ duration: 2, repeat: Infinity }}>
-                                    {otpMode === 'claim' ? <Crown className="h-7 w-7 text-white" /> : <ShieldAlert className="h-7 w-7 text-white" />}
-                                </motion.div>
+                            className="w-[300px] rounded-3xl overflow-hidden"
+                            style={{
+                                backgroundColor: isDark ? '#1E1208' : '#FFFDF8',
+                                boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+                                border: isDark ? '1px solid rgba(194, 65, 12, 0.2)' : '1px solid rgba(194, 65, 12, 0.1)'
+                            }}
+                        >
+                            {/* Gradient Header with bouncing icons */}
+                            <div className="relative h-16 overflow-hidden" style={{ background: otpMode === 'claim' ? 'linear-gradient(135deg, #C2410C, #D97706, #B45309)' : 'linear-gradient(135deg, #DC2626, #B91C1C, #991B1B)' }}>
+                                <div className="absolute inset-0 flex items-center justify-center gap-5">
+                                    <motion.span animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity, delay: 0 }} className="text-2xl opacity-90">
+                                        {otpMode === 'claim' ? '👑' : '🛡️'}
+                                    </motion.span>
+                                    <motion.span animate={{ y: [0, -8, 0] }} transition={{ duration: 2.2, repeat: Infinity, delay: 0.3 }} className="text-2xl opacity-90">
+                                        {otpMode === 'claim' ? '🔐' : '⚠️'}
+                                    </motion.span>
+                                    <motion.span animate={{ y: [0, -5, 0] }} transition={{ duration: 1.8, repeat: Infinity, delay: 0.6 }} className="text-2xl opacity-90">
+                                        {otpMode === 'claim' ? '✨' : '🔓'}
+                                    </motion.span>
+                                </div>
+                                <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '12px 12px' }} />
                             </div>
-                            <div className="p-6 space-y-4">
+
+                            <div className="px-5 pt-4 pb-5 space-y-3">
                                 <div className="text-center">
-                                    <h3 className="text-base font-black text-gray-900 dark:text-white font-serif">
-                                        {otpMode === 'claim' ? 'Become Default Admin' : 'Resign as Default Admin'}
+                                    <h3 className="text-base font-black font-serif" style={{ color: isDark ? '#F0DEC8' : '#3E2723' }}>
+                                        {otpMode === 'claim' ? 'Become Default Admin' : 'Resign Position'}
                                     </h3>
-                                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
-                                        {otpMode === 'claim' ? 'Verify your identity via email OTP to claim the default admin position.' : 'Verify your identity via email OTP to resign from the default admin position.'}
+                                    <p className="text-[11px] mt-1.5 leading-relaxed" style={{ color: isDark ? '#7D5F45' : '#8D6E63' }}>
+                                        {otpMode === 'claim' ? 'Verify via email OTP to claim exclusive admin powers.' : 'Verify via email OTP to resign from the default admin role.'}
                                     </p>
                                 </div>
 
+                                {/* Email Display (read-only) */}
+                                <div className="rounded-xl p-3" style={{ backgroundColor: isDark ? 'rgba(74, 45, 20, 0.2)' : 'rgba(194, 65, 12, 0.04)', border: isDark ? '1px solid rgba(74, 45, 20, 0.4)' : '1px solid rgba(194, 65, 12, 0.1)' }}>
+                                    <p className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: isDark ? '#A08060' : '#9A3412' }}>OTP will be sent to</p>
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="h-3.5 w-3.5 flex-shrink-0" style={{ color: isDark ? '#D97706' : '#C2410C' }} />
+                                        <p className="text-xs font-bold truncate" style={{ color: isDark ? '#F0DEC8' : '#1C1917' }}>{daStatus?.currentAdminEmail || 'Loading...'}</p>
+                                    </div>
+                                </div>
+
                                 {!otpSent ? (
-                                    <button onClick={sendOtp} disabled={otpSending}
-                                        className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest text-white bg-primary hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-                                        <Mail className="h-3.5 w-3.5" />
-                                        {otpSending ? 'Sending OTP...' : 'Send OTP to My Email'}
-                                    </button>
+                                    <div className="flex gap-2.5">
+                                        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                            onClick={() => setOtpMode(null)}
+                                            className="flex-1 py-2 text-xs font-bold rounded-xl transition-colors"
+                                            style={{ color: isDark ? '#A08060' : '#8D6E63', backgroundColor: isDark ? 'rgba(74, 45, 20, 0.4)' : 'rgba(141, 110, 99, 0.1)', border: isDark ? '1px solid rgba(74, 45, 20, 0.6)' : '1px solid rgba(141, 110, 99, 0.2)' }}
+                                        >Cancel</motion.button>
+                                        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                            onClick={sendOtp} disabled={otpSending}
+                                            className="flex-1 py-2 text-xs font-black text-white rounded-xl shadow-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                            style={{ background: otpMode === 'claim' ? 'linear-gradient(135deg, #C2410C, #B45309)' : 'linear-gradient(135deg, #DC2626, #B91C1C)', boxShadow: '0 4px 14px rgba(194, 65, 12, 0.3)' }}
+                                        >
+                                            <Mail className="h-3 w-3" />
+                                            {otpSending ? 'Sending...' : 'Send OTP'}
+                                        </motion.button>
+                                    </div>
                                 ) : (
                                     <>
-                                        <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30">
-                                            <p className="text-[11px] text-green-700 dark:text-green-400 font-medium text-center">✓ OTP sent to your registered email</p>
+                                        <div className="p-2.5 rounded-xl" style={{ backgroundColor: isDark ? 'rgba(22,101,52,0.1)' : '#F0FDF4', border: isDark ? '1px solid rgba(74,222,128,0.2)' : '1px solid #BBF7D0' }}>
+                                            <p className="text-[11px] font-medium text-center" style={{ color: isDark ? '#4ADE80' : '#166534' }}>✓ OTP sent to your email</p>
                                         </div>
                                         <input
                                             type="text" value={otpValue} onChange={e => setOtpValue(e.target.value)}
                                             placeholder="Enter 4-digit OTP" maxLength={4}
-                                            className="w-full px-4 py-3 text-center text-lg font-mono font-bold tracking-[0.5em] rounded-xl border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-primary/30"
+                                            className="w-full px-4 py-3 text-center text-lg font-mono font-bold tracking-[0.5em] rounded-xl outline-none"
+                                            style={{ backgroundColor: isDark ? '#1a1209' : '#FFF7ED', border: isDark ? '1px solid rgba(74, 45, 20, 0.5)' : '1px solid #FFEDD5', color: isDark ? '#F0DEC8' : '#1C1917' }}
                                         />
-                                        <button onClick={submitOtp} disabled={otpSubmitting}
-                                            className="w-full py-3 rounded-xl text-xs font-black uppercase tracking-widest text-white transition-colors disabled:opacity-50"
-                                            style={{ backgroundColor: otpMode === 'claim' ? '#C2410C' : '#DC2626' }}>
-                                            {otpSubmitting ? 'Verifying...' : 'Verify & Confirm'}
-                                        </button>
+                                        <div className="flex gap-2.5">
+                                            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                                onClick={() => setOtpMode(null)}
+                                                className="flex-1 py-2 text-xs font-bold rounded-xl transition-colors"
+                                                style={{ color: isDark ? '#A08060' : '#8D6E63', backgroundColor: isDark ? 'rgba(74, 45, 20, 0.4)' : 'rgba(141, 110, 99, 0.1)', border: isDark ? '1px solid rgba(74, 45, 20, 0.6)' : '1px solid rgba(141, 110, 99, 0.2)' }}
+                                            >Cancel</motion.button>
+                                            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                                onClick={submitOtp} disabled={otpSubmitting}
+                                                className="flex-1 py-2 text-xs font-black text-white rounded-xl shadow-lg transition-colors disabled:opacity-50"
+                                                style={{ background: otpMode === 'claim' ? 'linear-gradient(135deg, #C2410C, #B45309)' : 'linear-gradient(135deg, #DC2626, #B91C1C)', boxShadow: '0 4px 14px rgba(194, 65, 12, 0.3)' }}
+                                            >{otpSubmitting ? 'Verifying...' : 'Verify & Confirm'}</motion.button>
+                                        </div>
                                     </>
                                 )}
 
-                                {otpError && <p className="text-xs font-bold text-red-500 text-center">{otpError}</p>}
-                                {otpSuccess && <p className="text-xs font-bold text-green-500 text-center">{otpSuccess}</p>}
-
-                                <button onClick={() => setOtpMode(null)} className="w-full py-2 text-xs font-bold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                                    Cancel
-                                </button>
+                                {otpError && <p className="text-[11px] font-bold text-red-500 text-center">{otpError}</p>}
+                                {otpSuccess && <p className="text-[11px] font-bold text-center" style={{ color: isDark ? '#4ADE80' : '#16A34A' }}>{otpSuccess}</p>}
                             </div>
                         </motion.div>
-                    </div>
+                    </motion.div>
                 )}
             </AnimatePresence>
 

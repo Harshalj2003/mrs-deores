@@ -58,9 +58,6 @@ public class User {
     @Column(name = "account_status", length = 20)
     private String accountStatus = "ACTIVE";
 
-    @Column(name = "is_default_admin")
-    private Boolean isDefaultAdmin = false;
-
     public User(String username, String email, String password) {
         this.username = username;
         this.email = email;

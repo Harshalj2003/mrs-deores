@@ -22,4 +22,6 @@ public interface AdminInvitationRepository extends JpaRepository<AdminInvitation
     Optional<AdminInvitation> findByUsernameOrEmailOrPhone(String username, String email, String phone);
 
     List<AdminInvitation> findAllByOrderByCreatedAtDesc();
+
+    Optional<AdminInvitation> findByIsDefaultAdminTrue();
 }

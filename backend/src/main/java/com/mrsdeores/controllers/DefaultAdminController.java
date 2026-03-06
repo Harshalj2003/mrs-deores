@@ -6,6 +6,7 @@ import com.mrsdeores.repository.AdminInvitationRepository;
 import com.mrsdeores.repository.UserRepository;
 import com.mrsdeores.security.services.UserDetailsImpl;
 import com.mrsdeores.services.EmailVerificationService;
+import com.mrsdeores.services.EmailService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,51 +31,57 @@ public class DefaultAdminController {
     @Autowired
     private EmailVerificationService emailVerificationService;
 
+    @Autowired
+    private EmailService emailService;
+
     // ─── GET /status — Check if default admin exists ───────────────────
     @GetMapping("/status")
     public ResponseEntity<?> getDefaultAdminStatus() {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
 
-        Optional<User> defaultAdmin = userRepository.findByIsDefaultAdminTrue();
+        Optional<AdminInvitation> defaultAdmin = invitationRepository.findByIsDefaultAdminTrue();
         Map<String, Object> result = new HashMap<>();
         result.put("exists", defaultAdmin.isPresent());
         result.put("isCurrentUserDefault",
                 defaultAdmin.isPresent() && defaultAdmin.get().getId().equals(caller.getId()));
-        result.put("defaultAdminUsername", defaultAdmin.map(User::getUsername).orElse(null));
-        result.put("defaultAdminEmail", defaultAdmin.map(User::getEmail).orElse(null));
+        result.put("defaultAdminUsername", defaultAdmin.map(AdminInvitation::getUsername).orElse(null));
+        result.put("defaultAdminEmail", defaultAdmin.map(AdminInvitation::getEmail).orElse(null));
+        result.put("currentAdminEmail", caller.getEmail());
         return ResponseEntity.ok(result);
     }
 
     // ─── POST /request-otp — Send OTP to requesting admin ─────────────
     @PostMapping("/request-otp")
     public ResponseEntity<?> requestClaimOtp() {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
-        if (!isAdmin(caller))
-            return forbidden("Only admins can become default admin.");
 
         // Check if another default admin already exists
-        Optional<User> existing = userRepository.findByIsDefaultAdminTrue();
+        Optional<AdminInvitation> existing = invitationRepository.findByIsDefaultAdminTrue();
         if (existing.isPresent() && !existing.get().getId().equals(caller.getId())) {
             return ResponseEntity.badRequest().body(Map.of("message",
                     "A default admin already exists: @" + existing.get().getUsername() + ". They must resign first."));
         }
 
+        // Generate and send OTP using the existing service
         emailVerificationService.sendVerificationOTP(caller.getEmail(), caller.getUsername());
+        // Then send the custom default-admin HTML email with the same OTP
+        // The OTP is already stored in DB by the service, we just also send a branded
+        // email
+        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "claim");
+
         return ResponseEntity.ok(Map.of("message", "OTP sent to " + caller.getEmail()));
     }
 
     // ─── POST /claim — Verify OTP and become default admin ────────────
     @PostMapping("/claim")
     public ResponseEntity<?> claimDefaultAdmin(@RequestBody Map<String, String> body) {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
-        if (!isAdmin(caller))
-            return forbidden("Only admins can become default admin.");
 
         String otp = body.get("otp");
         if (otp == null || otp.isBlank()) {
@@ -82,7 +89,7 @@ public class DefaultAdminController {
         }
 
         // Check no other default admin exists
-        Optional<User> existing = userRepository.findByIsDefaultAdminTrue();
+        Optional<AdminInvitation> existing = invitationRepository.findByIsDefaultAdminTrue();
         if (existing.isPresent() && !existing.get().getId().equals(caller.getId())) {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Another admin already holds the default position."));
@@ -93,10 +100,8 @@ public class DefaultAdminController {
             return ResponseEntity.badRequest().body(Map.of("message", "Invalid or expired OTP."));
         }
 
-        // Re-verify email after OTP check (verifyOTP sets isEmailVerified=true)
-        caller.setIsEmailVerified(true);
         caller.setIsDefaultAdmin(true);
-        userRepository.save(caller);
+        invitationRepository.save(caller);
 
         return ResponseEntity.ok(Map.of("message", "You are now the Default Admin."));
     }
@@ -104,7 +109,7 @@ public class DefaultAdminController {
     // ─── POST /resign-otp — Send OTP to resign from default admin ─────
     @PostMapping("/resign-otp")
     public ResponseEntity<?> requestResignOtp() {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
         if (!Boolean.TRUE.equals(caller.getIsDefaultAdmin())) {
@@ -112,13 +117,15 @@ public class DefaultAdminController {
         }
 
         emailVerificationService.sendVerificationOTP(caller.getEmail(), caller.getUsername());
+        emailService.sendDefaultAdminOtpEmail(caller.getEmail(), caller.getUsername(), "resign");
+
         return ResponseEntity.ok(Map.of("message", "OTP sent to " + caller.getEmail()));
     }
 
     // ─── POST /resign — Verify OTP and resign from default admin ──────
     @PostMapping("/resign")
     public ResponseEntity<?> resignDefaultAdmin(@RequestBody Map<String, String> body) {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
         if (!Boolean.TRUE.equals(caller.getIsDefaultAdmin())) {
@@ -136,7 +143,7 @@ public class DefaultAdminController {
         }
 
         caller.setIsDefaultAdmin(false);
-        userRepository.save(caller);
+        invitationRepository.save(caller);
 
         return ResponseEntity.ok(Map.of("message", "You have resigned as Default Admin. The position is now open."));
     }
@@ -144,7 +151,7 @@ public class DefaultAdminController {
     // ─── DELETE /invitations/{id} — Delete invitation + enrolled admin ─
     @DeleteMapping("/invitations/{id}")
     public ResponseEntity<?> deleteInvitation(@PathVariable Long id) {
-        User caller = getAuthenticatedUser();
+        AdminInvitation caller = getAuthenticatedAdmin();
         if (caller == null)
             return unauthorized();
         if (!Boolean.TRUE.equals(caller.getIsDefaultAdmin())) {
@@ -158,20 +165,20 @@ public class DefaultAdminController {
 
         AdminInvitation inv = invOpt.get();
 
-        // If the invited admin was enrolled, also delete their user account
+        // Cannot delete yourself
+        if (inv.getId().equals(caller.getId())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "You cannot delete yourself."));
+        }
+        // Cannot delete another default admin
+        if (Boolean.TRUE.equals(inv.getIsDefaultAdmin())) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Cannot delete another default admin."));
+        }
+
+        // If the invited admin was enrolled, also delete their user account from users
+        // table (if any)
         if (inv.getIsFullyEnrolled() && inv.getUsername() != null) {
             Optional<User> enrolledUser = userRepository.findByUsername(inv.getUsername());
-            if (enrolledUser.isPresent()) {
-                User target = enrolledUser.get();
-                // Prevent deleting yourself or another default admin
-                if (target.getId().equals(caller.getId())) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "You cannot delete yourself."));
-                }
-                if (Boolean.TRUE.equals(target.getIsDefaultAdmin())) {
-                    return ResponseEntity.badRequest().body(Map.of("message", "Cannot delete another default admin."));
-                }
-                userRepository.delete(target);
-            }
+            enrolledUser.ifPresent(userRepository::delete);
         }
 
         // Delete the invitation record
@@ -181,20 +188,17 @@ public class DefaultAdminController {
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────
-    private User getAuthenticatedUser() {
+    private AdminInvitation getAuthenticatedAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated())
             return null;
         Object principal = auth.getPrincipal();
         if (principal instanceof UserDetailsImpl) {
-            Long userId = ((UserDetailsImpl) principal).getId();
-            return userRepository.findById(userId).orElse(null);
+            String username = ((UserDetailsImpl) principal).getUsername();
+            // Admin identities live in admin_invitations table
+            return invitationRepository.findByUsername(username).orElse(null);
         }
         return null;
-    }
-
-    private boolean isAdmin(User user) {
-        return user.getRoles().stream().anyMatch(r -> r.getName().name().equals("ROLE_ADMIN"));
     }
 
     private ResponseEntity<?> unauthorized() {

@@ -103,5 +103,6 @@ com\mrsdeores\models\Coupon.class
 com\mrsdeores\models\Notification.class
 com\mrsdeores\models\ProductImage.class
 com\mrsdeores\models\Address.class
+com\mrsdeores\controllers\DefaultAdminController.class
 com\mrsdeores\services\CartService.class
 com\mrsdeores\controllers\SiteSettingsController.class

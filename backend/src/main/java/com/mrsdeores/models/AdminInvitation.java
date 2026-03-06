@@ -42,6 +42,9 @@ public class AdminInvitation {
     @Column(name = "is_fully_enrolled", nullable = false)
     private Boolean isFullyEnrolled = false;
 
+    @Column(name = "is_default_admin")
+    private Boolean isDefaultAdmin = false;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
