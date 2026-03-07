@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Send, Trash2, Users, AlertTriangle, Eye, Reply, CheckCircle } from 'lucide-react';
 import api from '../services/api';
+import { uploadToCloudinary } from '../services/cloudinaryUploadService';
 
 interface NotificationRead {
     userId: number;
@@ -110,14 +111,17 @@ const AdminNotificationsPage: React.FC = () => {
         try {
             let finalAttachmentUrl = attachmentUrl.trim() === '' ? null : attachmentUrl;
 
-            // Handle local file upload if a file was selected
+            // Handle file upload via Cloudinary (persistent storage)
             if (selectedFile && (attachmentType === 'IMAGE' || attachmentType === 'VIDEO')) {
-                const formData = new FormData();
-                formData.append('file', selectedFile);
-                const uploadRes = await api.post('/upload', formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' }
-                });
-                finalAttachmentUrl = uploadRes.data.fileDownloadUri;
+                try {
+                    const cloudinaryMediaType = attachmentType === 'VIDEO' ? 'VIDEO' : 'CATEGORY'; // reuse CATEGORY folder type for misc uploads
+                    const result = await uploadToCloudinary(selectedFile, cloudinaryMediaType);
+                    finalAttachmentUrl = result.secureUrl;
+                } catch (uploadErr: any) {
+                    setError(uploadErr.message || 'File upload failed');
+                    setSubmitting(false);
+                    return;
+                }
             }
 
             await api.post('/admin/notifications', {
