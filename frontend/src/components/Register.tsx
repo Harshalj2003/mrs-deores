@@ -112,7 +112,7 @@ const Register: React.FC = () => {
             <Helmet>
                 <title>Create Account – Mrs. Deore Premix</title>
                 <meta name="description" content="Join Mrs. Deore Premix and start your journey into authentic homemade traditions. Create your account today." />
-                <link rel="canonical" href="https://mrsdeore-premix.onrender.com/register" />
+                <link rel="canonical" href="https://mrs-deores.onrender.com/register" />
             </Helmet>
             <div className="text-center">
                 <motion.h2

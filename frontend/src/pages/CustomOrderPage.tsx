@@ -124,7 +124,7 @@ const CustomOrderPage: React.FC = () => {
             <SEO
                 title="Custom Orders – Mrs. Deore Premix | Personalized Traditional Products"
                 description="Request a custom traditional premix or bulk package tailored to your needs. Custom ingredient ratios, branded packaging, and quality guaranteed."
-                url="https://mrsdeore-premix.onrender.com/custom-order"
+                url="https://mrs-deores.onrender.com/custom-order"
             />
 
             <div className="flex justify-center mb-8">

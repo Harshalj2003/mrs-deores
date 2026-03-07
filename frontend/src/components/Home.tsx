@@ -110,7 +110,7 @@ const Home: React.FC = () => {
             <SEO
                 title="Mrs. Deore Premix – Authentic Homemade Traditions"
                 description="Explore authentic homemade premix products by Mrs. Deore. Handcrafted masalas, snacks, and traditional recipes made with love and natural ingredients."
-                url="https://mrsdeore-premix.onrender.com/"
+                url="https://mrs-deores.onrender.com/"
             />
 
             {/* ════════════════════════════════════════════════════

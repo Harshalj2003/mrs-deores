@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/</loc>
+    <loc>https://mrs-deores.onrender.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/about</loc>
+    <loc>https://mrs-deores.onrender.com/about</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/custom-order</loc>
+    <loc>https://mrs-deores.onrender.com/custom-order</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/login</loc>
+    <loc>https://mrs-deores.onrender.com/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/register</loc>
+    <loc>https://mrs-deores.onrender.com/register</loc>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/privacy</loc>
+    <loc>https://mrs-deores.onrender.com/privacy</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/terms</loc>
+    <loc>https://mrs-deores.onrender.com/terms</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://mrsdeore-premix.onrender.com/shipping</loc>
+    <loc>https://mrs-deores.onrender.com/shipping</loc>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

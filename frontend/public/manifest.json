@@ -1,0 +1,26 @@
+{
+  "name": "Mrs. Deore's Premix",
+  "short_name": "Mrs. Deore's",
+  "description": "Authentic homemade premix products crafted with purity, passion, and time-honoured recipes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8E7",
+  "theme_color": "#f97316",
+  "icons": [
+    {
+      "src": "/web_logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "/web_logo_192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/web_logo.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

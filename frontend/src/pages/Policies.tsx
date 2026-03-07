@@ -132,7 +132,7 @@ const Policies: React.FC = () => {
             <Helmet>
                 <title>{policyTitles[activeTab]} – Mrs. Deore Premix</title>
                 <meta name="description" content={policyDescriptions[activeTab]} />
-                <link rel="canonical" href={`https://mrsdeore-premix.onrender.com/${activeTab}`} />
+                <link rel="canonical" href={`https://mrs-deores.onrender.com/${activeTab}`} />
             </Helmet>
             <div className="container mx-auto px-4 max-w-6xl">
                 <Link to="/" className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-accent transition-all mb-8 group">

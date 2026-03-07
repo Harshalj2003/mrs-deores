@@ -60,7 +60,7 @@ const AboutPage: React.FC = () => {
             <SEO
                 title="About Us – Mrs. Deore Premix | Our Story & Traditions"
                 description="Discover the story behind Mrs. Deore Premix. Made with love, served with tradition — authentic homemade premix products from Maharashtra."
-                url="https://mrsdeore-premix.onrender.com/about"
+                url="https://mrs-deores.onrender.com/about"
             />
             {/* Hero */}
             <div className="relative bg-gradient-to-br from-[#FFF8E7] via-[#FFECD2] to-[#FFF8E7] overflow-hidden">
