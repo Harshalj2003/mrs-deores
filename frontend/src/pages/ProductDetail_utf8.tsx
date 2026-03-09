@@ -90,7 +90,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const activeImageUrl = images[activeImageIndex]?.imageUrl || 'https://placehold.co/600x600?text=No+Image';
 
     const renderStockStatus = () => {
-        if (product.stockQuantity > 10) return <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-sm font-bold bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full w-fit"><CheckCircle2 className="h-4 w-4" /> In Stock</span>;
+        if (product.stockQuantity > 10) return <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400 text-sm font-bold bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full w-fit"><CheckCircle2 className="h-4 w-4" /> {product.stockQuantity} In Stock</span>;
         if (product.stockQuantity > 0) return <span className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400 text-sm font-bold bg-yellow-50 dark:bg-yellow-900/20 px-3 py-1 rounded-full w-fit"><AlertTriangle className="h-4 w-4" /> Only {product.stockQuantity} left</span>;
         return <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-sm font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-full w-fit"><Package className="h-4 w-4" /> Out of Stock</span>;
     };

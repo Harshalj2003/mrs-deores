@@ -308,6 +308,12 @@ const AdminCustomOrders: React.FC = () => {
                                                 >
                                                     {order.status === 'NEGOTIATING' ? 'Re-Quote' : 'Edit Quote'}
                                                 </button>
+                                                <button
+                                                    onClick={() => openModal(order, 'reject')}
+                                                    className="px-4 py-2 bg-red-500 text-white rounded-xl text-xs font-bold hover:bg-red-600 transition-colors"
+                                                >
+                                                    Reject
+                                                </button>
                                             </>
                                         )}
                                         {order.status === 'ACCEPTED_BY_CUSTOMER' && (

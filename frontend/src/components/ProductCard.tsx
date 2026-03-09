@@ -53,22 +53,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     />
                 </Link>
 
-                {/* Badges */}
-                <div className="absolute top-3 sm:top-4 left-3 sm:left-4 flex flex-col gap-2">
-                    {product.bulkPrice && (
-                        <div className="bg-secondary text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 sm:px-3 py-1 rounded-full shadow-lg">
-                            Bulk Deal
-                        </div>
-                    )}
+                {/* Top Left Badges (Discount, Low Stock) */}
+                <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20 flex flex-col gap-2 pointer-events-none">
+                    {/* Placeholder for any % OFF tag in the future */}
                     {product.stockQuantity < 10 && product.stockQuantity > 0 && (
-                        <div className="bg-red-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 sm:px-3 py-1 rounded-full shadow-lg">
+                        <div className="bg-red-500 text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 sm:px-3 py-1 rounded-full shadow-lg whitespace-nowrap">
                             Low Stock
                         </div>
                     )}
                 </div>
 
-                {/* Wishlist Button with pulse animation */}
-                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20">
+                {/* Top Right Container for Badges and Wishlist */}
+                <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-20 flex items-start gap-2">
+                    <div className="flex flex-col gap-2 items-end mt-1 pointer-events-none">
+                        {product.bulkPrice && (
+                            <div className="bg-secondary text-white text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2 sm:px-3 py-1 rounded-full shadow-lg whitespace-nowrap">
+                                Bulk Deal
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Wishlist Button with pulse animation */}
                     <motion.button
                         whileHover={{ scale: 1.15 }}
                         whileTap={{ scale: 0.85 }}
@@ -76,7 +81,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                         transition={heartPulse ? { duration: 0.4 } : undefined}
                         onClick={handleWishlist}
                         className={clsx(
-                            "h-10 w-10 min-h-[44px] min-w-[44px] rounded-full flex items-center justify-center shadow-lg transition-colors border backdrop-blur-md",
+                            "h-10 w-10 min-h-[44px] min-w-[44px] shrink-0 rounded-full flex items-center justify-center shadow-lg transition-colors border backdrop-blur-md",
                             isWishlisted
                                 ? "bg-red-500 border-red-500 text-white"
                                 : "bg-white/80 border-gray-100 text-gray-400 hover:text-red-500"
@@ -86,8 +91,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     </motion.button>
                 </div>
 
+                {/* Bottom Left Stock Amount */}
+                <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 z-20 pointer-events-none">
+                    <div className="bg-white/90 backdrop-blur-sm border border-gray-100 text-gray-600 text-[9px] sm:text-[10px] font-bold px-2 sm:px-3 py-1 rounded-full shadow-sm">
+                        {product.stockQuantity > 0 ? `${product.stockQuantity} in stock` : 'Out of stock'}
+                    </div>
+                </div>
+
                 {/* Quick Add Button — always visible on mobile with touch target, hover-only on desktop */}
-                <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20">
+                <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 z-20">
                     {/* Mobile: always visible */}
                     <motion.button
                         animate={cartBounce ? { scale: [1, 1.15, 1] } : {}}

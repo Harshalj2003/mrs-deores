@@ -73,19 +73,23 @@ const ProductList: React.FC = () => {
         if (updatedProduct) {
             setProducts(prev => {
                 const exists = prev.find(p => p.id === updatedProduct.id);
-                // If the product belongs to the current category being viewed, or we are viewing "All"
-                const matchesCategory = !categoryId || updatedProduct.category.id === Number(categoryId);
+                // Safe extraction for partial updates (e.g., from CartService which only sends id and stockQuantity)
+                const pCategory = updatedProduct.category || (exists ? exists.category : null);
+                const isActive = updatedProduct.isActive !== undefined ? updatedProduct.isActive : (exists ? exists.isActive : true);
 
-                if (exists && matchesCategory && updatedProduct.isActive) {
+                // If the product belongs to the current category being viewed, or we are viewing "All"
+                const matchesCategory = !categoryId || (pCategory && pCategory.id === Number(categoryId));
+
+                if (exists && matchesCategory && isActive) {
                     return prev.map(p => {
                         if (p.id === updatedProduct.id) {
-                            return { ...p, ...updatedProduct, category: p.category }; // Safe merge
+                            return { ...p, ...updatedProduct, category: pCategory }; // Safe merge
                         }
                         return p;
                     });
-                } else if (!exists && matchesCategory && updatedProduct.isActive) {
-                    return [{ ...updatedProduct, category }, ...prev];
-                } else if (exists && !updatedProduct.isActive) {
+                } else if (!exists && matchesCategory && isActive && Object.keys(updatedProduct).length > 2) {
+                    return [{ ...updatedProduct, category: pCategory }, ...prev];
+                } else if (exists && !isActive) {
                     return prev.filter(p => p.id !== updatedProduct.id);
                 }
                 return prev;
