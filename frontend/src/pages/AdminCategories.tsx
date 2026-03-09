@@ -5,6 +5,7 @@ import api from '../services/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import ImageCropperModal from '../components/ImageCropperModal';
 import { uploadToCloudinary } from '../services/cloudinaryUploadService';
+import { useSSE } from '../hooks/useSSE';
 
 interface Category {
     id?: number;
@@ -53,6 +54,35 @@ const AdminCategories: React.FC = () => {
     };
 
     useEffect(() => { fetchCategories(); }, []);
+
+    // ────────────────────────────────────────────────────────────────────
+    // Real-time Push Updates (SSE)
+    // ────────────────────────────────────────────────────────────────────
+    const { events: sseEvents } = useSSE(['CATEGORY_CREATED', 'CATEGORY_UPDATED', 'CATEGORY_DELETED']);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_CREATED']) {
+            const newCat = sseEvents['CATEGORY_CREATED'];
+            setCategories(prev => {
+                if (prev.find(c => c.id === newCat.id)) return prev;
+                return [...prev, newCat];
+            });
+        }
+    }, [sseEvents['CATEGORY_CREATED']]);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_UPDATED']) {
+            const updated = sseEvents['CATEGORY_UPDATED'];
+            setCategories(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
+        }
+    }, [sseEvents['CATEGORY_UPDATED']]);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_DELETED']) {
+            const delId = sseEvents['CATEGORY_DELETED'].id;
+            setCategories(prev => prev.filter(c => c.id !== delId));
+        }
+    }, [sseEvents['CATEGORY_DELETED']]);
 
     const openCreate = () => {
         setEditCategory(EMPTY_CATEGORY);

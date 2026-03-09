@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class CartService {
@@ -22,6 +24,16 @@ public class CartService {
 
     @Autowired
     private ProductRepository productRepository;
+
+    @Autowired
+    private RealTimeUpdateService updateService;
+
+    private void broadcastProductUpdate(Product product) {
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", product.getId());
+        dto.put("stockQuantity", product.getStockQuantity());
+        updateService.broadcast("PRODUCT_UPDATED", dto);
+    }
 
     @Transactional
     public Cart getOrCreateCart(User user, String sessionId) {
@@ -54,9 +66,25 @@ public class CartService {
 
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
+            // Check stock
+            if (product.getStockQuantity() < quantity) {
+                throw new RuntimeException("Insufficient stock available");
+            }
+            product.setStockQuantity(product.getStockQuantity() - quantity);
+            productRepository.save(product);
+            broadcastProductUpdate(product);
+
             item.setQuantity(item.getQuantity() + quantity);
             item.setUpdatedAt(LocalDateTime.now());
         } else {
+            // Check stock
+            if (product.getStockQuantity() < quantity) {
+                throw new RuntimeException("Insufficient stock available");
+            }
+            product.setStockQuantity(product.getStockQuantity() - quantity);
+            productRepository.save(product);
+            broadcastProductUpdate(product);
+
             CartItem newItem = new CartItem();
             newItem.setCart(cart);
             newItem.setProduct(product);
@@ -78,9 +106,30 @@ public class CartService {
 
         if (itemOpt.isPresent()) {
             CartItem item = itemOpt.get();
+            Product product = item.getProduct();
+
+            // Calculate delta
+            int oldQuantity = item.getQuantity();
+            int difference = quantity - oldQuantity;
+
             if (quantity <= 0) {
+                // Restore full stock
+                product.setStockQuantity(product.getStockQuantity() + oldQuantity);
+                productRepository.save(product);
+                broadcastProductUpdate(product);
+
                 cart.getItems().remove(item);
             } else {
+                // Check stock for positive difference
+                if (difference > 0 && product.getStockQuantity() < difference) {
+                    throw new RuntimeException("Insufficient stock available");
+                }
+
+                // Adjust stock
+                product.setStockQuantity(product.getStockQuantity() - difference);
+                productRepository.save(product);
+                broadcastProductUpdate(product);
+
                 item.setQuantity(quantity);
                 item.setUpdatedAt(LocalDateTime.now());
             }
@@ -93,7 +142,23 @@ public class CartService {
     @Transactional
     public Cart removeItem(User user, String sessionId, Long productId) {
         Cart cart = getOrCreateCart(user, sessionId);
-        cart.getItems().removeIf(item -> item.getProduct().getId().equals(productId));
+
+        Optional<CartItem> itemToRemove = cart.getItems().stream()
+                .filter(item -> item.getProduct().getId().equals(productId))
+                .findFirst();
+
+        if (itemToRemove.isPresent()) {
+            CartItem item = itemToRemove.get();
+            Product product = item.getProduct();
+
+            // Restore stock
+            product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+            productRepository.save(product);
+            broadcastProductUpdate(product);
+
+            cart.getItems().remove(item);
+        }
+
         cart.setUpdatedAt(LocalDateTime.now());
         return cartRepository.save(cart);
     }

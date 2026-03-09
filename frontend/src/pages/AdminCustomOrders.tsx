@@ -5,6 +5,7 @@ import { getAllCustomOrders, approveCustomOrder, quoteCustomOrder, rejectCustomO
 import type { CustomOrderResponse, CustomOrderStatus } from '../types/customOrder.types';
 import { CUSTOM_ORDER_STATUS_LABELS } from '../types/customOrder.types';
 import OrderTimeline from '../components/OrderTimeline';
+import { useSSE } from '../hooks/useSSE';
 
 
 const STATUS_COLORS: Record<CustomOrderStatus, string> = {
@@ -63,6 +64,26 @@ const AdminCustomOrders: React.FC = () => {
     useEffect(() => {
         fetchOrders();
     }, [filterStatus]);
+
+    // ────────────────────────────────────────────────────────────────────
+    // Object Real-time Sync
+    // ────────────────────────────────────────────────────────────────────
+    const { events: sseEvents } = useSSE(['CUSTOM_ORDER_UPDATED']);
+
+    useEffect(() => {
+        if (sseEvents['CUSTOM_ORDER_UPDATED']) {
+            const updated = sseEvents['CUSTOM_ORDER_UPDATED'];
+            setOrders(prev => {
+                if (prev.find(o => o.id === updated.id)) {
+                    // Update existing
+                    return prev.map(o => o.id === updated.id ? { ...o, ...updated } : o);
+                } else {
+                    // Prepend new request
+                    return [updated as any, ...prev];
+                }
+            });
+        }
+    }, [sseEvents['CUSTOM_ORDER_UPDATED']]);
 
     const handleAction = async () => {
         if (!selectedOrder) return;

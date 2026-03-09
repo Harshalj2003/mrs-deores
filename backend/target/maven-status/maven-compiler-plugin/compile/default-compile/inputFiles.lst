@@ -22,6 +22,7 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\ReviewController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\SearchController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\SiteSettingsController.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\SseController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\TestController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\UserController.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\controllers\WebhookController.java
@@ -98,5 +99,6 @@ C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\ProductService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\RateLimitConfigService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\RazorpayService.java
+C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\RealTimeUpdateService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\ReviewService.java
 C:\Users\jadha\.gemini\antigravity\playground\mrsdeore\backend\src\main\java\com\mrsdeores\services\WishlistService.java

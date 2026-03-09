@@ -101,6 +101,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categories", "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/settings").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/stream").permitAll()
 
                         // Admin Restrictions
                         .requestMatchers("/api/users/**").hasRole("ADMIN")

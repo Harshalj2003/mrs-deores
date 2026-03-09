@@ -6,6 +6,7 @@ import { Plus, Search, Edit2, Trash2, Filter, AlertCircle, CheckCircle2 } from '
 import api from '../services/api';
 import type { Product, Category } from '../types/catalog.types';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSSE } from '../hooks/useSSE';
 
 const AdminProducts: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
@@ -38,6 +39,37 @@ const AdminProducts: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // Listen for live database updates from SSE
+    const { events } = useSSE(['PRODUCT_UPDATED', 'PRODUCT_DELETED']);
+
+    useEffect(() => {
+        const updatedProduct = events['PRODUCT_UPDATED'];
+        if (updatedProduct) {
+            setProducts(prev => {
+                const exists = prev.find(p => p.id === updatedProduct.id);
+                if (exists) {
+                    return prev.map(p => {
+                        if (p.id === updatedProduct.id) {
+                            // Safely merge. If category changed, find its full object so p.category.name doesn't crash
+                            const newCategory = categories.find(c => c.id === updatedProduct.category?.id) || p.category;
+                            return { ...p, ...updatedProduct, category: newCategory };
+                        }
+                        return p;
+                    });
+                } else {
+                    // It's a brand new product, but it might lack category.name until refresh
+                    const cat = categories.find(c => c.id === updatedProduct.category?.id) || updatedProduct.category;
+                    return [{ ...updatedProduct, category: cat }, ...prev];
+                }
+            });
+        }
+
+        const deletedProduct = events['PRODUCT_DELETED'];
+        if (deletedProduct) {
+            setProducts(prev => prev.map(p => p.id === deletedProduct.id ? { ...p, isActive: false } : p));
+        }
+    }, [events, categories]);
 
     const handleAddProduct = () => {
         setSelectedProduct(undefined);

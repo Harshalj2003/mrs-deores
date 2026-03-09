@@ -28,7 +28,8 @@ const CustomOrderPage = lazy(() => import('./pages/CustomOrderPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const CopyToken = lazy(() => import('./pages/CopyToken'));
 import useCartStore from "./store/useCartStore";
-import api from "./services/api";
+import useSettingsStore from "./store/useSettingsStore";
+import { useSSE } from "./hooks/useSSE";
 
 import AdminLayout from "./layouts/AdminLayout";
 import MainLayout from "./layouts/MainLayout";
@@ -69,19 +70,34 @@ const App: React.FC = () => {
   // Send heartbeat for real-time active user tracking (skips admins automatically)
   useHeartbeat();
 
+  const fetchSettings = useSettingsStore(state => state.fetchSettings);
+  const updateSettingsLocally = useSettingsStore(state => state.updateSettingsLocally);
+  const settings = useSettingsStore(state => state.settings);
+
+  // SSE Real-time Updates logic
+  const { events: sseEvents } = useSSE(['SETTINGS_UPDATED']);
+
+  useEffect(() => {
+    if (sseEvents['SETTINGS_UPDATED']) {
+      updateSettingsLocally(sseEvents['SETTINGS_UPDATED']);
+    }
+  }, [sseEvents['SETTINGS_UPDATED']]);
+
   useEffect(() => {
     const user = AuthService.getCurrentUser();
     if (user) setCurrentUser(user);
     useCartStore.getState().syncWithBackend();
 
-    // Apply theme colors from admin settings to CSS variables
-    api.get('/settings').then(res => {
-      const settings = res.data || {};
-      const root = document.documentElement;
-      if (settings.theme_primary_color) root.style.setProperty('--color-primary', settings.theme_primary_color);
-      if (settings.theme_secondary_color) root.style.setProperty('--color-secondary', settings.theme_secondary_color);
-    }).catch(() => { /* fail silently — use defaults */ });
-  }, []);
+    // Fetch initial global settings
+    fetchSettings();
+  }, [fetchSettings]);
+
+  // Apply real-time theme CSS updates
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme_primary_color) root.style.setProperty('--color-primary', settings.theme_primary_color);
+    if (settings.theme_secondary_color) root.style.setProperty('--color-secondary', settings.theme_secondary_color);
+  }, [settings.theme_primary_color, settings.theme_secondary_color]);
 
   const logOut = () => {
     AuthService.logout();

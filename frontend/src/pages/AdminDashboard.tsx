@@ -10,6 +10,7 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar, Cell
 } from 'recharts';
+import { useSSE } from '../hooks/useSSE';
 
 interface DashboardStats {
     totalOrders: number;
@@ -314,6 +315,17 @@ const AdminDashboard: React.FC = () => {
     const [timeLeftMins, setTimeLeftMins] = useState<number>(0);
     const [timeLeftSecs, setTimeLeftSecs] = useState<number>(0);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+    // Keep track of live status for the SSE callback without stale closures
+    const { events: sseEvents } = useSSE(['STATS_UPDATED']);
+
+    // Real-time Push Updates
+    useEffect(() => {
+        // When STATS_UPDATED changes, if we are live, refetch immediately
+        if (sseEvents['STATS_UPDATED'] && isLive) {
+            fetchStats();
+        }
+    }, [sseEvents['STATS_UPDATED']]);
 
     // Fetch stats function
     const fetchStats = async () => {

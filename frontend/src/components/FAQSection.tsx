@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Minus, HelpCircle, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import api from '../services/api';
+import useSettingsStore from '../store/useSettingsStore';
 
 interface FAQItemProps {
     question: string;
@@ -54,33 +54,9 @@ const FAQSection: React.FC<FAQSectionProps> = ({
     title = "Frequently Asked Questions",
     subtitle = "Everything you need to know about MRS. DEORE traditions and quality."
 }) => {
-    const [faqNumber, setFaqNumber] = useState('918459424840');
-    const [faqMessage, setFaqMessage] = useState('Hello Mrs. Deores! I have a question about your authentic products.');
-
-    useEffect(() => {
-        const cached = localStorage.getItem('siteSettings');
-        if (cached) {
-            try {
-                const s = JSON.parse(cached);
-                if (s.faq_whatsapp_number) setFaqNumber(s.faq_whatsapp_number);
-                if (s.faq_whatsapp_message) setFaqMessage(s.faq_whatsapp_message);
-            } catch (e) { }
-        }
-
-        api.get('/settings').then(res => {
-            const s = res.data || {};
-            if (s.faq_whatsapp_number) setFaqNumber(s.faq_whatsapp_number);
-            if (s.faq_whatsapp_message) setFaqMessage(s.faq_whatsapp_message);
-
-            // Update shared cache
-            if (cached) {
-                const merged = { ...JSON.parse(cached), ...s };
-                localStorage.setItem('siteSettings', JSON.stringify(merged));
-            } else {
-                localStorage.setItem('siteSettings', JSON.stringify(s));
-            }
-        }).catch(() => { });
-    }, []);
+    const currentSettings = useSettingsStore(state => state.settings);
+    const faqNumber = currentSettings?.faq_whatsapp_number || '918459424840';
+    const faqMessage = currentSettings?.faq_whatsapp_message || 'Hello Mrs. Deores! I have a question about your authentic products.';
 
     const whatsappUrl = `https://wa.me/${faqNumber}?text=${encodeURIComponent(faqMessage)}`;
 

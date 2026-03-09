@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class OrderService {
@@ -23,6 +25,9 @@ public class OrderService {
 
     @Autowired
     private RazorpayService razorpayService;
+
+    @Autowired
+    private RealTimeUpdateService updateService;
 
     public List<Order> getUserOrders(User user) {
         return orderRepository.findByUserOrderByCreatedAtDesc(user);
@@ -100,6 +105,8 @@ public class OrderService {
         // Note: Cart is NO LONGER cleared here. It will be cleared upon successful
         // payment verification.
 
+        updateService.broadcast("STATS_UPDATED", new HashMap<>());
+
         return savedOrder;
     }
 
@@ -116,7 +123,15 @@ public class OrderService {
             order.setTrackingNumber(trackingNumber);
         if (carrier != null)
             order.setCarrier(carrier);
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", savedOrder.getId());
+        dto.put("status", savedOrder.getStatus());
+        updateService.broadcast("ORDER_UPDATED", dto);
+        updateService.broadcast("STATS_UPDATED", new HashMap<>());
+
+        return savedOrder;
     }
 
     @Transactional
@@ -142,6 +157,12 @@ public class OrderService {
         // Mark order as PAID
         order.setStatus("PAID");
         orderRepository.save(order);
+
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", order.getId());
+        dto.put("status", order.getStatus());
+        updateService.broadcast("ORDER_UPDATED", dto);
+        updateService.broadcast("STATS_UPDATED", new HashMap<>());
 
         // Clear the user's cart now that checkout is securely complete
         cartRepository.findByUser(user).ifPresent(cart -> {

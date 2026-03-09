@@ -7,6 +7,7 @@ import { createCustomOrder, negotiateCustomOrder, acceptCustomOrder } from '../s
 import type { Product } from '../types/catalog.types';
 import type { CustomOrderResponse } from '../types/customOrder.types';
 import api from '../services/api';
+import { useSSE } from '../hooks/useSSE';
 
 const PAYMENT_MODE_LABELS: Record<string, string> = {
     'ONLINE': 'Full Payment Online',
@@ -59,6 +60,18 @@ const CustomOrderPage: React.FC = () => {
             setLoadingHistory(false);
         }
     };
+
+    // ────────────────────────────────────────────────────────────────────
+    // Object Real-time Sync
+    // ────────────────────────────────────────────────────────────────────
+    const { events: sseEvents } = useSSE(['CUSTOM_ORDER_UPDATED']);
+
+    useEffect(() => {
+        if (sseEvents['CUSTOM_ORDER_UPDATED']) {
+            const updated = sseEvents['CUSTOM_ORDER_UPDATED'];
+            setMyRequests(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o));
+        }
+    }, [sseEvents['CUSTOM_ORDER_UPDATED']]);
 
     const handleTabSwitch = (tab: 'request' | 'history') => {
         setActiveTab(tab);

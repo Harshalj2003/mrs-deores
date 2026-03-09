@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Facebook, Instagram, Linkedin, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import api from '../services/api';
 import { useLanguage } from '../contexts/LanguageContext';
 import { staggerContainer, staggerCard, fadeSlideUp, defaultViewport } from '../utils/scrollAnimations';
+import useSettingsStore from '../store/useSettingsStore';
 
 interface SiteSettings {
     contact_address?: string;
@@ -18,23 +18,15 @@ interface SiteSettings {
 
 const Footer: React.FC = () => {
     const { t } = useLanguage();
-    const [settings, setSettings] = useState<SiteSettings>({
+    const currentSettings = useSettingsStore(state => state.settings);
+
+    // Merge global settings with defaults
+    const settings: SiteSettings = {
         contact_address: 'Plot No. 21, ZP Colony, Near Dutt Mandir Chowk, Deopur, Dhule 424005',
         contact_email: 'contact@mrsdeore.com',
         contact_phone: '+91 98765 43210',
-    });
-
-    useEffect(() => {
-        const cached = localStorage.getItem('siteSettings');
-        if (cached) {
-            try { setSettings(JSON.parse(cached)); } catch (e) { }
-        }
-
-        api.get('/settings').then(res => {
-            setSettings(res.data);
-            localStorage.setItem('siteSettings', JSON.stringify(res.data));
-        }).catch(() => {/* Use defaults on error */ });
-    }, []);
+        ...currentSettings
+    };
 
     const socialLinks = [
         { icon: Facebook, key: 'social_facebook', label: 'Facebook' },

@@ -9,6 +9,8 @@ import { useLanguage } from "../contexts/LanguageContext";
 import FAQSection from "./FAQSection";
 import ScrollSection from "./ScrollSection";
 import { staggerContainer, staggerCard, defaultViewport } from "../utils/scrollAnimations";
+import useSettingsStore from "../store/useSettingsStore";
+import { useSSE } from "../hooks/useSSE";
 
 const homeFAQs = [
     {
@@ -33,60 +35,62 @@ const Home: React.FC = () => {
     const { t } = useLanguage();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
-    const [gridColsMobile, setGridColsMobile] = useState(2);
-    const [gridColsDesktop, setGridColsDesktop] = useState(4);
-    const [heroEnabled, setHeroEnabled] = useState(true);
-    const [showTagline, setShowTagline] = useState(true);
+    const globalSettings = useSettingsStore(state => state.settings);
+    const gridColsMobile = parseInt(globalSettings?.grid_categories_mobile) || 2;
+    const gridColsDesktop = parseInt(globalSettings?.grid_categories_desktop) || 4;
+    const heroEnabled = globalSettings?.brand_hero_enabled !== 'false';
+    const showTagline = globalSettings?.brand_show_tagline !== 'false';
 
+    // ────────────────────────────────────────────────────────────────────
+    // Initial Fetch & Real-time Push Updates (SSE) for Categories
+    // ────────────────────────────────────────────────────────────────────
     useEffect(() => {
-        const fetchAll = async () => {
-            const cachedSettings = localStorage.getItem('siteSettings');
+        const fetchCategories = async () => {
             const cachedCats = localStorage.getItem('siteCategories');
-
-            if (cachedSettings) {
-                try {
-                    const s = JSON.parse(cachedSettings);
-                    if (s.grid_categories_mobile) setGridColsMobile(parseInt(s.grid_categories_mobile));
-                    if (s.grid_categories_desktop) setGridColsDesktop(parseInt(s.grid_categories_desktop));
-                    setHeroEnabled(s.brand_hero_enabled !== 'false');
-                    setShowTagline(s.brand_show_tagline !== 'false');
-                } catch (e) { }
-            }
             if (cachedCats) {
                 try { setCategories(JSON.parse(cachedCats)); } catch (e) { }
             }
-
             try {
-                const [catRes, settingsRes] = await Promise.all([
-                    api.get("categories"),
-                    api.get("settings").catch(() => ({ data: {} }))
-                ]);
-
-                const cats = catRes.data;
-                const s = settingsRes.data || {};
-
-                setCategories(cats);
-                localStorage.setItem('siteCategories', JSON.stringify(cats));
-
-                if (s.grid_categories_mobile) setGridColsMobile(parseInt(s.grid_categories_mobile));
-                if (s.grid_categories_desktop) setGridColsDesktop(parseInt(s.grid_categories_desktop));
-                setHeroEnabled(s.brand_hero_enabled !== 'false');
-                setShowTagline(s.brand_show_tagline !== 'false');
-
-                if (cachedSettings) {
-                    const merged = { ...JSON.parse(cachedSettings), ...s };
-                    localStorage.setItem('siteSettings', JSON.stringify(merged));
-                } else {
-                    localStorage.setItem('siteSettings', JSON.stringify(s));
-                }
+                const catRes = await api.get("categories");
+                setCategories(catRes.data);
+                localStorage.setItem('siteCategories', JSON.stringify(catRes.data));
             } catch (error) {
-                console.error("Error fetching home data:", error);
+                console.error("Error fetching home categories:", error);
             } finally {
                 setLoading(false);
             }
         };
-        fetchAll();
+        fetchCategories();
     }, []);
+
+    const { events: sseEvents } = useSSE(['CATEGORY_CREATED', 'CATEGORY_UPDATED', 'CATEGORY_DELETED']);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_CREATED']) {
+            const newCat = sseEvents['CATEGORY_CREATED'];
+            setCategories(prev => {
+                if (prev.find(c => c.id === newCat.id)) return prev;
+                return [...prev, newCat].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+            });
+        }
+    }, [sseEvents['CATEGORY_CREATED']]);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_UPDATED']) {
+            const updated = sseEvents['CATEGORY_UPDATED'];
+            setCategories(prev =>
+                prev.map(c => c.id === updated.id ? { ...c, ...updated } : c)
+                    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+            );
+        }
+    }, [sseEvents['CATEGORY_UPDATED']]);
+
+    useEffect(() => {
+        if (sseEvents['CATEGORY_DELETED']) {
+            const delId = sseEvents['CATEGORY_DELETED'].id;
+            setCategories(prev => prev.filter(c => c.id !== delId));
+        }
+    }, [sseEvents['CATEGORY_DELETED']]);
 
     if (loading) return (
         <div className="flex items-center justify-center min-h-[100dvh]">

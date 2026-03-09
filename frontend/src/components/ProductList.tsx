@@ -10,6 +10,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { clsx } from "clsx";
 import api from "../services/api";
+import { useSSE } from "../hooks/useSSE";
 
 const ProductList: React.FC = () => {
     const { t } = useLanguage();
@@ -64,6 +65,38 @@ const ProductList: React.FC = () => {
 
         fetchData();
     }, [categoryId, sortBy, order]);
+
+    const { events } = useSSE(['PRODUCT_UPDATED', 'PRODUCT_DELETED']);
+
+    useEffect(() => {
+        const updatedProduct = events['PRODUCT_UPDATED'];
+        if (updatedProduct) {
+            setProducts(prev => {
+                const exists = prev.find(p => p.id === updatedProduct.id);
+                // If the product belongs to the current category being viewed, or we are viewing "All"
+                const matchesCategory = !categoryId || updatedProduct.category.id === Number(categoryId);
+
+                if (exists && matchesCategory && updatedProduct.isActive) {
+                    return prev.map(p => {
+                        if (p.id === updatedProduct.id) {
+                            return { ...p, ...updatedProduct, category: p.category }; // Safe merge
+                        }
+                        return p;
+                    });
+                } else if (!exists && matchesCategory && updatedProduct.isActive) {
+                    return [{ ...updatedProduct, category }, ...prev];
+                } else if (exists && !updatedProduct.isActive) {
+                    return prev.filter(p => p.id !== updatedProduct.id);
+                }
+                return prev;
+            });
+        }
+
+        const deletedProduct = events['PRODUCT_DELETED'];
+        if (deletedProduct) {
+            setProducts(prev => prev.filter(p => p.id !== deletedProduct.id));
+        }
+    }, [events, categoryId]);
 
     if (loading) {
         return (

@@ -24,8 +24,7 @@ import { useLanguage, LANGUAGES } from "../contexts/LanguageContext";
 import SearchBar from "./SearchBar";
 import useWishlistStore from "../store/useWishlistStore";
 import NotificationDropdown from "./NotificationDropdown";
-
-import api from "../services/api";
+import useSettingsStore from "../store/useSettingsStore";
 
 interface NavbarProps {
     currentUser?: User;
@@ -49,41 +48,9 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, logOut }) => {
     const wishlistCount = wishlistItems.length;
     const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-    // Branding settings
-    const [logoSize, setLogoSize] = useState<'sm' | 'md' | 'lg'>('md');
-
-    useEffect(() => {
-        const cached = localStorage.getItem('siteSettings');
-        let initialSize: 'sm' | 'md' | 'lg' | null = null;
-        if (cached) {
-            try {
-                const s = JSON.parse(cached);
-                if (s.brand_logo_size) {
-                    initialSize = s.brand_logo_size as 'sm' | 'md' | 'lg';
-                }
-            } catch (error) {
-                console.error('Failed to parse cached settings', error);
-            }
-        }
-
-        if (initialSize) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setLogoSize(initialSize);
-        }
-
-        api.get('/settings').then(res => {
-            const s = res.data || {};
-            if (s.brand_logo_size) setLogoSize(s.brand_logo_size as 'sm' | 'md' | 'lg');
-
-            // Update shared cache
-            if (cached) {
-                const merged = { ...JSON.parse(cached), ...s };
-                localStorage.setItem('siteSettings', JSON.stringify(merged));
-            } else {
-                localStorage.setItem('siteSettings', JSON.stringify(s));
-            }
-        }).catch(() => { });
-    }, []);
+    // Branding settings from global real-time store
+    const settings = useSettingsStore(state => state.settings);
+    const logoSize = (settings?.brand_logo_size as 'sm' | 'md' | 'lg') || 'md';
 
     const isAdmin = currentUser?.roles.includes("ROLE_ADMIN");
 

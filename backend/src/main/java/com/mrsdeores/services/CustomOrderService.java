@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class CustomOrderService {
@@ -24,6 +26,21 @@ public class CustomOrderService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RealTimeUpdateService updateService;
+
+    private void broadcastUpdate(CustomOrder co) {
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", co.getId());
+        dto.put("status", co.getStatus());
+        dto.put("agreedPrice", co.getAgreedPrice());
+        dto.put("adminNote", co.getAdminNote());
+        dto.put("customerNote", co.getCustomerNote());
+        dto.put("paymentMode", co.getPaymentMode());
+        updateService.broadcast("CUSTOM_ORDER_UPDATED", dto);
+        updateService.broadcast("STATS_UPDATED", new HashMap<>());
+    }
 
     /**
      * Helper to create and save a notification.
@@ -61,6 +78,8 @@ public class CustomOrderService {
                     "A new custom request for " + saved.getItemName() + " has been placed by " + user.getUsername(),
                     "INFO", admin);
         }
+
+        broadcastUpdate(saved);
 
         return saved;
     }
@@ -101,6 +120,8 @@ public class CustomOrderService {
                 "Your custom request for " + saved.getItemName() + " was approved. Price: ₹" + agreedPrice,
                 "SUCCESS", saved.getUser());
 
+        broadcastUpdate(saved);
+
         return saved;
     }
 
@@ -119,6 +140,8 @@ public class CustomOrderService {
                 "Your custom request for " + saved.getItemName() + " received a quote: ₹" + agreedPrice,
                 "INFO", saved.getUser());
 
+        broadcastUpdate(saved);
+
         return saved;
     }
 
@@ -135,6 +158,8 @@ public class CustomOrderService {
         createNotification("Custom Request Rejected",
                 "Unfortunately, your request for " + saved.getItemName() + " was rejected.",
                 "WARNING", saved.getUser());
+
+        broadcastUpdate(saved);
 
         return saved;
     }
@@ -161,6 +186,8 @@ public class CustomOrderService {
                     user.getUsername() + " replied to the quote for " + saved.getItemName(),
                     "INFO", admin);
         }
+
+        broadcastUpdate(saved);
 
         return saved;
     }
@@ -204,6 +231,8 @@ public class CustomOrderService {
             }
         }
 
+        broadcastUpdate(saved);
+
         return saved;
     }
 
@@ -221,6 +250,8 @@ public class CustomOrderService {
                     "Your custom order for " + saved.getItemName() + " is now " + status,
                     "SUCCESS", saved.getUser());
         }
+
+        broadcastUpdate(saved);
 
         return saved;
     }

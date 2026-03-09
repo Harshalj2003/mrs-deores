@@ -2,6 +2,7 @@ package com.mrsdeores.controllers;
 
 import com.mrsdeores.models.SiteSettings;
 import com.mrsdeores.repository.SiteSettingsRepository;
+import com.mrsdeores.services.RealTimeUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,9 @@ public class SiteSettingsController {
 
     @Autowired
     private SiteSettingsRepository repository;
+
+    @Autowired
+    private RealTimeUpdateService updateService;
 
     @Value("${razorpay.key.id}")
     private String razorpayKeyId;
@@ -56,6 +60,10 @@ public class SiteSettingsController {
             setting.setUpdatedAt(LocalDateTime.now());
             repository.save(setting);
         }
+
+        // Broadcast the updated keys so clients can refresh their config cache
+        updateService.broadcast("SETTINGS_UPDATED", updates);
+
         return ResponseEntity.ok(updates);
     }
 }

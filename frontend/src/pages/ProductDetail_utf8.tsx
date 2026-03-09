@@ -11,6 +11,7 @@ import useCartStore from '../store/useCartStore';
 import useWishlistStore from '../store/useWishlistStore';
 import ReviewSection from '../components/ReviewSection';
 import SEO from '../components/SEO';
+import { useSSE } from '../hooks/useSSE';
 
 interface ProductDetailProps {
     currentUser?: any;
@@ -28,7 +29,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const [quantity, setQuantity] = useState(1);
     const [addingToCart, setAddingToCart] = useState(false);
 
+    // Listen for live product updates
+    const { events } = useSSE(['PRODUCT_UPDATED']);
+
     const isWishlisted = useMemo(() => product ? isInWishlist(product.id) : false, [product, isInWishlist]);
+
+    // Handle live SSE updates
+    useEffect(() => {
+        const liveProductUpdate = events['PRODUCT_UPDATED'];
+        if (liveProductUpdate && product && liveProductUpdate.id === product.id) {
+            setProduct(prev => prev ? { ...prev, ...liveProductUpdate, category: prev.category } : null);
+        }
+    }, [events, product?.id]);
 
     useEffect(() => {
         const fetchProduct = async () => {

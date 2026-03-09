@@ -5,6 +5,7 @@ import {
     ShoppingBag, Clock, CheckCircle2, Truck, Package, AlertTriangle, ArrowLeft, ChevronRight
 } from 'lucide-react';
 import { getUserOrders } from '../services/OrderService';
+import { useSSE } from '../hooks/useSSE';
 import type { Order } from '../types/Order';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: typeof CheckCircle2 }> = {
@@ -39,6 +40,18 @@ const Orders: React.FC = () => {
             .catch(() => setError('Could not load orders. Please try again.'))
             .finally(() => setLoading(false));
     }, []);
+
+    // ────────────────────────────────────────────────────────────────────
+    // Object Real-time Sync
+    // ────────────────────────────────────────────────────────────────────
+    const { events: sseEvents } = useSSE(['ORDER_UPDATED']);
+
+    useEffect(() => {
+        if (sseEvents['ORDER_UPDATED']) {
+            const updated = sseEvents['ORDER_UPDATED'];
+            setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, ...updated } : o));
+        }
+    }, [sseEvents['ORDER_UPDATED']]);
 
     const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.08 } } };
     const item = { hidden: { y: 20, opacity: 0 }, show: { y: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 120 } } };

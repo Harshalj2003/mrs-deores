@@ -6,6 +6,7 @@ import api from '../services/api';
 import { clsx } from 'clsx';
 import { API_BASE } from '../config';
 import { useTheme } from '../contexts/ThemeContext';
+import { useSSE } from '../hooks/useSSE';
 
 interface NotificationItem {
     id: number;
@@ -27,6 +28,9 @@ export default function NotificationDropdown() {
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [selectedNotif, setSelectedNotif] = useState<NotificationItem | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Listen for live new notifications from the Admin
+    const { events } = useSSE(['NEW_NOTIFICATION', 'NOTIFICATION_DELETED']);
 
     const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -57,6 +61,24 @@ export default function NotificationDropdown() {
             fetchNotifications(); // eslint-disable-line react-hooks/set-state-in-effect
         }
     }, [open, fetchNotifications]);
+
+    // Handle live SSE events
+    useEffect(() => {
+        const newNotif = events['NEW_NOTIFICATION'];
+        if (newNotif && !notifications.some(n => n.id === newNotif.id)) {
+            // Check if this notification is for me or global
+            // For simplicity, we just fetch the latest list to ensure exact accuracy and read states
+            fetchNotifications();
+        }
+
+        const deletedNotif = events['NOTIFICATION_DELETED'];
+        if (deletedNotif) {
+            setNotifications(prev => prev.filter(n => n.id !== deletedNotif.id));
+            if (selectedNotif?.id === deletedNotif.id) {
+                setSelectedNotif(null);
+            }
+        }
+    }, [events, fetchNotifications]);
 
     const markAsRead = async (id: number) => {
         // Optimistic update

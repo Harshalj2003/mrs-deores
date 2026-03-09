@@ -24,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.mrsdeores.repository.NotificationReadRepository;
 import com.mrsdeores.models.NotificationRead;
+import com.mrsdeores.services.RealTimeUpdateService;
 
 @RestController
 @RequestMapping("/api/admin/notifications")
@@ -44,6 +45,9 @@ public class AdminNotificationController {
 
     @Autowired
     private AdminNotificationReadRepository adminNotificationReadRepository;
+
+    @Autowired
+    private RealTimeUpdateService realTimeUpdateService;
 
     @GetMapping
     public ResponseEntity<?> getAllSentNotifications(@RequestParam(defaultValue = "0") int page,
@@ -124,6 +128,33 @@ public class AdminNotificationController {
         }
 
         Notification saved = notificationRepository.save(notification);
+
+        // Broadcast the new notification as a safe DTO to prevent
+        // LazyInitializationException
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", saved.getId());
+        dto.put("title", saved.getTitle());
+        dto.put("message", saved.getMessage());
+        dto.put("type", saved.getType());
+        dto.put("createdAt", saved.getCreatedAt() != null ? saved.getCreatedAt().toString() : null);
+        dto.put("isGlobal", saved.isGlobal());
+
+        if (!saved.isGlobal() && saved.getTargetUser() != null) {
+            dto.put("targetUserEmail", saved.getTargetUser().getEmail());
+            dto.put("targetUsername", saved.getTargetUser().getUsername());
+            dto.put("targetUserId", saved.getTargetUser().getId());
+        }
+        if (!saved.isGlobal() && saved.getTargetAdminUsername() != null) {
+            dto.put("targetAdminUsername", saved.getTargetAdminUsername());
+        }
+        if (saved.getSender() != null) {
+            dto.put("senderUsername", saved.getSender().getUsername());
+            dto.put("senderEmail", saved.getSender().getEmail());
+        }
+        dto.put("isRead", false); // Important for React state
+
+        realTimeUpdateService.broadcast("NEW_NOTIFICATION", dto);
+
         return ResponseEntity.ok(Map.of("message", "Notification sent successfully", "id", saved.getId()));
     }
 
@@ -182,6 +213,10 @@ public class AdminNotificationController {
         }
         // This globally deletes the notification from all users' inboxes (Rollback)
         notificationRepository.deleteById(id);
+
+        // Broadcast deletion event to clients
+        realTimeUpdateService.broadcast("NOTIFICATION_DELETED", Map.of("id", id));
+
         return ResponseEntity.ok(Map.of("message", "Notification rolled back and deleted globally"));
     }
 }

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import SEO from '../components/SEO';
 import { motion } from 'framer-motion';
-import api from '../services/api';
+import useSettingsStore from '../store/useSettingsStore';
 
 interface StoryChapter {
     id: string;
@@ -12,48 +12,18 @@ interface StoryChapter {
 }
 
 const AboutPage: React.FC = () => {
-    const [title, setTitle] = useState('Our Story');
-    const [tagline, setTagline] = useState('Made with love, served with tradition.');
-    const [description, setDescription] = useState('');
-    const [chapters, setChapters] = useState<StoryChapter[]>([]);
-    const [loading, setLoading] = useState(true);
+    const currentSettings = useSettingsStore(state => state.settings);
 
-    useEffect(() => {
-        const cached = localStorage.getItem('siteSettings');
-        if (cached) {
-            try {
-                const s = JSON.parse(cached);
-                if (s.story_title) setTitle(s.story_title);
-                if (s.story_tagline) setTagline(s.story_tagline);
-                if (s.story_description) setDescription(s.story_description);
-                if (s.story_chapters) setChapters(JSON.parse(s.story_chapters));
-            } catch (e) { }
+    const title = currentSettings?.story_title || 'Our Story';
+    const tagline = currentSettings?.story_tagline || 'Made with love, served with tradition.';
+    const description = currentSettings?.story_description || '';
+
+    let chapters: StoryChapter[] = [];
+    try {
+        if (currentSettings?.story_chapters) {
+            chapters = JSON.parse(currentSettings.story_chapters);
         }
-
-        api.get('/settings').then(res => {
-            const s = res.data;
-            if (s.story_title) setTitle(s.story_title);
-            if (s.story_tagline) setTagline(s.story_tagline);
-            if (s.story_description) setDescription(s.story_description);
-            try { if (s.story_chapters) setChapters(JSON.parse(s.story_chapters)); } catch { /**/ }
-
-            // Update shared cache
-            if (cached) {
-                const merged = { ...JSON.parse(cached), ...s };
-                localStorage.setItem('siteSettings', JSON.stringify(merged));
-            } else {
-                localStorage.setItem('siteSettings', JSON.stringify(s));
-            }
-        }).finally(() => setLoading(false));
-    }, []);
-
-    if (loading) return (
-        <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center font-serif italic text-primary animate-pulse text-2xl">
-                Opening Our Story...
-            </div>
-        </div>
-    );
+    } catch { }
 
     return (
         <div className="bg-background min-h-screen">

@@ -4,6 +4,7 @@ import { Search, Eye, Filter, Package, Truck, CheckCircle, Clock, AlertCircle, A
 import api from '../services/api';
 import type { Order } from '../types/Order';
 import { clsx } from 'clsx';
+import { useSSE } from '../hooks/useSSE';
 
 const AdminOrders: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
@@ -24,6 +25,26 @@ const AdminOrders: React.FC = () => {
             setLoading(false);
         }
     };
+
+    // ────────────────────────────────────────────────────────────────────
+    // Object Real-time Sync
+    // ────────────────────────────────────────────────────────────────────
+    const { events: sseEvents } = useSSE(['ORDER_UPDATED']);
+
+    useEffect(() => {
+        if (sseEvents['ORDER_UPDATED']) {
+            const updated = sseEvents['ORDER_UPDATED'];
+            setOrders(prev => {
+                if (prev.find(o => o.id === updated.id)) {
+                    // Update existing
+                    return prev.map(o => o.id === updated.id ? { ...o, ...updated } : o);
+                } else {
+                    // Prepend new order
+                    return [updated, ...prev];
+                }
+            });
+        }
+    }, [sseEvents['ORDER_UPDATED']]);
 
     const handleUpdateStatus = async (orderId: number, newStatus: string) => {
         let trackingNumber = '';

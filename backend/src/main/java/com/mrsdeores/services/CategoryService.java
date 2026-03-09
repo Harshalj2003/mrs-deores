@@ -7,11 +7,16 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private RealTimeUpdateService updateService;
 
     public List<Category> getAllCategories() {
         return categoryRepository.findAll();
@@ -22,7 +27,16 @@ public class CategoryService {
     }
 
     public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+        Category saved = categoryRepository.save(category);
+
+        // Broadcast the new category as a safe DTO
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", saved.getId());
+        dto.put("name", saved.getName());
+        dto.put("imageUrl", saved.getImageUrl());
+        updateService.broadcast("CATEGORY_CREATED", dto);
+
+        return saved;
     }
 
     public Optional<Category> updateCategory(Integer id, Category updatedData) {
@@ -33,13 +47,28 @@ public class CategoryService {
             existing.setDisplayOrder(updatedData.getDisplayOrder());
             existing.setGridSize(updatedData.getGridSize());
             existing.setViewMode(updatedData.getViewMode());
-            return categoryRepository.save(existing);
+            Category saved = categoryRepository.save(existing);
+
+            // Broadcast the update
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", saved.getId());
+            dto.put("name", saved.getName());
+            dto.put("imageUrl", saved.getImageUrl());
+            updateService.broadcast("CATEGORY_UPDATED", dto);
+
+            return saved;
         });
     }
 
     public boolean deleteCategory(Integer id) {
         if (categoryRepository.existsById(id)) {
             categoryRepository.deleteById(id);
+
+            // Broadcast deletion
+            Map<String, Object> dto = new HashMap<>();
+            dto.put("id", id);
+            updateService.broadcast("CATEGORY_DELETED", dto);
+
             return true;
         }
         return false;
