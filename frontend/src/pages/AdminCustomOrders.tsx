@@ -78,8 +78,9 @@ const AdminCustomOrders: React.FC = () => {
                     // Update existing
                     return prev.map(o => o.id === updated.id ? { ...o, ...updated } : o);
                 } else {
-                    // Prepend new request
-                    return [updated as any, ...prev];
+                    // It's a new request but we only have a partial DTO. Better to refetch to get all user data.
+                    fetchOrders();
+                    return prev;
                 }
             });
         }

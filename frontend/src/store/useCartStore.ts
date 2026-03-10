@@ -20,6 +20,11 @@ const useCartStore = create<CartState>()(
                 const existingItem = items.find((i) => i.product.id === product.id);
                 const user = AuthService.getCurrentUser();
 
+                const currentQty = existingItem ? existingItem.quantity : 0;
+                if (currentQty + quantity > product.stockQuantity) {
+                    throw new Error('STOCK_LIMIT_REACHED');
+                }
+
                 let newItems: CartItem[];
 
                 if (existingItem) {
@@ -64,6 +69,11 @@ const useCartStore = create<CartState>()(
                 if (quantity <= 0) {
                     get().removeItem(productId);
                     return;
+                }
+
+                const item = items.find(i => i.product.id === productId);
+                if (item && quantity > item.product.stockQuantity) {
+                    throw new Error('STOCK_LIMIT_REACHED');
                 }
 
                 const newItems = items.map((i) =>

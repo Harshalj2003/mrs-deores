@@ -1,5 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ChevronRight, ArrowLeft, Star, ShoppingBag, Truck, ShieldCheck,
@@ -12,6 +12,7 @@ import useWishlistStore from '../store/useWishlistStore';
 import ReviewSection from '../components/ReviewSection';
 import SEO from '../components/SEO';
 import { useSSE } from '../hooks/useSSE';
+import StockLimitModal from '../components/StockLimitModal';
 
 interface ProductDetailProps {
     currentUser?: any;
@@ -19,6 +20,7 @@ interface ProductDetailProps {
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
     const addItem = useCartStore(state => state.addItem);
     const { toggleItem, isInWishlist } = useWishlistStore();
 
@@ -28,6 +30,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [addingToCart, setAddingToCart] = useState(false);
+    const [limitModalOpen, setLimitModalOpen] = useState(false);
 
     // Listen for live product updates
     const { events } = useSSE(['PRODUCT_UPDATED']);
@@ -95,11 +98,18 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
         return <span className="flex items-center gap-1.5 text-red-600 dark:text-red-400 text-sm font-bold bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-full w-fit"><Package className="h-4 w-4" /> Out of Stock</span>;
     };
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (product.stockQuantity < 1) return;
         setAddingToCart(true);
-        addItem(product, quantity);
-        setTimeout(() => setAddingToCart(false), 600);
+        try {
+            await addItem(product, quantity);
+            setTimeout(() => setAddingToCart(false), 600);
+        } catch (error: any) {
+            setAddingToCart(false);
+            if (error.message === 'STOCK_LIMIT_REACHED') {
+                setLimitModalOpen(true);
+            }
+        }
     };
 
     const currentPrice = (product.bulkPrice && product.bulkMinQuantity && quantity >= product.bulkMinQuantity)
@@ -320,6 +330,15 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ currentUser }) => {
                 {/* Reviews Section */}
                 <ReviewSection productId={product.id} currentUser={currentUser} />
             </div>
+            <StockLimitModal
+                isOpen={limitModalOpen}
+                productName={product ? product.name : ''}
+                onClose={() => setLimitModalOpen(false)}
+                onConfirm={() => {
+                    setLimitModalOpen(false);
+                    navigate('/custom-order');
+                }}
+            />
         </div>
     );
 };
